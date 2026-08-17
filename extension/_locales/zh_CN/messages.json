@@ -1,22 +1,38 @@
 {
   "extensionName": {
-    "message": "Super Tab Out",
+    "message": "BrowseLoom",
     "description": "浏览器和商店列表中显示的扩展名称。"
   },
   "extensionDescription": {
-    "message": "一个本地优先的新标签页面板，用于通过标签过滤、隐私模式、主题和标签组整理打开的标签页。",
+    "message": "一个本地优先的浏览工作台，用于整理标签页、标签组、书签和会话，并提供隐私模式与主题。",
     "description": "浏览器和商店列表中显示的扩展简短描述。"
   },
   "commandOpenSidePanel": {
-    "message": "打开 Super Tab Out 侧边栏",
+    "message": "打开 BrowseLoom 侧边栏",
     "description": "打开侧边栏的快捷键说明。"
   },
   "commandSaveCurrentSession": {
-    "message": "保存当前 Super Tab Out 会话",
+    "message": "保存当前 BrowseLoom 会话",
     "description": "保存当前会话的快捷键说明。"
   },
   "commandTogglePrivacyMode": {
-    "message": "切换 Super Tab Out 隐私模式",
+    "message": "切换 BrowseLoom 隐私模式",
     "description": "切换隐私模式的快捷键说明。"
+  },
+  "commandToggleQuickReturn": {
+    "message": "在 BrowseLoom 与查看的标签页之间往返",
+    "description": "快速返回导航的快捷键说明。"
+  },
+  "commandToggleWorkspace": {
+    "message": "在标签管理与书签之间切换",
+    "description": "切换 BrowseLoom 工作区的快捷键说明。"
+  },
+  "commandBookmarkCurrentPage": {
+    "message": "收藏当前网页",
+    "description": "打开已预填书签草稿的快捷键说明。"
+  },
+  "actionBookmarkCurrentPage": {
+    "message": "收藏当前网页",
+    "description": "打开已预填书签草稿的工具栏按钮说明。"
   }
 }

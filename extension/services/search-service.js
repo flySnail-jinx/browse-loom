@@ -1,4 +1,4 @@
-/* Super Tab Out search service.
+/* BrowseLoom search service.
    Builds a unified local index for open tabs, saved tabs, and future sessions. */
 (function (global) {
   'use strict';
@@ -88,13 +88,16 @@
   }
 
   function makeSessionRecord(session) {
+    const windowTabs = Array.isArray(session.windows)
+      ? session.windows.flatMap(window => Array.isArray(window?.tabs) ? window.tabs : [])
+      : [];
     const explicitUrls = Array.isArray(session.urls) ? session.urls : [];
-    const tabUrls = Array.isArray(session.tabs) ? session.tabs.map(tab => tab.url).filter(Boolean) : [];
+    const legacyTabs = Array.isArray(session.tabs) ? session.tabs : [];
+    const tabs = windowTabs.length > 0 ? windowTabs : legacyTabs;
+    const tabUrls = tabs.map(tab => tab.url).filter(Boolean);
     const urls = [...explicitUrls, ...tabUrls].filter(Boolean);
     const domains = Array.from(new Set(urls.map(getDomain).filter(Boolean)));
-    const groupTitles = Array.isArray(session.tabs)
-      ? session.tabs.map(tab => tab.groupTitle).filter(Boolean)
-      : [];
+    const groupTitles = tabs.map(tab => tab.groupTitle).filter(Boolean);
     const group = [session.group, ...groupTitles].filter(Boolean).join(' ');
     return {
       id: `session:${session.id}`,

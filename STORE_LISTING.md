@@ -7,13 +7,13 @@ Use this document as copy-and-paste source material for the Chrome Web Store Dev
 **Name**
 
 ```text
-Super Tab Out
+BrowseLoom
 ```
 
 **Short description**
 
 ```text
-A local-first new tab dashboard for organizing open tabs with tab filtering, privacy mode, themes, and Chrome Tab Groups.
+A local-first workspace for tabs, bookmarks, saved sessions, and later-reading items.
 ```
 
 **Category**
@@ -28,12 +28,12 @@ Productivity
 English
 ```
 
-The extension UI supports both English and Simplified Chinese.
+The package includes English and Simplified Chinese extension metadata. Create matching localized store listings in the Developer Dashboard.
 
 ## Detailed Description
 
 ```text
-Super Tab Out replaces your new tab page with a local dashboard for open browser tabs.
+BrowseLoom replaces your new tab page with a local dashboard for open browser tabs.
 
 It helps you understand what is open, find the right tab faster, clean up duplicates, and close groups of tabs without accidentally touching pinned tabs.
 
@@ -44,19 +44,19 @@ Highlights:
 - Protect pinned tabs from bulk-close and duplicate-cleanup actions
 - Detect duplicate pages and close extras while keeping one copy
 - Save tabs for later in a local checklist
+- Organize plugin-local bookmarks and optionally import a read-only copy of browser bookmarks
+- Save the current window by default or explicitly save all windows
+- Restore a saved session into the current window or recreate its window structure
 - Switch between English and Simplified Chinese
-- Choose from 12 built-in visual themes
-- Use a three-column local tools workbench for JSON, URLs, codecs, timestamps, real QR SVGs, hashes, cookies, and session export
+- Choose from 14 built-in visual themes
 - Refresh automatically when tabs open, close, or navigate
 - Store preferences and saved tabs locally
 
 Privacy:
-Super Tab Out does not require an account, does not use analytics, does not sell data, and does not upload your tab list to a server. Saved tabs and preferences stay on your device. The extension may request favicons from DuckDuckGo's icon service and cache them locally for up to 7 days; users can disable external favicon requests in privacy settings.
-
-The local tools workbench processes user input inside the extension. It does not call a backend service.
+BrowseLoom does not require an account, does not use analytics, does not sell data, and does not upload your tab list to a server. Saved tabs and preferences stay on your device. The extension may request favicons from DuckDuckGo's icon service and cache them locally for up to 7 days; users can disable external favicon requests in privacy settings.
 
 Attribution:
-Super Tab Out is distributed under the Apache License 2.0. It is a derivative work based on Tab Out by Zara Zhang, which is licensed under the MIT License. Required upstream MIT notices are preserved in this project's NOTICE file. This project is not affiliated with Google, Chrome, Microsoft Edge, Brave, DuckDuckGo, or the original Tab Out author.
+BrowseLoom is distributed under the Apache License 2.0. It is a derivative work based on Super Tab Out by Sivan, which is licensed under Apache-2.0. Super Tab Out includes modified portions of Tab Out by Zara Zhang, which is licensed under the MIT License. Required upstream notices are preserved in this project's NOTICE file. This project is not affiliated with Google, Chrome, Microsoft Edge, Brave, DuckDuckGo, or the upstream authors.
 ```
 
 ## Single Purpose Statement
@@ -64,7 +64,7 @@ Super Tab Out is distributed under the Apache License 2.0. It is a derivative wo
 Use this in the Privacy tab if prompted.
 
 ```text
-Super Tab Out replaces the new tab page with a local dashboard for organizing, filtering, saving, and closing currently open browser tabs.
+BrowseLoom replaces the new tab page with a local workspace for organizing open tabs, saved sessions, later-reading items, and user-managed browser links.
 ```
 
 ## Permission Justifications
@@ -76,8 +76,9 @@ Use these explanations in the Privacy / Permissions sections if requested.
 | `tabs` | Required to read open tabs, display tab titles and URLs, focus selected tabs, close tabs, and create tab groups from the dashboard. |
 | `storage` | Required to store saved-for-later tabs, saved sessions, local stats, privacy settings, language, theme, and view preferences locally. |
 | `tabGroups` | Required to read, create, update, collapse, and ungroup Chrome Tab Groups. |
-| `sidePanel` | Required to provide the optional side panel command center while the user stays on the current webpage. |
+| `sidePanel` | Required to provide the optional side panel tab center while the user stays on the current webpage. |
 | `sessions` | Required to show and restore recently closed browser tabs/windows. |
+| `bookmarks` (optional) | Requested only when the user starts import, to read the current browser bookmark tree and copy supported links into BrowseLoom's local bookmark workspace. The browser's bookmarks are never changed. |
 
 ## Privacy Practices Answers
 
@@ -89,7 +90,6 @@ Suggested factual answers based on the current implementation:
 - The extension does not collect analytics or telemetry.
 - The extension stores saved tabs and preferences locally using browser storage.
 - The extension stores saved sessions, lightweight stats, and achievement flags locally using browser storage.
-- The extension stores local tool favorites, recent tools, and small per-tool drafts locally using browser storage.
 - The extension uses tab titles and URLs only to render and manage the local dashboard.
 - The extension uses `chrome.sessions` only to show and restore recently closed tabs/windows.
 - The extension requests favicons from `icons.duckduckgo.com` only when external favicons are enabled, and caches them locally.
@@ -99,13 +99,13 @@ Suggested factual answers based on the current implementation:
 **Homepage URL**
 
 ```text
-https://github.com/SivanCola/super-tab-out
+https://github.com/flySnail-jinx/browse-loom
 ```
 
 **Support URL**
 
 ```text
-https://github.com/SivanCola/super-tab-out/issues
+https://github.com/flySnail-jinx/browse-loom/issues
 ```
 
 **Privacy policy URL**
@@ -113,7 +113,7 @@ https://github.com/SivanCola/super-tab-out/issues
 After pushing `PRIVACY.md` to GitHub, use the public file URL:
 
 ```text
-https://github.com/SivanCola/super-tab-out/blob/main/PRIVACY.md
+https://github.com/flySnail-jinx/browse-loom/blob/main/PRIVACY.md
 ```
 
 ## Screenshot Checklist
@@ -141,7 +141,7 @@ Chrome Web Store screenshots should show the extension's actual UI. Recommended 
 4. **Theme picker**
    - Upload: `store-assets/screenshot-4-themes.jpg`
    - Open the theme menu.
-   - Show the 12 available palettes.
+   - Show the 14 available palettes.
    - Demonstrates customization.
 
 5. **Chinese UI**
@@ -160,7 +160,7 @@ Chrome Web Store screenshots should show the extension's actual UI. Recommended 
 - Use a clean browser profile with non-sensitive tabs.
 - Avoid showing personal email addresses, account names, private docs, or internal work tabs.
 - Use demo pages such as:
-  - `https://github.com/SivanCola/super-tab-out`
+  - `https://github.com/flySnail-jinx/browse-loom`
   - `https://example.com`
   - `https://developer.chrome.com/docs/extensions/`
   - `https://news.ycombinator.com`
@@ -187,7 +187,8 @@ These files are generated in this repository and can be uploaded directly:
 Before uploading:
 
 - `manifest.json` is at the root of the ZIP.
-- The ZIP contains `app.js`, `background.js`, `index.html`, `style.css`, `theme-init.js`, `sidepanel.html`, `sidepanel.css`, `sidepanel.js`, `tools.html`, `tools.css`, `tools.js`, `services/`, and `icons/`.
+- Run `npm run validate`; it rebuilds both artifacts and verifies every packaged file against the current source.
+- The ZIP contains `app.js`, `background.js`, `index.html`, `style.css`, `theme-init.js`, `sidepanel.html`, `sidepanel.css`, `sidepanel.js`, the declared `services/`, locales, backgrounds, vendor Three.js files, notices, and icons.
 - The ZIP does not contain `.git`, `.omx`, `.DS_Store`, `__MACOSX`, or personal `config.local.js`.
 - The version in `manifest.json` is correct for this release.
 - The extension was loaded locally and smoke-tested after packaging.

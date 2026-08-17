@@ -9,8 +9,7 @@ importScripts(
   'services/url-service.js',
   'services/storage-service.js',
   'services/tabs-service.js',
-  'services/search-service.js',
-  'services/tools-service.js'
+  'services/search-service.js'
 );
 
 const INTERNAL_URL_PREFIXES = ['chrome://', 'chrome-extension://', 'about:', 'edge://', 'brave://'];
@@ -49,20 +48,79 @@ async function openSidePanel(tab) {
 
 async function configureActionClickBehavior() {
   try {
-    // Toolbar clicks open the Tools workbench; side panel stays on commands/omnibox.
+    // The toolbar action owns quick bookmark capture instead of the side panel.
     await chrome.sidePanel?.setPanelBehavior?.({ openPanelOnActionClick: false });
   } catch {}
 }
 
-async function openToolsPage() {
-  await chrome.tabs.create({ url: chrome.runtime.getURL('tools.html?tool=url') });
+function isBookmarkablePageUrl(value) {
+  try {
+    return ['http:', 'https:'].includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
+}
+
+async function openCurrentPageBookmarkDraft(sourceTab) {
+  const tab = sourceTab?.id ? sourceTab : (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0];
+  const token = crypto.randomUUID();
+  const storageKey = `bookmarkCapture:${token}`;
+  const supported = isBookmarkablePageUrl(tab?.url);
+  const draft = {
+    url: supported ? tab.url : '',
+    title: supported ? (tab.title || tab.url) : '',
+    supported,
+    createdAt: new Date().toISOString(),
+  };
+  await chrome.storage.session.set({ [storageKey]: draft });
+  try {
+    await chrome.tabs.create({ url: chrome.runtime.getURL(`index.html?bookmarkCapture=${encodeURIComponent(token)}`) });
+  } catch (error) {
+    await chrome.storage.session.remove(storageKey);
+    throw error;
+  }
+}
+
+async function consumeBookmarkCapture(token, sender) {
+  if (!/^[0-9a-f-]{36}$/i.test(String(token || ''))) return null;
+  if (!String(sender?.url || '').startsWith(chrome.runtime.getURL('index.html'))) return null;
+  const storageKey = `bookmarkCapture:${token}`;
+  const stored = await chrome.storage.session.get(storageKey);
+  await chrome.storage.session.remove(storageKey);
+  return stored[storageKey] || null;
 }
 
 function normalizeRestorableUrl(url) {
   return self.SuperTabOutUrls?.normalizeRestorableUrl?.(url) || '';
 }
 
-async function saveCurrentSession(scope = 'all') {
+function buildSessionWindows(realTabs, groupInfo) {
+  const byWindow = new Map();
+  for (const tab of realTabs) {
+    if (!byWindow.has(tab.windowId)) byWindow.set(tab.windowId, []);
+    byWindow.get(tab.windowId).push(tab);
+  }
+  return Array.from(byWindow.values()).map((windowTabs, windowIndex) => {
+    const groupKeys = new Map();
+    return {
+      index: windowIndex,
+      tabs: windowTabs.map((tab, tabIndex) => {
+        const group = groupInfo.get(tab.groupId);
+        if (group && !groupKeys.has(tab.groupId)) groupKeys.set(tab.groupId, `group-${groupKeys.size + 1}`);
+        return {
+          url: tab.url,
+          title: tab.title || tab.url,
+          index: tabIndex,
+          groupKey: group ? groupKeys.get(tab.groupId) : '',
+          groupTitle: group?.title || '',
+          groupColor: group?.color || '',
+        };
+      }),
+    };
+  });
+}
+
+async function saveCurrentSession(scope = 'currentWindow') {
   const tabs = await chrome.tabs.query(scope === 'currentWindow' ? { currentWindow: true } : {});
   const realTabs = tabs.filter(isRealWebTab).sort((a, b) => {
     if (a.windowId !== b.windowId) return a.windowId - b.windowId;
@@ -82,22 +140,11 @@ async function saveCurrentSession(scope = 'all') {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: `Session ${new Date().toLocaleString()}`,
     savedAt: new Date().toISOString(),
-    tabs: realTabs.map(tab => {
-      const group = groupInfo.get(tab.groupId);
-      return {
-        url: tab.url,
-        title: tab.title || tab.url,
-        pinned: tab.pinned === true,
-        windowId: tab.windowId,
-        index: tab.index,
-        groupTitle: group?.title || '',
-        groupColor: group?.color || '',
-      };
-    }),
-    urls: realTabs.map(tab => tab.url),
+    windows: buildSessionWindows(realTabs, groupInfo),
   };
 
-  await self.SuperTabOutStorage.addSavedSession(session);
+  const saved = await self.SuperTabOutStorage.addSavedSession(session);
+  if (!saved) throw new Error('session-empty');
   await self.SuperTabOutStorage.recordActivity({ type: 'sessionSaved', count: 1 });
   return session;
 }
@@ -111,14 +158,6 @@ async function broadcastToExtensionPages(message) {
 }
 
 async function buildOmniboxSuggestions(query) {
-  const toolQuery = query.replace(/^tool\s+/i, '').trim();
-  const toolSuggestions = self.SuperTabOutTools.searchTools(toolQuery || query, { lang: 'en' })
-    .slice(0, 3)
-    .map(tool => ({
-      content: `tool:${tool.id}`,
-      description: `TOOL ${escapeOmnibox(tool.title)} <dim>${escapeOmnibox(tool.description)}</dim>`,
-    }));
-
   const tabs = (await self.SuperTabOutTabs.fetchOpenTabs()).filter(tab => self.SuperTabOutTabs.isRealTab(tab, chrome.runtime.id));
   const groups = await self.SuperTabOutTabs.fetchTabGroups();
   const saved = await self.SuperTabOutStorage.getSavedTabs();
@@ -135,7 +174,7 @@ async function buildOmniboxSuggestions(query) {
       content: record.type === 'tab' ? `tab:${record.url}` : record.type === 'saved' ? `url:${record.url}` : `session:${record.source.id}`,
       description: `${record.type.toUpperCase()} ${escapeOmnibox(record.title)} <dim>${escapeOmnibox(record.domain || record.url || '')}</dim>`,
     }));
-  return [...toolSuggestions, ...searchSuggestions].slice(0, 6);
+  return searchSuggestions.slice(0, 6);
 }
 
 function escapeOmnibox(text) {
@@ -146,16 +185,6 @@ function escapeOmnibox(text) {
 }
 
 async function handleOmniboxSelection(text) {
-  if (text.startsWith('tool:')) {
-    await chrome.tabs.create({ url: chrome.runtime.getURL(`tools.html?tool=${encodeURIComponent(text.slice(5))}`) });
-    return;
-  }
-  if (/^tool\s+/i.test(text)) {
-    const query = text.replace(/^tool\s+/i, '').trim();
-    const tool = self.SuperTabOutTools.searchTools(query, { lang: 'en' })[0];
-    await chrome.tabs.create({ url: chrome.runtime.getURL(`tools.html${tool ? `?tool=${encodeURIComponent(tool.id)}` : ''}`) });
-    return;
-  }
   if (text === 'sidepanel' || text === 'panel') {
     await openSidePanel();
     return;
@@ -207,7 +236,7 @@ chrome.runtime.onInstalled.addListener(() => {
   updateBadge();
   configureActionClickBehavior();
   chrome.omnibox.setDefaultSuggestion({
-    description: 'Search Super Tab Out tabs, saved items, and sessions. Try "panel" or "save".',
+    description: 'Search BrowseLoom tabs, saved items, and sessions. Try "panel" or "save".',
   });
 });
 
@@ -215,18 +244,30 @@ chrome.runtime.onStartup.addListener(() => {
   updateBadge();
   configureActionClickBehavior();
 });
-chrome.action.onClicked.addListener(openToolsPage);
+chrome.action.onClicked.addListener(openCurrentPageBookmarkDraft);
 chrome.tabs.onCreated.addListener(updateBadge);
 chrome.tabs.onRemoved.addListener(updateBadge);
 chrome.tabs.onUpdated.addListener(updateBadge);
 
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command === 'open-side-panel') {
-    await openSidePanel();
-  } else if (command === 'save-current-session') {
-    await saveCurrentSession();
-  } else if (command === 'toggle-privacy-mode') {
-    await broadcastToExtensionPages({ type: 'toggle-privacy-mode' });
+chrome.commands.onCommand.addListener(async (command, tab) => {
+  try {
+    if (command === 'open-side-panel') {
+      await openSidePanel();
+    } else if (command === 'save-current-session') {
+      await saveCurrentSession();
+    } else if (command === 'toggle-privacy-mode') {
+      await broadcastToExtensionPages({ type: 'toggle-privacy-mode' });
+    } else if (command === 'toggle-quick-return') {
+      await self.SuperTabOutTabs.toggleQuickReturn(tab);
+    } else if (command === 'toggle-workspace') {
+      const targetTab = tab || (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0];
+      if (!targetTab?.id) return;
+      try { await chrome.runtime.sendMessage({ type: 'toggle-workspace', targetTabId: targetTab.id }); } catch {}
+    } else if (command === 'bookmark-current-page') {
+      await openCurrentPageBookmarkDraft(tab);
+    }
+  } catch (error) {
+    console.error('[super-tab-out] Command failed', { command, code: error?.code || '', message: error?.message || String(error) });
   }
 });
 
@@ -234,15 +275,14 @@ chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
   try {
     const suggestions = await buildOmniboxSuggestions(text);
     suggest([
-      { content: 'sidepanel', description: 'Open <match>Super Tab Out</match> side panel' },
+      { content: 'sidepanel', description: 'Open <match>BrowseLoom</match> side panel' },
       { content: 'save-session', description: 'Save current browsing session' },
       { content: 'dedupe', description: 'Clean duplicate open tabs' },
-      { content: 'privacy', description: 'Toggle privacy mode on Super Tab Out pages' },
-      { content: 'tool:json', description: 'Open <match>JSON</match> local tool' },
+      { content: 'privacy', description: 'Toggle privacy mode on BrowseLoom pages' },
       ...suggestions,
     ]);
   } catch {
-    suggest([{ content: 'sidepanel', description: 'Open Super Tab Out side panel' }]);
+    suggest([{ content: 'sidepanel', description: 'Open BrowseLoom side panel' }]);
   }
 });
 
@@ -256,17 +296,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       await openSidePanel(sender.tab);
       sendResponse({ ok: true });
     } else if (message?.type === 'save-current-session') {
-      const session = await saveCurrentSession(message.scope || 'all');
+      const session = await saveCurrentSession(message.scope || 'currentWindow');
       sendResponse({ ok: true, session });
     } else if (message?.type === 'restore-saved-session') {
       const sessions = await self.SuperTabOutStorage.getSavedSessions();
       const session = sessions.find(item => item.id === message.id);
-      const restored = session ? await self.SuperTabOutTabs.restoreSavedSession(session, { focused: true }) : null;
+      const restored = session ? await self.SuperTabOutTabs.restoreSavedSession(session, {
+        focused: true,
+        mode: message.mode === 'originalWindows' ? 'originalWindows' : 'currentWindow',
+      }) : null;
       sendResponse({ ok: !!restored, restored });
+    } else if (message?.type === 'consume-bookmark-capture') {
+      const draft = await consumeBookmarkCapture(message.token, sender);
+      sendResponse({ ok: !!draft, draft });
     } else {
       sendResponse({ ok: false });
     }
-  })();
+  })().catch(error => {
+    console.error('[super-tab-out] Message failed', {
+      type: message?.type || '',
+      code: error?.code || '',
+      message: error?.message || String(error),
+    });
+    sendResponse({ ok: false, error: error?.code || error?.message || 'operation-failed' });
+  });
   return true;
 });
 

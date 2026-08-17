@@ -1,12 +1,20 @@
-# Super Tab Out
+<div align="center">
+
+<img src="./brand/browseloom-mark.png" alt="BrowseLoom logo" width="112">
+
+# BrowseLoom
+
+</div>
 
 [English](./README.md) · 简体中文
 
-**一个面向 Chromium 浏览器的本地新标签页控制台。**
+**一个安静、本地优先的 Chrome 浏览工作台。**
 
-Super Tab Out 会替换默认新标签页，把你打开的标签集中成一个清爽的可视化面板。它支持按域名分组，也支持按 Chrome 原生 Tab Groups 分组；同时提供固定标签保护、本地标签过滤、隐私模式、中英文界面和更丰富的主题选择。
+BrowseLoom 把打开的标签页、Chrome 原生 Tab Groups、本地书签、已保存会话和稍后阅读内容集中到一个可视化工作区。它会替换默认新标签页，并提供可选侧边栏、固定标签保护和本地数据存储。
 
 不需要服务器。不需要账号。不做遥测。没有构建步骤。加载 `extension/` 文件夹即可使用。
+
+最低要求 Chrome 116。Edge、Brave 在具备同等 Manifest V3 能力时可能可用，但不属于发布承诺。
 
 版本记录见 [`CHANGELOG.zh-CN.md`](./CHANGELOG.zh-CN.md)。
 
@@ -15,13 +23,14 @@ Super Tab Out 会替换默认新标签页，把你打开的标签集中成一个
 ## 核心优势
 
 - **文字优先的控制台布局**：新标签页层级更清楚，右上角控件更集中，页头不再重复品牌名称。
+- **独立书签桌面**：按左箭头进入插件内书签页；主页是内置默认分类，左侧可新增带图标的分类，并支持备注、搜索、图标/列表视图以及最近/热门两列。
+- **一键导入浏览器书签**：从书签页左下角齿轮导入当前 Chrome 或 Edge 配置文件的书签；仅在开始导入时申请权限，深层文件夹直接平铺且不改名，重复导入只补充新增内容。
+- **可变规格文件夹看板**：每个分类都支持 1×1、2×1、2×2 文件夹；书签可拖入、拖出或通过“移动”菜单跨分类整理，删除文件夹或分类时会保留其中书签。
 - **两种组织方式**：可在域名分组和 Chrome 原生 Tab Groups 视图之间切换。
 - **快速过滤标签**：按 `/` 后可实时过滤卡片、标签、URL 和分组名。
 - **搜索过滤语法**：支持 `domain:`、`group:`、`url:` 和 `saved:`，并高亮匹配内容。
-- **侧边栏控制台**：不离开当前网页也能搜索、跳转、稍后再看、关闭、清理重复、恢复最近关闭标签和使用本地工具。
-- **停靠式 Command Center**：桌面布局中可从紧凑 dock 一键打开工具，并支持收藏工具排序。
-- **借鉴 FeHelper 的本地工具箱**：可从工具栏图标、Command Center 或地址栏打开三栏完整工具工作台，覆盖 JSON、URL 解析、编解码、时间戳、真实二维码 SVG、UUID/密码、Hash、Cookie 和会话导出。
-- **快捷键与地址栏入口**：在地址栏输入 `sto` 可搜索或执行动作，也可用 commands 打开侧边栏、保存会话和切换隐私模式。
+- **侧边栏标签中心**：不离开当前网页也能搜索、跳转、稍后再看、关闭、清理重复、恢复最近关闭标签，并保存当前窗口或全部窗口。
+- **快捷键与地址栏入口**：在地址栏输入 `loom` 可搜索或执行动作，也可用 commands 打开侧边栏、保存会话和切换隐私模式。
 - **无障碍与动效控制**：图标按钮补齐可访问标签，标签 chip 支持键盘触发，并尊重系统减少动态效果设置。
 - **适合屏幕共享的隐私模式**：点击锁图标或按 `Esc`，把标签面板隐藏成简洁的时钟屏幕。
 - **固定标签保护**：固定标签不会出现在卡片、统计、重复清理或批量关闭动作中。
@@ -30,20 +39,21 @@ Super Tab Out 会替换默认新标签页，把你打开的标签集中成一个
 - **自动刷新**：打开、关闭、跳转标签以及分组变化都会自动刷新面板。
 - **中英文界面**：可在设置中切换 English / 简体中文。
 - **更多主题，更好切换**：内置 14 套主题，并集中在轻量设置面板中。
+- **可切换的本地背景**：可选流光液体、光束、棱镜或低功耗静态背景；只运行当前选中的渲染器，选择仅保存在本机。
 - **本地优先的隐私策略**：设置和保存的标签都留在你的机器上。
 
 ---
 
 ## 界面与控件
 
-![Super Tab Out 仪表盘](./store-assets/screenshot-1-dashboard.jpg)
+![BrowseLoom 仪表盘](./store-assets/screenshot-1-dashboard.jpg)
 
 页头只保留问候语和日期，不再重复展示产品名。产品身份保留在浏览器 UI 和页脚中，让新标签页更轻。
 
 右上角控件保持紧凑：
 
 - **锁图标**：切换隐私模式。
-- **设置**：打开语言、主题、字体和隐私屏幕选项。
+- **设置**：打开语言、主题、背景、字体和隐私屏幕选项。
 
 内置主题：
 
@@ -81,8 +91,8 @@ Super Tab Out 会替换默认新标签页，把你打开的标签集中成一个
 1. 克隆仓库：
 
 ```bash
-git clone https://github.com/SivanCola/super-tab-out.git
-cd super-tab-out
+git clone https://github.com/flySnail-jinx/browse-loom.git
+cd browse-loom
 ```
 
 2. 打开浏览器扩展管理页：
@@ -126,7 +136,7 @@ tools/chrome-for-testing/
 npm run dev:host
 ```
 
-脚本默认会在每次启动时准备一组可重复的手动回归场景：置顶主页、重复 URL、原生 Chrome Tab Groups、折叠分组、混合未分组标签页、最近关闭标签页、稍后再看条目、已保存会话、活动统计、成就，以及本地工具的收藏和状态。再次运行 `npm run dev:host` 时会先清理上一轮 seed 出来的标签页，再重新创建，避免测试标签越堆越多。
+脚本默认会在每次启动时准备一组可重复的手动回归场景：置顶主页、重复 URL、原生 Chrome Tab Groups、折叠分组、混合未分组标签页、最近关闭标签页、稍后再看条目、已保存会话、活动统计和成就。再次运行 `npm run dev:host` 时会先清理上一轮 seed 出来的标签页，再重新创建，避免测试标签越堆越多。
 
 需要干净浏览器时使用 `scripts/launch-chrome-testing.sh --no-seed-tabs`，需要重置测试资料并重新生成场景时使用 `--reset-profile`。
 
@@ -137,11 +147,11 @@ npm run dev:host
 扩展仍然不需要构建步骤，但仓库现在提供轻量本地检查：
 
 ```bash
-node tests/run-tests.mjs
-node scripts/validate-extension.mjs
+npm test
+npm run validate
 ```
 
-校验脚本会检查 `manifest.json`、扩展脚本语法、服务脚本加载顺序，以及商店 ZIP 中是否误包含本地调试文件。
+`npm run validate` 会先重新生成两个商店 ZIP，再检查 `manifest.json`、脚本语法、服务加载顺序、ZIP 精确白名单，以及包内每个文件与当前源码的 SHA-256 内容是否一致。
 
 ---
 
@@ -154,8 +164,10 @@ node scripts/validate-extension.mjs
 | 其他位置按 `Esc` | 切换隐私模式 |
 | `Ctrl/Cmd + Shift + G` | 切换 Groups / Domains 视图 |
 | `Ctrl/Cmd + Shift + Y` | 打开 Side Panel |
+| `Ctrl + Shift + D` | 收藏当前网页并打开预填的书签编辑栏 |
+| `Ctrl + Shift + Z` | 在 BrowseLoom 与刚才查看的标签页之间往返 |
 
-地址栏关键字：输入 `sto` 后接查询或动作，例如 `panel`、`save-session`、`dedupe`、`privacy`。
+地址栏关键字：输入 `loom` 后接查询或动作，例如 `panel`、`save-session`、`dedupe`、`privacy`。
 
 ---
 
@@ -163,13 +175,14 @@ node scripts/validate-extension.mjs
 
 ### 标签面板
 
-Super Tab Out 通过 `chrome.tabs.query({})` 读取打开的标签，过滤浏览器内部页面，并渲染为更容易操作的卡片：
+BrowseLoom 通过 `chrome.tabs.query({})` 读取打开的标签，过滤浏览器内部页面，并渲染为更容易操作的卡片：
 
 - 普通网页按域名组成卡片
 - Gmail、X、YouTube、LinkedIn、GitHub 等首页归入 Homepages 卡片
 - 可切换到 Chrome Tab Groups 视图
 - 重复 URL 会显示重复标记
 - localhost 会显示端口号，方便区分本地项目
+- 点击标签页查看后，可用 `Ctrl + Shift + Z` 在目标标签与控制台之间往返；浏览器会话内只在内存中暂存标签页/窗口 ID
 
 ### 搜索
 
@@ -184,26 +197,19 @@ Super Tab Out 通过 `chrome.tabs.query({})` 读取打开的标签，过滤浏�
 
 ### Side Panel
 
-侧边栏让你停留在当前网页时也能使用 Super Tab Out：
+侧边栏让你停留在当前网页时也能使用 BrowseLoom：
 
 - 搜索打开的标签、稍后再看条目和已保存会话
-- 通过 `Ctrl/Cmd + Shift + Y` 或 `sto panel` 等地址栏动作打开
+- 通过 `Ctrl/Cmd + Shift + Y` 或 `loom panel` 等地址栏动作打开
 - 跳转到标签、保存稍后再看或关闭标签
 - 清理重复标签并保留一份
 - 通过 `chrome.sessions` 恢复浏览器最近关闭的标签/窗口
-- 保存当前浏览会话
+- 默认保存当前窗口，也可显式保存全部窗口
 - 查看 Tab Health、本周统计、常见域名和整理成就
-- 使用带收藏、最近使用、当前标签 URL 快捷入口和完整工具页跳转的本地工具目录
-
-### 本地工具
-
-完整 Tools 工作台可从扩展工具栏图标、Command Center 打开，也可通过地址栏命令，例如 `sto tool json` 打开。
-
-首批工具全部本地运行：JSON 格式化/压缩/校验并提供树状预览和错误诊断、URL 解析参数表、Base64/Unicode/HTML Entity、时间戳和 FILETIME 卡片、真实二维码 SVG、UUID/随机密码、MD5/SHA Hash、Cookie 转 JSON，以及会话导出为 JSON、Markdown 或 URL 列表。
 
 ### Chrome Tab Groups
 
-域名卡片可以创建原生 Chrome Tab Groups。分组卡片支持重命名、改色、折叠/展开、解除分组和保存为会话。保存的会话会出现在主界面的“已保存会话”卡片中，恢复时会在当前窗口重新打开标签页并重建 Chrome 标签分组。
+域名卡片可以创建原生 Chrome Tab Groups。分组卡片支持重命名、改色、折叠/展开、解除分组和保存为会话。固定标签不会进入会话；会话会保留窗口结构但不保存 Chrome 窗口 ID。恢复默认合并到当前窗口，也可显式按原窗口结构重新创建窗口。
 
 ### 关闭逻辑
 
@@ -234,7 +240,7 @@ Super Tab Out 通过 `chrome.tabs.query({})` 读取打开的标签，过滤浏�
 
 ## 隐私说明
 
-Super Tab Out 采用本地优先设计。
+BrowseLoom 采用本地优先设计。
 
 本地保存的数据包括：
 
@@ -255,8 +261,7 @@ Super Tab Out 采用本地优先设计。
 
 隐私模式不提供网页搜索框，也不会更改浏览器搜索服务提供商。
 
-商店上传包通过 `npm run package` 生成在本地 `dist/` 目录。
-ZIP 文件会被 Git 忽略，应从本地工作区上传到 Chrome Web Store / Edge Add-ons，不再提交到 GitHub。
+商店上传包通过 `npm run package` 生成在本地 `dist/` 目录。Chrome 包是正式支持的发布产物；Edge 包只作为能力兼容的便利产物。ZIP 文件会被 Git 忽略，不应提交到 GitHub。
 
 ---
 
@@ -271,6 +276,7 @@ ZIP 文件会被 Git 忽略，应从本地工作区上传到 Chrome Web Store / 
 | `tabGroups` | 读取、展示、创建、更新、折叠和取消 Chrome Tab Groups |
 | `sidePanel` | 显示侧边栏控制台 |
 | `sessions` | 展示并恢复最近关闭的浏览器标签/窗口 |
+| `bookmarks`（可选） | 仅在用户主动导入时读取当前浏览器书签树，不会修改浏览器中的原始书签 |
 
 ---
 
@@ -285,20 +291,20 @@ ZIP 文件会被 Git 忽略，应从本地工作区上传到 Chrome Web Store / 
 | 动画 | CSS transitions 和 JavaScript 粒子 |
 | 构建 | 无 |
 
-所有核心逻辑都在本地扩展内运行。后台 service worker 负责浏览器级入口，包括工具栏 Tools 快捷入口、角标、commands、地址栏动作、侧边栏和轻量会话动作。
+所有核心逻辑都在本地扩展内运行。后台 service worker 负责浏览器级入口，包括工具栏网页收藏、角标、commands、地址栏动作、侧边栏和轻量会话动作。
 
 ---
 
 ## 致谢与许可
 
-Super Tab Out 按 Apache License 2.0 分发。
+BrowseLoom 按 Apache License 2.0 分发。
 
-本项目是基于 **Zara Zhang** 的 **[Tab Out](https://github.com/zarazhangrui/tab-out)** 的衍生作品；原项目使用 MIT License。
+本项目是基于 **Sivan** 的 **[Super Tab Out](https://github.com/SivanCola/super-tab-out)** 的衍生作品，上游采用 Apache-2.0。Super Tab Out 又包含对 **Zara Zhang** 的 **[Tab Out](https://github.com/zarazhangrui/tab-out)** 的修改部分，Tab Out 使用 MIT License。
 
 Apache-2.0 协议全文位于 [`LICENSE`](./LICENSE)。上游 MIT 的必要版权和许可声明保留在 [`NOTICE`](./NOTICE)。请不要从实质性复制或分发版本中移除这些声明。
 
 本分叉在此基础上加入了安全加固、Manifest V3 更新、跨浏览器新标签识别、固定标签保护、Chrome Tab Groups 视图、中英文界面、扩展主题、隐私模式、标签过滤、favicon 缓存以及本地优先的稍后再看流程。
 
-本项目不隶属于 Google、Chrome、Microsoft Edge、Brave、DuckDuckGo 或原 Tab Out 作者。相关产品名和服务名仅用于说明兼容性或必要署名。
+本项目不隶属于 Google、Chrome、Microsoft Edge、Brave、DuckDuckGo 或任何上游作者。相关产品名和服务名仅用于说明兼容性或必要署名。
 
 Apache-2.0。详见 [`LICENSE`](./LICENSE) 和 [`NOTICE`](./NOTICE)。

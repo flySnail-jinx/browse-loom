@@ -2,9 +2,39 @@
 
 English · [简体中文](./CHANGELOG.zh-CN.md)
 
-All notable changes to Super Tab Out are tracked here.
+All notable changes to BrowseLoom are tracked here.
 
-## Unreleased
+## 1.1.0 - 2026-08-17
+
+### Added
+
+- Added a new woven BrowseLoom logo and regenerated the 16 px, 48 px, and 128 px extension icons.
+- Added a maintainable background switcher in Appearance settings with Liquid Glow, React Bits-inspired Light Rays and Prism, plus a static low-power option. Backgrounds are registered independently, persisted locally, and clean up their canvas, animation loop, observers, listeners, and WebGL context when switched.
+- Added an independent, plugin-local bookmark workspace reached with the left arrow. Home is the built-in default category, with icon categories in the left rail, icon/list views, notes, search, recently opened and most-opened columns.
+- Added a bottom-left bookmark settings gear with one-click import from the current Chrome or Edge profile. The optional permission is requested only on import; deeper native folders are flattened without renaming, repeated imports are idempotent, and unsupported non-HTTP(S) entries are reported without being stored.
+- Added custom bookmark and folder creation, online or solid-color icons, 1×1 / 2×1 / 2×2 folder boards, wheel/button paging, full-folder expansion, cross-category movement, drag-in/drag-out, reorder, safe delete, and undo flows.
+- Changed the toolbar action to capture the current page and added `Ctrl + Shift + D`; an ephemeral session draft prefills the bookmark editor with the title, URL, Unfiled category, category root, and online icon.
+- Added `Ctrl + Shift + Z` quick return navigation between BrowseLoom and the tab opened from its dashboard. The route stores tab/window IDs in memory-only session storage and does not capture page content.
+
+### Changed
+
+- Rebranded the product from Super Tab Out to BrowseLoom, moved the project to `flySnail-jinx/browse-loom`, renamed release archives to `browse-loom-*`, and changed the omnibox keyword from `sto` to `loom`.
+- Scoped the product and store package to tab, session, later-reading, and local bookmark workflows; removed the unrelated general-purpose tools workbench and dock.
+- Saved sessions now use an explicit `windows[]` structure, exclude pinned tabs, default to the current window, and offer explicit all-window save and window-structure restore actions.
+- Set the minimum supported Chrome version to 116. Edge and Brave remain capability-compatible targets without a release commitment.
+- Unified package and validation file lists. Validation now rebuilds artifacts and compares every ZIP entry against current source content.
+
+### Removed
+
+- Removed temporary bookmark/glass prototypes and the temporary bookmark acceptance server from the working tree after acceptance.
+
+### Fixed
+
+- Saved-for-later removal now physically deletes the item and offers a short in-memory undo action.
+- Storage mutations now coordinate across extension pages and the service worker with a same-origin Web Lock, preventing lost bookmark updates.
+- Older code now fails closed on a newer storage schema and cannot overwrite forward-version data.
+- Recognized browser-reported new-tab URLs such as `chrome://newtab/` as the BrowseLoom dashboard so quick return routes are recorded correctly.
+- Replaced the accepted-but-unreliable `Ctrl + Shift + Space` default with `Ctrl + Shift + Z` after live Chrome verification showed that the Space combination was not dispatched to the extension.
 
 ## 1.0.9 - 2026-05-20
 

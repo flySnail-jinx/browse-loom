@@ -35,13 +35,13 @@ const TAB_GROUPS = [
     ],
   },
   {
-    title: 'Build - Super Tab Out',
+    title: 'Build - BrowseLoom',
     color: 'green',
     collapsed: false,
     urls: [
-      'https://github.com/SivanCola/super-tab-out',
-      'https://github.com/SivanCola/super-tab-out/issues',
-      'https://github.com/SivanCola/super-tab-out/pulls',
+      'https://github.com/flySnail-jinx/browse-loom',
+      'https://github.com/flySnail-jinx/browse-loom/issues',
+      'https://github.com/flySnail-jinx/browse-loom/pulls',
       'https://github.com/zarazhangrui/tab-out',
     ],
   },
@@ -77,7 +77,7 @@ const UNGROUPED_TABS = [
   'https://example.org/',
 ];
 
-const RECENTLY_CLOSED_URL = 'https://example.com/super-tab-out-recently-closed';
+const RECENTLY_CLOSED_URL = 'https://example.com/browse-loom-recently-closed';
 const SEED_URLS = [
   ...PINNED_TABS.map(tab => tab.url),
   ...TAB_GROUPS.flatMap(group => group.urls),
@@ -115,6 +115,8 @@ function buildSeedStorage() {
   const seededAt = new Date().toISOString();
   const currentWeek = weekKey();
 
+  // Intentionally seed a pre-v7 snapshot so browser acceptance also exercises
+  // migration of legacy dismissed items and flat saved-session records.
   return {
     storageSchemaVersion: 2,
     storageLastMigratedAt: seededAt,
@@ -156,7 +158,7 @@ function buildSeedStorage() {
       },
       {
         id: 'seed-deferred-finished-release',
-        url: 'https://github.com/SivanCola/super-tab-out/releases',
+        url: 'https://github.com/flySnail-jinx/browse-loom/releases',
         title: 'Release notes already checked',
         savedAt: isoMinutesAgo(60 * 48),
         completed: true,
@@ -165,7 +167,7 @@ function buildSeedStorage() {
       },
       {
         id: 'seed-deferred-dismissed-archive',
-        url: 'https://example.com/super-tab-out-dismissed-seed',
+        url: 'https://example.com/browse-loom-dismissed-seed',
         title: 'Dismissed seed item',
         savedAt: isoMinutesAgo(60 * 72),
         completed: false,
@@ -193,16 +195,16 @@ function buildSeedStorage() {
             groupTitle: 'Research - Chrome APIs',
           },
           {
-            url: 'https://github.com/SivanCola/super-tab-out/issues',
+            url: 'https://github.com/flySnail-jinx/browse-loom/issues',
             title: 'Issue queue',
             pinned: false,
-            groupTitle: 'Build - Super Tab Out',
+            groupTitle: 'Build - BrowseLoom',
           },
         ],
         urls: [
           'https://developer.chrome.com/docs/extensions/reference/api/tabs',
           'https://developer.chrome.com/docs/extensions/reference/api/tabGroups',
-          'https://github.com/SivanCola/super-tab-out/issues',
+          'https://github.com/flySnail-jinx/browse-loom/issues',
         ],
       },
       {
@@ -253,40 +255,6 @@ function buildSeedStorage() {
       },
     },
     achievements: ['closed-10', 'saved-10', 'dedupe-10', 'session-saver'],
-    toolFavorites: ['json', 'url', 'qr', 'session-export'],
-    toolRecent: [
-      { id: 'json', usedAt: isoMinutesAgo(12) },
-      { id: 'url', usedAt: isoMinutesAgo(24) },
-      { id: 'session-export', usedAt: isoMinutesAgo(38) },
-      { id: 'qr', usedAt: isoMinutesAgo(50) },
-    ],
-    'toolState:json': {
-      input: '{"project":"Super Tab Out","mode":"manual QA","tabs":21}',
-      output: '{\n  "project": "Super Tab Out",\n  "mode": "manual QA",\n  "tabs": 21\n}',
-      status: 'Valid JSON',
-      error: false,
-      action: 'format',
-    },
-    'toolState:url': {
-      input: 'https://example.com/path?utm_source=seed&tab=out#qa',
-      output: JSON.stringify({
-        protocol: 'https:',
-        hostname: 'example.com',
-        pathname: '/path',
-        search: '?utm_source=seed&tab=out',
-        hash: '#qa',
-      }, null, 2),
-      status: 'Parsed',
-      error: false,
-      action: 'parse',
-    },
-    'toolState:hash': {
-      input: 'super-tab-out',
-      output: 'Use the Hash tool to regenerate this value during manual QA.',
-      status: 'Generated',
-      error: false,
-      action: 'sha256',
-    },
   };
 }
 
@@ -416,13 +384,13 @@ async function openExtensionRuntime() {
     await wakeExtensionWorker();
     target = await findExtensionWorkerTarget(timeoutMs);
   }
-  if (!target) throw new Error('Could not find Super Tab Out background service worker target.');
+  if (!target) throw new Error('Could not find BrowseLoom background service worker target.');
 
   const runtime = new CdpPage(target.webSocketDebuggerUrl);
   await runtime.send('Runtime.enable', {}, 15000);
   try {
     await runtime.waitFor(
-      'Boolean(globalThis.chrome?.runtime?.id) && chrome.runtime.getManifest?.().name === "Super Tab Out"',
+      'Boolean(globalThis.chrome?.runtime?.id) && chrome.runtime.getManifest?.().name === "BrowseLoom"',
       timeoutMs,
     );
     return runtime;
@@ -584,7 +552,6 @@ function seedScenarioInExtension(config) {
       createdGroups,
       savedTabs: config.storage.deferred.length,
       savedSessions: config.storage.savedSessions.length,
-      toolFavorites: config.storage.toolFavorites.length,
     };
   })();
 }
@@ -619,7 +586,7 @@ async function main() {
     const result = await runtime.evaluate(expression, Math.max(timeoutMs, 30000));
 
     console.log(
-      `Seeded Super Tab Out test data: ${result.createdTabs} tabs, `
+      `Seeded BrowseLoom test data: ${result.createdTabs} tabs, `
       + `${result.createdGroups} groups, ${result.savedTabs} saved items, `
       + `${result.savedSessions} sessions. Closed ${result.closedSeedTabs} old seed tabs.`,
     );
@@ -629,6 +596,6 @@ async function main() {
 }
 
 main().catch(error => {
-  console.error(`[Super Tab Out Seeder] ${error.message || error}`);
+  console.error(`[BrowseLoom Seeder] ${error.message || error}`);
   process.exit(1);
 });

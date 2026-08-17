@@ -1,4 +1,4 @@
-/* Super Tab Out HTML helpers. */
+/* BrowseLoom HTML helpers. */
 (function (global) {
   'use strict';
 

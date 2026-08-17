@@ -1,4 +1,4 @@
-/* Super Tab Out URL service.
+/* BrowseLoom URL service.
    Centralizes URLs that are safe to persist and restore as browser tabs. */
 (function (global) {
   'use strict';

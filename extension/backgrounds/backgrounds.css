@@ -1,0 +1,188 @@
+/* Shared stage and selector styles for registered dashboard backgrounds. */
+.background-stage {
+  position: fixed !important;
+  inset: 0;
+  z-index: -2;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  touch-action: none;
+  background:
+    radial-gradient(circle at 18% 16%, color-mix(in srgb, var(--accent-sage) 34%, transparent), transparent 42%),
+    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--accent-slate) 38%, transparent), transparent 44%),
+    var(--glass-ether-base);
+  transition: background .24s var(--glass-ease);
+}
+
+[data-background="light-rays"] .background-stage {
+  background:
+    radial-gradient(circle at 50% -12%, color-mix(in srgb, white 18%, transparent), transparent 45%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--paper) 24%, var(--accent-slate) 76%),
+      color-mix(in srgb, var(--paper) 48%, var(--accent-slate) 52%)
+    );
+}
+
+[data-background="prism"] .background-stage {
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--accent-slate) 28%, transparent), transparent 54%),
+    linear-gradient(145deg, #121722, #242a38 58%, #151a25);
+}
+
+[data-background="static"] .background-stage {
+  background:
+    radial-gradient(circle at 16% 12%, color-mix(in srgb, var(--accent-sage) 18%, transparent), transparent 38%),
+    radial-gradient(circle at 86% 8%, color-mix(in srgb, var(--accent-slate) 18%, transparent), transparent 42%),
+    var(--glass-ether-base);
+}
+
+.background-stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  filter: saturate(1.12) contrast(1.05);
+}
+
+.background-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+  gap: 8px;
+}
+
+.background-option {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  padding: 5px 5px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface-soft) 72%, transparent);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: left;
+  transition: border-color .16s ease, background .16s ease, color .16s ease, transform .16s ease;
+}
+
+.background-option:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent-slate) 8%, var(--card-bg));
+  transform: translateY(-1px);
+}
+
+.background-option:focus-visible {
+  outline: 2px solid var(--accent-slate);
+  outline-offset: 2px;
+}
+
+.background-option[aria-checked="true"] {
+  border-color: color-mix(in srgb, var(--accent-amber) 54%, var(--warm-gray));
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent-amber) 12%, var(--card-bg));
+}
+
+.background-option-preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 46px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--paper);
+}
+
+.background-option-preview i {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.background-option-preview-liquid {
+  background:
+    radial-gradient(circle at 22% 78%, color-mix(in srgb, var(--accent-sage) 76%, transparent), transparent 46%),
+    radial-gradient(circle at 76% 24%, color-mix(in srgb, var(--accent-slate) 82%, transparent), transparent 48%),
+    var(--paper);
+}
+
+.background-option-preview-liquid i {
+  background: radial-gradient(ellipse at 56% 58%, color-mix(in srgb, var(--accent-rose) 52%, transparent), transparent 48%);
+  filter: blur(5px);
+}
+
+.background-option-preview-rays {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-slate) 62%, var(--paper)), var(--paper));
+}
+
+.background-option-preview-rays i {
+  inset: -16px 7px 0;
+  background:
+    linear-gradient(104deg, transparent 22%, color-mix(in srgb, white 70%, transparent) 37%, transparent 52%),
+    linear-gradient(78deg, transparent 34%, color-mix(in srgb, white 58%, transparent) 48%, transparent 62%);
+  filter: blur(2px);
+  transform-origin: 50% 0;
+}
+
+.background-option-preview-prism {
+  background: linear-gradient(145deg, #111722, #2d3445);
+}
+
+.background-option-preview-prism i {
+  inset: -18px 7px -12px;
+  background: conic-gradient(
+    from 218deg at 50% 58%,
+    transparent 0deg,
+    #69e2ff 44deg,
+    #8a7dff 104deg,
+    #ff79c9 164deg,
+    #ffd36a 224deg,
+    #66f0b5 286deg,
+    transparent 338deg
+  );
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  filter: saturate(1.08) blur(.4px);
+}
+
+.background-option-preview-static {
+  background:
+    radial-gradient(circle at 25% 28%, color-mix(in srgb, var(--accent-sage) 25%, transparent), transparent 38%),
+    radial-gradient(circle at 78% 26%, color-mix(in srgb, var(--accent-slate) 25%, transparent), transparent 42%),
+    var(--glass-ether-base);
+}
+
+.background-option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .background-stage,
+  .background-option {
+    transition-duration: 0s;
+  }
+
+  .background-option:hover {
+    transform: none;
+  }
+
+  .background-stage canvas {
+    filter: saturate(1.04) contrast(1.02);
+  }
+}
+
+@media (max-width: 420px) {
+  .background-options {
+    grid-template-columns: 1fr;
+  }
+
+  .background-option {
+    grid-template-columns: 84px minmax(0, 1fr);
+    align-items: center;
+    padding: 5px;
+  }
+}

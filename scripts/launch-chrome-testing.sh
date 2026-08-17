@@ -6,7 +6,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 DEFAULT_CHROME_BIN="$REPO_ROOT/tools/chrome-for-testing/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
 CHROME_BIN="${CHROME_BIN:-$DEFAULT_CHROME_BIN}"
-PROFILE_DIR="${PROFILE_DIR:-/tmp/super-tab-out-chrome-profile}"
+PROFILE_DIR="${PROFILE_DIR:-/tmp/browse-loom-chrome-profile}"
 REMOTE_DEBUGGING_PORT="${REMOTE_DEBUGGING_PORT:-9224}"
 EXTENSION_DIR="$REPO_ROOT/extension"
 SEED_TABS="${SEED_TABS:-1}"
@@ -20,10 +20,10 @@ usage() {
   cat <<EOF
 Usage: scripts/launch-chrome-testing.sh [options] [-- extra-url ...]
 
-Launch Chrome for Testing with the local Super Tab Out extension.
+Launch Chrome for Testing with the local BrowseLoom extension.
 
 Options:
-  --seed-tabs           Open a full Super Tab Out test scenario (default).
+  --seed-tabs           Open a full BrowseLoom test scenario (default).
   --no-seed-tabs        Launch only the extension, without creating test tabs.
   --reset-profile       Delete the test profile before launch for a clean run.
   --profile-dir DIR     Use a custom Chrome profile dir.
@@ -104,9 +104,9 @@ if [[ ! -d "$EXTENSION_DIR" ]]; then
 fi
 
 if [[ "$RESET_PROFILE" == "1" ]]; then
-  if [[ -z "$PROFILE_DIR" || "$PROFILE_DIR" == "/" || "$PROFILE_DIR" != *super-tab-out* ]]; then
+  if [[ -z "$PROFILE_DIR" || "$PROFILE_DIR" == "/" || "$PROFILE_DIR" != *browse-loom* ]]; then
     echo "Refusing to reset suspicious profile dir: $PROFILE_DIR" >&2
-    echo "Use a profile path containing 'super-tab-out' for --reset-profile." >&2
+    echo "Use a profile path containing 'browse-loom' for --reset-profile." >&2
     exit 1
   fi
   rm -rf -- "$PROFILE_DIR"
@@ -168,7 +168,7 @@ if [[ "$SEED_TABS" == "1" ]]; then
     --port "$REMOTE_DEBUGGING_PORT" \
     --delay-ms "$SEED_DELAY_MS" \
     --cleanup "$SEED_CLEANUP"; then
-    echo "Warning: failed to prepare Super Tab Out test scenario." >&2
+    echo "Warning: failed to prepare BrowseLoom test scenario." >&2
     if [[ "$SEED_REQUIRED" == "1" ]]; then
       stop_chrome
       exit 1

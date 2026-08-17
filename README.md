@@ -1,14 +1,16 @@
 <div align="center">
 
-<h1>Super Tab Out</h1>
+<img src="./brand/browseloom-mark.png" alt="BrowseLoom logo" width="112">
+
+<h1>BrowseLoom</h1>
 
 <hr />
 
-<h3>The Local-First New Tab Dashboard for Chrome, Edge & Brave</h3>
+<h3>The Local-First New Tab Dashboard for Chrome</h3>
 
 <p>
-  <img alt="version v1.0.9" src="https://img.shields.io/badge/version-v1.0.9-2388d9?labelColor=555555">
-  <img alt="platform Chrome Edge Brave" src="https://img.shields.io/badge/platform-Chrome%20%7C%20Edge%20%7C%20Brave-9a9a9a?labelColor=555555">
+  <img alt="version v1.1.0" src="https://img.shields.io/badge/version-v1.1.0-2388d9?labelColor=555555">
+  <img alt="platform Chrome" src="https://img.shields.io/badge/platform-Chrome-9a9a9a?labelColor=555555">
   <img alt="built with MV3 and Vanilla JS" src="https://img.shields.io/badge/built%20with-MV3%20%2B%20Vanilla%20JS-ff7a3d?labelColor=555555">
   <img alt="license Apache 2.0" src="https://img.shields.io/badge/license-Apache--2.0-35c52a?labelColor=555555">
 </p>
@@ -19,11 +21,13 @@
 
 </div>
 
-**A polished local new-tab command center for Chromium browsers.**
+**A calm, local-first browser workspace for Chrome.**
 
-Super Tab Out replaces the default new tab page with a visual dashboard for your open tabs. It groups tabs by domain or by Chrome Tab Groups, protects pinned tabs, gives you fast tab filtering, privacy mode, bilingual UI, and a richer theme picker.
+BrowseLoom brings open tabs, Chrome Tab Groups, local bookmarks, saved sessions, and later-reading items into one visual workspace. It replaces the default new tab page, adds an optional side panel, protects pinned tabs, and keeps browsing data on your device.
 
 No server. No account. No telemetry. No build step. Load the `extension/` folder and use it.
+
+Chrome 116 or newer is required. Edge and Brave may work when they provide the same Manifest V3 capabilities, but they are not release commitments.
 
 Release notes are tracked in [`CHANGELOG.md`](./CHANGELOG.md).
 
@@ -32,13 +36,14 @@ Release notes are tracked in [`CHANGELOG.md`](./CHANGELOG.md).
 ## Highlights
 
 - **Text-first command desk**: a quieter new-tab layout with clear hierarchy, compact controls, and no decorative brand icon in the page header.
+- **Independent bookmark desk**: press the left arrow to open a plugin-local bookmark workspace. Home is the built-in default category, with custom icon categories, notes, search, icon/list views, and usage-based recent/popular columns.
+- **One-click browser bookmark import**: open the gear in the bookmark desk to copy bookmarks from the current Chrome or Edge profile. Permission is requested only when import starts, deep folders are flattened without renaming, and repeated imports add only new browser bookmarks.
+- **Flexible folder boards**: every category supports 1×1, 2×1, and 2×2 folders. Bookmarks can move in, out, or across categories by drag-and-drop or the Move menu, while deleting a folder or category preserves its bookmarks.
 - **Two ways to organize tabs**: switch between domain grouping and Chrome's native Tab Groups.
 - **Fast tab filtering**: press `/` and filter cards, chips, URLs, and group names in real time.
 - **Search operators**: narrow results with `domain:`, `group:`, `url:`, and `saved:`; fuzzy matches are highlighted.
-- **Side Panel command center**: search, jump, save, close, dedupe, restore recently closed tabs, and use local tools without leaving the current page.
-- **Docked Command Center**: desktop layouts keep tools one click away with a compact dock and sortable favorite tools.
-- **FeHelper-inspired local tools**: open a full three-column local tools workbench from the toolbar icon, Command Center, or omnibox for JSON, URL parsing, codecs, timestamps, real QR SVGs, UUID/passwords, hashes, cookies, and session export.
-- **Keyboard and omnibox entry points**: use `sto` in the address bar for search/actions, or commands for panel/session/privacy workflows.
+- **Side Panel tab center**: search, jump, save, close, dedupe, restore recently closed tabs, and save the current or all windows without leaving the current page.
+- **Keyboard and omnibox entry points**: use `loom` in the address bar for search/actions, or commands for panel/session/privacy workflows.
 - **Accessibility and motion controls**: icon buttons have accessible labels, chips support keyboard activation, and system reduced-motion preferences are respected.
 - **Privacy mode for screen sharing**: click the lock or press `Esc` to hide the tab dashboard behind a clean clock screen.
 - **Pinned tabs are protected**: pinned tabs are excluded from cards, counts, duplicate cleanup, and bulk-close actions.
@@ -47,20 +52,21 @@ Release notes are tracked in [`CHANGELOG.md`](./CHANGELOG.md).
 - **Auto-refresh**: tab open, close, navigation, and group changes refresh the dashboard automatically.
 - **Bilingual UI**: switch between English and Simplified Chinese from Settings.
 - **More themes, easier switching**: choose from 14 built-in palettes in the lightweight Settings panel.
+- **Switchable local backgrounds**: choose Liquid Glow, Light Rays, Prism, or a static low-power background. Only the selected renderer runs, and the preference stays on this device.
 - **Local-first privacy posture**: settings and saved tabs stay on your machine.
 
 ---
 
 ## Screens and Controls
 
-![Super Tab Out dashboard](./store-assets/screenshot-1-dashboard.jpg)
+![BrowseLoom dashboard](./store-assets/screenshot-1-dashboard.jpg)
 
 The page header keeps the greeting and date visible without repeating the product name. The product identity stays in the browser UI and footer so the new tab page reads lighter.
 
 The top-right controls are intentionally compact:
 
 - **Lock**: toggles privacy mode.
-- **Settings**: opens language, theme, type, and privacy-screen options.
+- **Settings**: opens language, theme, background, type, and privacy-screen options.
 
 Available themes:
 
@@ -98,8 +104,8 @@ Additional release screenshots:
 1. Clone the repo:
 
 ```bash
-git clone https://github.com/SivanCola/super-tab-out.git
-cd super-tab-out
+git clone https://github.com/flySnail-jinx/browse-loom.git
+cd browse-loom
 ```
 
 2. Open your browser extension page:
@@ -143,7 +149,7 @@ Launch the latest local extension build:
 npm run dev:host
 ```
 
-By default the script also prepares a repeatable manual regression scenario on every launch: pinned homepages, duplicate URLs, native Chrome Tab Groups, a collapsed group, mixed ungrouped tabs, a recently closed tab, saved-for-later items, saved sessions, activity metrics, achievements, and local tool favorites/state. It cleans previously seeded tabs before recreating the scenario, so repeated `npm run dev:host` runs do not stack duplicate seed tabs.
+By default the script also prepares a repeatable manual regression scenario on every launch: pinned homepages, duplicate URLs, native Chrome Tab Groups, a collapsed group, mixed ungrouped tabs, a recently closed tab, saved-for-later items, saved sessions, activity metrics, and achievements. It cleans previously seeded tabs before recreating the scenario, so repeated `npm run dev:host` runs do not stack duplicate seed tabs.
 
 Use `scripts/launch-chrome-testing.sh --no-seed-tabs` for a clean browser, or `--reset-profile` for a fresh profile before seeding.
 
@@ -154,11 +160,11 @@ Optional overrides: `CHROME_BIN`, `PROFILE_DIR`, `REMOTE_DEBUGGING_PORT`, `SEED_
 No build step is required, but the repo includes lightweight local checks for extension changes:
 
 ```bash
-node tests/run-tests.mjs
-node scripts/validate-extension.mjs
+npm test
+npm run validate
 ```
 
-The validator checks `manifest.json`, extension script syntax, service script loading order, and store ZIP contents for common local-only files.
+`npm run validate` rebuilds both store ZIPs, then checks `manifest.json`, script syntax, service loading order, the exact ZIP allowlist, and each packaged file's SHA-256 content against the current source.
 
 ---
 
@@ -171,8 +177,10 @@ The validator checks `manifest.json`, extension script syntax, service script lo
 | `Esc` elsewhere | Toggle privacy mode |
 | `Ctrl/Cmd + Shift + G` | Toggle Groups / Domains view |
 | `Ctrl/Cmd + Shift + Y` | Open the Side Panel |
+| `Ctrl + Shift + D` | Bookmark the current page in a prefilled editor |
+| `Ctrl + Shift + Z` | Switch between BrowseLoom and the tab you opened from it |
 
-Omnibox keyword: type `sto` then a query or action such as `panel`, `save-session`, `dedupe`, or `privacy`.
+Omnibox keyword: type `loom` then a query or action such as `panel`, `save-session`, `dedupe`, or `privacy`.
 
 ---
 
@@ -180,13 +188,14 @@ Omnibox keyword: type `sto` then a query or action such as `panel`, `save-sessio
 
 ### Tab Dashboard
 
-Super Tab Out reads your open tabs with `chrome.tabs.query({})`, filters out browser-internal pages, and renders useful cards:
+BrowseLoom reads your open tabs with `chrome.tabs.query({})`, filters out browser-internal pages, and renders useful cards:
 
 - domain cards for normal browsing
 - a Homepages card for landing pages like Gmail, X, YouTube, LinkedIn, and GitHub
 - optional Chrome Tab Groups view
 - duplicate badges for repeated URLs
 - localhost labels with port numbers
+- `Ctrl + Shift + Z` quick return between the dashboard and the tab opened from it; only tab/window IDs are kept in memory for the browser session
 
 ### Search
 
@@ -201,26 +210,19 @@ The search pill uses one local index for open tabs, Chrome group titles, saved-f
 
 ### Side Panel
 
-The Side Panel keeps Super Tab Out available while you stay on the current page:
+The Side Panel keeps BrowseLoom available while you stay on the current page:
 
 - search open tabs, saved-for-later items, and saved sessions
-- open from `Ctrl/Cmd + Shift + Y` or omnibox actions such as `sto panel`
+- open from `Ctrl/Cmd + Shift + Y` or omnibox actions such as `loom panel`
 - jump to a tab, save it for later, or close it
 - clean duplicates while keeping one copy
 - restore browser-level recently closed tabs/windows via `chrome.sessions`
-- save the current browsing session
+- save the current window by default, or explicitly save all windows
 - view Tab Health, weekly stats, top domains, and achievements
-- use a compact local tool directory with favorites, recent tools, current-tab URL shortcuts, and a link to the full Tools workbench
-
-### Local Tools
-
-The full Tools workbench opens from the extension toolbar icon, the Command Center, and omnibox entries such as `sto tool json`.
-
-Initial tools are local-only: JSON format/minify/validate with tree preview and error diagnostics, URL parsing with query tables, Base64/Unicode/HTML entity codecs, timestamp and FILETIME conversion with cards, real QR SVG generation, UUID/password generation, MD5/SHA hashes, Cookie-to-JSON, and session export as JSON, Markdown, or URL lists.
 
 ### Chrome Tab Groups
 
-Domain cards can create native Chrome Tab Groups. Group cards can be renamed, recolored, collapsed/expanded, ungrouped, or saved as a session. Saved sessions appear on the main dashboard and restore into the current window with the Chrome tab group rebuilt.
+Domain cards can create native Chrome Tab Groups. Group cards can be renamed, recolored, collapsed/expanded, ungrouped, or saved as a session. Pinned tabs are never saved. Sessions preserve window structure without storing Chrome window IDs; restore defaults to the current window, with an explicit option to recreate the saved windows.
 
 ### Closing Behavior
 
@@ -251,7 +253,7 @@ Language choice is also stored locally and applied early. The switch affects fix
 
 ## Privacy
 
-Super Tab Out is local-first.
+BrowseLoom is local-first.
 
 Stored locally:
 
@@ -274,8 +276,7 @@ No Google Fonts are used. Fonts come from system font stacks.
 
 Privacy mode does not provide a web search box or change the browser search provider.
 
-Store upload packages are generated locally into `dist/` with `npm run package`.
-The ZIP files are intentionally ignored by Git and should be uploaded to the Chrome Web Store / Edge Add-ons from the local workspace, not committed to GitHub.
+Store upload packages are generated locally into `dist/` with `npm run package`. The Chrome package is the supported release artifact; the Edge package is a capability-compatible convenience artifact. ZIP files are ignored by Git and must not be committed.
 
 ---
 
@@ -288,8 +289,9 @@ The extension currently requests:
 | `tabs` | Read, focus, close, and group open tabs |
 | `storage` | Persist saved tabs, sessions, stats, privacy settings, and view mode |
 | `tabGroups` | Read, render, create, update, collapse, and ungroup Chrome Tab Groups |
-| `sidePanel` | Show the Side Panel command center |
+| `sidePanel` | Show the Side Panel tab center |
 | `sessions` | Show and restore recently closed browser tabs/windows |
+| `bookmarks` (optional) | Read the current browser bookmark tree only after the user starts an import; BrowseLoom never changes the browser copy |
 
 ---
 
@@ -304,20 +306,20 @@ The extension currently requests:
 | Animations | CSS transitions and JavaScript particles |
 | Build | None |
 
-Everything runs locally in the extension. The background service worker owns browser-level entry points such as the toolbar Tools shortcut, badge count, commands, omnibox actions, side panel, and lightweight session actions.
+Everything runs locally in the extension. The background service worker owns browser-level entry points such as toolbar bookmark capture, badge count, commands, omnibox actions, side panel, and lightweight session actions.
 
 ---
 
 ## Attribution and License
 
-Super Tab Out is licensed under the Apache License, Version 2.0.
+BrowseLoom is licensed under the Apache License, Version 2.0.
 
-This project is a derivative work based on **[Tab Out](https://github.com/zarazhangrui/tab-out)** by **Zara Zhang**, which is licensed under the MIT License.
+This project is a derivative work based on **[Super Tab Out](https://github.com/SivanCola/super-tab-out)** by **Sivan**, licensed under Apache-2.0. Super Tab Out includes modified portions of **[Tab Out](https://github.com/zarazhangrui/tab-out)** by **Zara Zhang**, licensed under the MIT License.
 
 The Apache-2.0 license text is in [`LICENSE`](./LICENSE). Required upstream MIT copyright and permission notices are preserved in [`NOTICE`](./NOTICE). Please do not remove those notices from substantial copies or distributions.
 
 This fork adds security hardening, Manifest V3 updates, cross-browser new-tab handling, pinned-tab protection, Chrome Tab Groups view, bilingual UI, expanded theme support, privacy mode, tab filtering, favicon caching, and local-first saved-tab workflows.
 
-This project is not affiliated with Google, Chrome, Microsoft Edge, Brave, DuckDuckGo, or the original Tab Out author. Product names and service names are used only to describe compatibility or attribution.
+This project is not affiliated with Google, Chrome, Microsoft Edge, Brave, DuckDuckGo, or the upstream authors. Product names and service names are used only to describe compatibility or attribution.
 
 Apache-2.0. See [`LICENSE`](./LICENSE) and [`NOTICE`](./NOTICE).

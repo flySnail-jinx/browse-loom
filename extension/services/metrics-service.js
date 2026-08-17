@@ -1,4 +1,4 @@
-/* Super Tab Out metrics service.
+/* BrowseLoom metrics service.
    Pure local counters for health and future retention features. */
 (function (global) {
   'use strict';

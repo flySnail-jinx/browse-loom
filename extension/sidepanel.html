@@ -3,57 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super Tab Out Panel</title>
+  <title>BrowseLoom Panel</title>
   <link rel="stylesheet" href="sidepanel.css">
   <script src="theme-init.js"></script>
 </head>
 <body>
   <header class="panel-header">
     <div>
-      <div class="panel-brand">Super Tab Out</div>
-      <h1>Command Center</h1>
+      <div class="panel-brand">BrowseLoom</div>
+      <h1>Tab Center</h1>
     </div>
     <button class="icon-btn" id="refreshBtn" title="Refresh" aria-label="Refresh side panel">↻</button>
   </header>
-
-  <nav class="panel-tabs" aria-label="Side panel views">
-    <button class="panel-tab active" data-view="tabs">Tabs</button>
-    <button class="panel-tab" data-view="tools">Tools</button>
-  </nav>
 
   <main>
     <section class="panel-view active" id="tabsView">
       <div class="search-row">
         <input id="panelSearch" type="search" placeholder="Search tabs, saved items, sessions" autocomplete="off" aria-label="Search tabs saved items and sessions">
-        <button id="saveSessionBtn">Save</button>
+        <button id="saveSessionBtn">Save window</button>
       </div>
       <div class="quick-actions">
+        <button id="saveAllWindowsBtn">Save all windows</button>
         <button id="dedupeBtn">Clean duplicates</button>
         <button id="newTabBtn">New tab dashboard</button>
       </div>
       <div class="result-list" id="resultList"></div>
       <section class="panel-section">
-        <div class="panel-section-title">Recently closed</div>
+        <div class="panel-section-title" id="recentTitle">Recently closed</div>
         <div class="recent-list" id="recentList"></div>
-      </section>
-    </section>
-
-    <section class="panel-view" id="toolsView">
-      <div class="tool-search-row">
-        <input id="toolSearch" type="search" placeholder="Search tools" autocomplete="off" aria-label="Search tools">
-        <button id="openToolsPageBtn">Full page</button>
-      </div>
-      <div class="tool-context-card">
-        <div class="panel-section-title" data-tool-copy="currentTabTools">Current tab tools</div>
-        <div class="tool-actions">
-          <button data-action="open-tool-current" data-tool-id="url">URL</button>
-          <button data-action="open-tool-current" data-tool-id="qr">QR</button>
-          <button data-action="open-tool-current" data-tool-id="hash">Hash</button>
-        </div>
-      </div>
-      <section class="panel-section">
-        <div class="panel-section-title" data-tool-copy="allTools">All tools</div>
-        <div id="toolList" class="tool-list"></div>
       </section>
     </section>
   </main>
@@ -64,7 +41,6 @@
   <script src="services/storage-service.js"></script>
   <script src="services/tabs-service.js"></script>
   <script src="services/search-service.js"></script>
-  <script src="services/tools-service.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>

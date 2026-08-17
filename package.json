@@ -1,8 +1,8 @@
 {
-  "name": "super-tab-out",
-  "version": "1.0.9",
+  "name": "browse-loom",
+  "version": "1.1.0",
   "private": true,
-  "description": "Local-first new tab dashboard extension for Chromium browsers.",
+  "description": "A calm, local-first workspace for tabs, bookmarks, and browsing sessions.",
   "scripts": {
     "dev": "npm run dev:host",
     "dev:host": "bash scripts/launch-chrome-testing.sh",
@@ -10,9 +10,13 @@
     "package:chrome": "node scripts/package-extension.mjs chrome",
     "package:edge": "node scripts/package-extension.mjs edge",
     "test": "node tests/run-tests.mjs",
-    "validate": "node scripts/validate-extension.mjs"
+    "test:browser": "node scripts/test-chrome-extension.mjs",
+    "validate": "npm run package && node scripts/validate-extension.mjs"
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "three": "0.180.0"
   }
 }

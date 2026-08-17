@@ -1,22 +1,38 @@
 {
   "extensionName": {
-    "message": "Super Tab Out",
+    "message": "BrowseLoom",
     "description": "Extension name displayed in the browser and store listing."
   },
   "extensionDescription": {
-    "message": "A local-first new tab dashboard for organizing open tabs with tab filtering, privacy mode, themes, and tab groups.",
+    "message": "A local-first workspace for organizing tabs, browser groups, bookmarks, and sessions, with privacy mode and themes.",
     "description": "Short extension description displayed in the browser and store listing."
   },
   "commandOpenSidePanel": {
-    "message": "Open Super Tab Out side panel",
+    "message": "Open BrowseLoom side panel",
     "description": "Keyboard shortcut description for opening the side panel."
   },
   "commandSaveCurrentSession": {
-    "message": "Save current Super Tab Out session",
+    "message": "Save current BrowseLoom session",
     "description": "Keyboard shortcut description for saving the current session."
   },
   "commandTogglePrivacyMode": {
-    "message": "Toggle Super Tab Out privacy mode",
+    "message": "Toggle BrowseLoom privacy mode",
     "description": "Keyboard shortcut description for toggling privacy mode."
+  },
+  "commandToggleQuickReturn": {
+    "message": "Switch between BrowseLoom and the viewed tab",
+    "description": "Keyboard shortcut description for quick return navigation."
+  },
+  "commandToggleWorkspace": {
+    "message": "Switch between tab management and bookmarks",
+    "description": "Keyboard shortcut description for switching BrowseLoom workspaces."
+  },
+  "commandBookmarkCurrentPage": {
+    "message": "Bookmark the current page",
+    "description": "Keyboard shortcut description for opening a prefilled bookmark draft."
+  },
+  "actionBookmarkCurrentPage": {
+    "message": "Bookmark current page",
+    "description": "Toolbar action tooltip for opening a prefilled bookmark draft."
   }
 }

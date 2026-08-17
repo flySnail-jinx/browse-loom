@@ -1,14 +1,16 @@
 {
   "manifest_version": 3,
+  "minimum_chrome_version": "116",
   "name": "__MSG_extensionName__",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "permissions": ["tabs", "storage", "tabGroups", "sidePanel", "sessions"],
+  "optional_permissions": ["bookmarks"],
   "chrome_url_overrides": { "newtab": "index.html" },
   "background": { "service_worker": "background.js" },
   "side_panel": { "default_path": "sidepanel.html" },
-  "omnibox": { "keyword": "sto" },
+  "omnibox": { "keyword": "loom" },
   "commands": {
     "open-side-panel": {
       "suggested_key": {
@@ -22,10 +24,27 @@
     },
     "toggle-privacy-mode": {
       "description": "__MSG_commandTogglePrivacyMode__"
+    },
+    "toggle-quick-return": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Z",
+        "mac": "MacCtrl+Shift+Z"
+      },
+      "description": "__MSG_commandToggleQuickReturn__"
+    },
+    "toggle-workspace": {
+      "description": "__MSG_commandToggleWorkspace__"
+    },
+    "bookmark-current-page": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+D",
+        "mac": "MacCtrl+Shift+D"
+      },
+      "description": "__MSG_commandBookmarkCurrentPage__"
     }
   },
   "action": {
-    "default_title": "__MSG_extensionName__",
+    "default_title": "__MSG_actionBookmarkCurrentPage__",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png"

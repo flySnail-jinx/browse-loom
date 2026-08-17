@@ -3,39 +3,12 @@ import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { EXTENSION_PACKAGE_FILES, ROOT_PACKAGE_FILES } from './release-files.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const extensionDir = join(root, 'extension');
 const distDir = join(root, 'dist');
 const manifest = JSON.parse(await import('node:fs/promises').then(fs => fs.readFile(join(extensionDir, 'manifest.json'), 'utf8')));
-
-const PACKAGE_FILES = [
-  'manifest.json',
-  'background.js',
-  'index.html',
-  'app.js',
-  'style.css',
-  'theme-init.js',
-  'sidepanel.html',
-  'sidepanel.css',
-  'sidepanel.js',
-  'tools.html',
-  'tools.css',
-  'tools.js',
-  'services/url-service.js',
-  'services/html-service.js',
-  'services/storage-service.js',
-  'services/tabs-service.js',
-  'services/search-service.js',
-  'services/metrics-service.js',
-  'services/tools-service.js',
-  'vendor/qrcodegen.js',
-  '_locales/en/messages.json',
-  '_locales/zh_CN/messages.json',
-  'icons/icon16.png',
-  'icons/icon48.png',
-  'icons/icon128.png',
-];
 
 const targets = process.argv.slice(2);
 const requestedTargets = targets.length > 0 ? targets : ['chrome', 'edge'];
@@ -47,25 +20,39 @@ for (const target of requestedTargets) {
   }
 }
 
-for (const file of PACKAGE_FILES) {
+for (const file of EXTENSION_PACKAGE_FILES) {
   if (!existsSync(join(extensionDir, file))) {
     throw new Error(`Package file is missing: ${file}`);
+  }
+}
+for (const file of ROOT_PACKAGE_FILES) {
+  if (!existsSync(join(root, file))) {
+    throw new Error(`Root package file is missing: ${file}`);
   }
 }
 
 mkdirSync(distDir, { recursive: true });
 
 for (const target of requestedTargets) {
-  const output = join(distDir, `super-tab-out-${target}-${manifest.version}.zip`);
+  const output = join(distDir, `browse-loom-${target}-${manifest.version}.zip`);
   rmSync(output, { force: true });
 
-  const result = spawnSync('zip', ['-X', '-q', output, ...PACKAGE_FILES], {
+  const result = spawnSync('zip', ['-X', '-q', output, ...EXTENSION_PACKAGE_FILES], {
     cwd: extensionDir,
     encoding: 'utf8',
   });
 
   if (result.status !== 0) {
     throw new Error(`Failed to create ${relative(root, output)}:\n${result.stderr || result.stdout}`);
+  }
+
+  const rootFilesResult = spawnSync('zip', ['-X', '-q', '-j', output, ...ROOT_PACKAGE_FILES.map(file => join(root, file))], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+
+  if (rootFilesResult.status !== 0) {
+    throw new Error(`Failed to add root license files to ${relative(root, output)}:\n${rootFilesResult.stderr || rootFilesResult.stdout}`);
   }
 
   console.log(`Created ${relative(root, output)}`);

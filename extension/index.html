@@ -3,35 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super Tab Out</title>
+  <title>BrowseLoom</title>
 
   <!-- Fonts: system stacks only — no network call. See style.css for the
        --font-sans and --font-serif variables. -->
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="glass.css">
+  <link rel="stylesheet" href="backgrounds/backgrounds.css">
+  <link rel="stylesheet" href="bookmarks.css">
 
   <!-- Apply saved theme before body paints (avoids flash of default palette) -->
   <script src="theme-init.js"></script>
 </head>
 <body>
+<div class="background-stage" id="backgroundStage" aria-hidden="true"></div>
 <div class="container">
 
 
 
   <!-- ================================================================
-       HEADER — greeting on the left
+       TASK TOOLBAR — tab context first, global utilities last
        ================================================================ -->
-  <header>
-    <div class="header-left">
-      <div class="brand-cluster">
-        <div class="brand-copy">
-          <!-- "Good afternoon" — written by getGreeting() in app.js -->
-          <h1 id="greeting"></h1>
-          <!-- "Friday, April 4, 2026" — written by getDateDisplay() in app.js -->
-          <div class="date" id="dateDisplay"></div>
-        </div>
-      </div>
-    </div>
+  <header class="dashboard-toolbar">
     <div class="header-right">
+      <div class="open-tabs-summary" id="openTabsSummary" aria-live="polite"></div>
+      <div class="open-tabs-search-wrap">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+        <input type="text" class="open-tabs-search" id="openTabsSearch" placeholder="Filter tabs" autocomplete="off" spellcheck="false" data-i18n-placeholder="search" aria-label="Filter tabs">
+        <span class="open-tabs-search-hint">/</span>
+      </div>
+      <div class="open-tabs-view-toggle" id="openTabsViewToggle"></div>
+      <div class="open-tabs-sort-control" id="openTabsSortControl"></div>
+      <span class="toolbar-divider" aria-hidden="true"></span>
       <!-- Privacy mode toggle — lock icon. Esc is the keyboard shortcut. -->
       <button class="privacy-toggle" id="privacyToggle" title="Toggle privacy mode (Esc)" aria-label="Toggle privacy mode">
         <svg class="privacy-icon privacy-icon-off" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
@@ -187,17 +190,24 @@
           </div>
         </div>
       </div>
-      <button class="privacy-settings-btn" id="privacySettingsBtn" title="Settings" data-i18n-title="settingsTitle" aria-label="Settings" aria-haspopup="true" aria-expanded="false">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-        </svg>
-      </button>
+      <span class="group-action-menu-control toolbar-action-menu-control">
+        <button class="icon-action-btn group-action-menu-btn toolbar-more-btn" id="toolbarMoreBtn"
+                data-action="toggle-group-actions-menu" aria-haspopup="menu" aria-expanded="false"
+                aria-controls="toolbarActionsMenu" title="More actions" aria-label="More actions">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" /></svg>
+        </button>
+        <span class="group-action-menu toolbar-actions-menu" id="toolbarActionsMenu" role="menu" aria-label="More actions" popover="manual" hidden>
+          <button class="group-menu-item" id="privacySettingsBtn" role="menuitem" data-action="open-settings" data-i18n="settingsTitle">Settings</button>
+          <span class="group-menu-separator toolbar-close-separator" aria-hidden="true"></span>
+          <button class="group-menu-item danger" id="closeAllOpenTabsMenuItem" role="menuitem" data-action="close-all-open-tabs">Close all tabs</button>
+        </span>
+      </span>
       <div class="privacy-settings" id="privacySettings" style="display:none">
         <div class="privacy-settings-title" data-i18n="settingsTitle">Settings</div>
         <div class="settings-tabs" role="tablist" aria-label="Settings sections" data-i18n-aria-label="settingsSectionsLabel">
           <button class="settings-tab active" id="settingsTabAppearance" data-action="set-settings-view" data-settings-view="appearance" role="tab" aria-selected="true" aria-controls="settingsPaneAppearance" data-i18n="appearanceSettings">Appearance</button>
           <button class="settings-tab" id="settingsTabPrivacy" data-action="set-settings-view" data-settings-view="privacy" role="tab" aria-selected="false" aria-controls="settingsPanePrivacy" data-i18n="privacyScreenSettings">Privacy screen</button>
+          <button class="settings-tab" id="settingsTabAbout" data-action="set-settings-view" data-settings-view="about" role="tab" aria-selected="false" aria-controls="settingsPaneAbout" data-i18n="aboutSettings">About</button>
         </div>
 
         <div class="settings-pane active" id="settingsPaneAppearance" data-settings-pane="appearance" role="tabpanel" aria-labelledby="settingsTabAppearance">
@@ -209,6 +219,31 @@
             <div class="settings-field">
               <div class="settings-field-label" data-i18n="themeLabel">Theme</div>
               <div class="settings-field-control" id="settingsThemeSlot"></div>
+            </div>
+            <div class="settings-field">
+              <div class="settings-field-label" id="backgroundPickerLabel" data-i18n="backgroundLabel">Background</div>
+              <div class="background-options" role="radiogroup" aria-labelledby="backgroundPickerLabel">
+                <button class="background-option" type="button" role="radio" aria-checked="false"
+                        data-action="set-background" data-background-id="liquid-ether">
+                  <span class="background-option-preview background-option-preview-liquid" aria-hidden="true"><i></i></span>
+                  <span class="background-option-label" data-i18n="backgroundLiquidEther">Liquid glow</span>
+                </button>
+                <button class="background-option" type="button" role="radio" aria-checked="false"
+                        data-action="set-background" data-background-id="light-rays">
+                  <span class="background-option-preview background-option-preview-rays" aria-hidden="true"><i></i></span>
+                  <span class="background-option-label" data-i18n="backgroundLightRays">Light rays</span>
+                </button>
+                <button class="background-option" type="button" role="radio" aria-checked="false"
+                        data-action="set-background" data-background-id="prism">
+                  <span class="background-option-preview background-option-preview-prism" aria-hidden="true"><i></i></span>
+                  <span class="background-option-label" data-i18n="backgroundPrism">Prism</span>
+                </button>
+                <button class="background-option" type="button" role="radio" aria-checked="false"
+                        data-action="set-background" data-background-id="static">
+                  <span class="background-option-preview background-option-preview-static" aria-hidden="true"><i></i></span>
+                  <span class="background-option-label" data-i18n="backgroundStatic">Static</span>
+                </button>
+              </div>
             </div>
             <div class="settings-field">
               <div class="settings-field-label" data-i18n="fontLabel">Typography</div>
@@ -251,6 +286,30 @@
             <input type="text" id="psMottoInput" class="privacy-setting-input" placeholder="Type your text here..." data-i18n-placeholder="mottoPlaceholder">
           </div>
         </div>
+
+        <div class="settings-pane" id="settingsPaneAbout" data-settings-pane="about" role="tabpanel" aria-labelledby="settingsTabAbout" hidden>
+          <div class="about-product">
+            <div class="about-product-title">
+              <strong>BrowseLoom</strong>
+              <span class="about-version" id="extensionVersion" hidden></span>
+            </div>
+            <p data-i18n="aboutDescription">A local-first dashboard for organizing open browser tabs.</p>
+          </div>
+          <div class="about-links" aria-label="Project information" data-i18n-aria-label="projectInformation">
+            <a href="https://github.com/flySnail-jinx/browse-loom" target="_blank" rel="noopener noreferrer" data-i18n="projectSource">Project source</a>
+            <a href="https://github.com/flySnail-jinx/browse-loom/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" data-i18n="openSourceLicense">Open-source license</a>
+            <a href="https://github.com/flySnail-jinx/browse-loom/blob/main/NOTICE" target="_blank" rel="noopener noreferrer" data-i18n="attributionNotices">Attribution notices</a>
+            <a href="https://github.com/flySnail-jinx/browse-loom/blob/main/extension/THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener noreferrer" data-i18n="thirdPartyNotices">Third-party notices</a>
+          </div>
+          <p class="about-attribution">
+            <span data-i18n="aboutLicenseSummary">Licensed under Apache-2.0.</span>
+            <span data-i18n="aboutBasedOn">Based on</span>
+            <a href="https://github.com/SivanCola/super-tab-out" target="_blank" rel="noopener noreferrer">Super Tab Out</a>
+            <span>(Apache-2.0) and</span>
+            <a href="https://github.com/zarazhangrui/tab-out" target="_blank" rel="noopener noreferrer">Tab Out</a>
+            <span>(MIT).</span>
+          </p>
+        </div>
       </div>
     </div>
   </header>
@@ -268,7 +327,7 @@
   </div>
 
   <!-- ================================================================
-       DUPES BANNER — appears when you have extra Super Tab Out tabs open
+       DUPES BANNER — appears when you have extra BrowseLoom tabs open
        Hidden by default; app.js shows it when dupeTabOutCount > 1
        ================================================================ -->
   <div class="tab-cleanup-banner" id="tabOutDupeBanner" style="display:none">
@@ -279,7 +338,7 @@
         </svg>
       </div>
       <div class="tab-cleanup-text" id="tabOutDupeText">
-        You have <strong id="tabOutDupeCount"></strong> Super Tab Out tabs open. Keep just this one?
+        You have <strong id="tabOutDupeCount"></strong> BrowseLoom tabs open. Keep just this one?
       </div>
     </div>
     <button class="tab-cleanup-btn" data-action="close-tabout-dupes" data-i18n="closeExtras">Close extras</button>
@@ -295,16 +354,6 @@
 
     <!-- LEFT COLUMN: Open tabs -->
     <div class="active-section" id="openTabsSection" style="display:none">
-      <div class="section-header">
-        <h2 id="openTabsSectionTitle">Right now</h2>
-        <div class="section-line"></div>
-        <div class="open-tabs-search-wrap">
-          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-          <input type="text" class="open-tabs-search" id="openTabsSearch" placeholder="Filter tabs" autocomplete="off" spellcheck="false" data-i18n-placeholder="search" aria-label="Filter tabs">
-          <span class="open-tabs-search-hint">/</span>
-        </div>
-        <div class="section-count" id="openTabsSectionCount"></div>
-      </div>
       <div class="missions" id="openTabsMissions"></div>
     </div>
 
@@ -357,86 +406,208 @@
 
   </div><!-- end .dashboard-columns -->
 
-  <!-- ================================================================
-       FOOTER — global stats + refresh control
-       ================================================================ -->
-  <footer>
-    <div class="footer-stats">
-      <div class="stat">
-        <div class="stat-num" id="statTabs">—</div>
-        <div class="stat-label" data-i18n="openTabsStat">Open tabs</div>
-      </div>
-      <div class="stat" hidden>
-        <div class="stat-num" id="statHealth">—</div>
-        <div class="stat-label" data-i18n="tabHealthStat">Tab health</div>
-      </div>
-      <div class="stat" hidden>
-        <div class="stat-num" id="statClosedWeek">—</div>
-        <div class="stat-label" data-i18n="closedWeekStat">Closed this week</div>
-      </div>
-      <div class="stat" hidden>
-        <div class="stat-num" id="statSavedWeek">—</div>
-        <div class="stat-label" data-i18n="savedWeekStat">Saved this week</div>
-      </div>
-    </div>
-    <div class="project-credit">
-      <div class="project-credit-primary">
-        <a href="https://github.com/SivanCola/super-tab-out" target="_top">Super Tab Out</a>
-        <span class="project-version" id="extensionVersion" hidden></span>
-      </div>
-      <div class="project-credit-attribution" data-i18n-html="creditAttribution">
-        Apache-2.0 &middot; Based on
-        <a href="https://github.com/zarazhangrui/tab-out" target="_top">Tab Out</a>
-        (MIT)
-      </div>
-    </div>
-  </footer>
-
-  <nav class="command-dock-rail" aria-label="Super Tab Out dock">
-    <button class="command-dock-btn primary" id="commandDockToolsBtn" data-command-dock-view="tools" title="Tools" aria-label="Tools" aria-controls="commandDrawer" aria-expanded="false" type="button">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" d="m14.25 6.087 4.163-4.163a2.25 2.25 0 0 1 3.182 3.182L17.431 9.27M14.25 6.087l-8.943 8.943a2.25 2.25 0 0 0-.659 1.591v2.729h2.729a2.25 2.25 0 0 0 1.591-.659l8.943-8.943M14.25 6.087l3.181 3.182M4.5 19.5h15" />
-      </svg>
-    </button>
-    <div class="command-dock-favorites" id="commandDockFavorites" hidden></div>
-  </nav>
-
 </div><!-- end .container -->
 
-<aside class="command-drawer-overlay" id="commandDrawer" aria-hidden="false">
-  <div class="command-drawer-backdrop" id="commandDrawerBackdrop"></div>
-  <section class="command-drawer" role="dialog" aria-modal="false" aria-labelledby="commandDrawerTitle" aria-hidden="true" inert>
-    <div class="panel-header">
-      <div>
-        <div class="panel-brand">Super Tab Out</div>
-        <h2 id="commandDrawerTitle">Tools</h2>
-      </div>
+<section class="bookmark-workspace" id="bookmarkWorkspace" aria-label="Bookmarks" hidden>
+  <header class="bookmark-toolbar">
+    <label class="bookmark-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+      <input id="bookmarkSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Search bookmarks" aria-label="Search bookmarks">
+      <kbd>/</kbd>
+    </label>
+    <div class="bookmark-view-toggle" id="bookmarkViewToggle" role="tablist" aria-label="Bookmark view">
+      <button type="button" data-bookmark-view="grid" aria-label="Icon view" title="Icon view">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg>
+      </button>
+      <button type="button" data-bookmark-view="list" aria-label="List view" title="List view">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg>
+      </button>
     </div>
+  </header>
 
-    <main class="command-drawer-main">
-      <section class="panel-view active" id="toolsView">
-        <div class="tool-search-row">
-          <input id="toolSearch" type="search" placeholder="Search tools" autocomplete="off" aria-label="Search tools">
-          <button id="openToolsPageBtn">Full page</button>
-        </div>
-        <div class="tool-context-card">
-          <div class="panel-section-title" data-tool-copy="currentTabTools">Current tab tools</div>
-          <div class="tool-actions">
-            <button data-action="open-tool-current" data-tool-id="url">URL</button>
-            <button data-action="open-tool-current" data-tool-id="qr">QR</button>
-            <button data-action="open-tool-current" data-tool-id="hash">Hash</button>
-          </div>
-        </div>
-        <section class="panel-section">
-          <div class="panel-section-title" data-tool-copy="allTools">All tools</div>
-          <div id="toolList" class="tool-list"></div>
-        </section>
-      </section>
+  <div class="bookmark-shell">
+    <aside class="bookmark-library-panel">
+      <div class="bookmark-library-brand">BrowseLoom</div>
+      <nav class="bookmark-library-nav" id="bookmarkLibraryNav" aria-label="Bookmark folders"></nav>
+      <button class="bookmark-add-trigger" type="button" data-bookmark-action="add-category" data-bookmark-copy-aria-label="addCategory" aria-label="Add category" title="Add category">
+        <span aria-hidden="true">＋</span>
+        <span class="bookmark-add-label" data-bookmark-copy="addCategory">Add category</span>
+      </button>
+      <button class="bookmark-settings-trigger" type="button" data-bookmark-action="open-settings" data-bookmark-copy-aria-label="bookmarkSettings" aria-label="Bookmark settings" title="Bookmark settings">
+        <span aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 10 3.01V3h4v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.8 7l-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"></path></svg>
+        </span>
+      </button>
+    </aside>
+
+    <main class="bookmark-main" id="bookmarkMain">
+      <div class="bookmark-main-heading">
+        <h1 id="bookmarkSectionTitle">Home</h1>
+        <span id="bookmarkSectionCount"></span>
+      </div>
+      <div class="bookmark-grid" id="bookmarkGrid"></div>
+      <div class="bookmark-list" id="bookmarkList" hidden></div>
+      <div class="bookmark-empty" id="bookmarkEmpty" hidden>
+        <button class="bookmark-empty-icon" type="button" data-bookmark-action="open-add-menu" aria-haspopup="menu" aria-controls="bookmarkAddMenu" aria-expanded="false" data-bookmark-copy-aria-label="add" aria-label="Add">＋</button>
+        <h2 data-bookmark-copy="emptyTitle">Build your bookmark desk</h2>
+        <p data-bookmark-copy="emptyBody">Add a bookmark or folder. Everything stays in this extension.</p>
+      </div>
     </main>
 
-    <div class="panel-toast" id="panelToast"></div>
+    <aside class="bookmark-activity-panel" aria-labelledby="recentBookmarksTitle">
+      <h2 id="recentBookmarksTitle" data-bookmark-copy="recent">Recently opened</h2>
+      <div class="bookmark-activity-list" id="recentBookmarks"></div>
+    </aside>
+
+    <aside class="bookmark-activity-panel" aria-labelledby="popularBookmarksTitle">
+      <h2 id="popularBookmarksTitle" data-bookmark-copy="popular">Most opened</h2>
+      <div class="bookmark-activity-list" id="popularBookmarks"></div>
+    </aside>
+  </div>
+
+</section>
+
+<dialog class="bookmark-editor-dialog bookmark-settings-dialog" id="bookmarkSettingsDialog" aria-labelledby="bookmarkSettingsTitle">
+  <section class="bookmark-settings-sheet">
+    <header>
+      <button class="bookmark-dialog-back" type="button" data-close-dialog="bookmarkSettingsDialog" aria-label="Close">←</button>
+      <h2 id="bookmarkSettingsTitle" data-bookmark-copy="bookmarkSettings">Bookmark settings</h2>
+    </header>
+    <div class="bookmark-settings-section">
+      <div class="bookmark-settings-section-heading">
+        <span class="bookmark-settings-section-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V21l-5-3-5 3V4.75Z"></path></svg>
+        </span>
+        <div>
+          <h3 data-bookmark-copy="importBrowserBookmarks">Import browser bookmarks</h3>
+          <p data-bookmark-copy="importBrowserBookmarksBody">Copy bookmarks from this browser into BrowseLoom.</p>
+        </div>
+      </div>
+      <div class="bookmark-import-note">
+        <strong data-bookmark-copy="importPrivacyTitle">Read only during import</strong>
+        <p data-bookmark-copy="importPrivacyBody">The browser permission says “read and change bookmarks”, but BrowseLoom only reads the bookmark tree and never changes the browser copy.</p>
+      </div>
+      <button class="bookmark-import-button" id="bookmarkImportButton" type="button" data-bookmark-action="import-browser-bookmarks">
+        <span data-bookmark-copy="importNow">Import current browser bookmarks</span>
+      </button>
+      <p class="bookmark-import-status" id="bookmarkImportStatus" role="status" aria-live="polite"></p>
+      <button class="bookmark-permission-remove" id="bookmarkPermissionRemove" type="button" data-bookmark-action="remove-bookmark-permission" data-bookmark-copy="removeBookmarkAccess" hidden>Remove browser bookmark access</button>
+    </div>
   </section>
-</aside>
+</dialog>
+
+<nav class="workspace-switcher" id="workspaceSwitcher" aria-label="Workspaces">
+  <button type="button" data-workspace-switch="tabs" aria-label="Tabs" aria-keyshortcuts="ArrowRight" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <rect x="4" y="5" width="16" height="11" rx="2"></rect>
+      <path d="M8 20h8M12 16v4"></path>
+    </svg>
+    <span class="workspace-switch-label">Tabs</span>
+  </button>
+  <button type="button" data-workspace-switch="bookmarks" aria-label="Bookmarks" aria-keyshortcuts="ArrowLeft">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <path d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V21l-5-3-5 3V4.75Z"></path>
+    </svg>
+    <span class="workspace-switch-label">Bookmarks</span>
+  </button>
+</nav>
+
+<div class="bookmark-add-menu" id="bookmarkAddMenu" role="menu" hidden>
+  <button type="button" role="menuitem" data-bookmark-action="add-bookmark"><span class="bookmark-add-menu-icon" aria-hidden="true">＋</span><span data-bookmark-copy="addBookmark">Add bookmark</span></button>
+  <button type="button" role="menuitem" data-bookmark-action="add-folder"><span class="bookmark-add-menu-icon" aria-hidden="true">▦</span><span data-bookmark-copy="addFolder">Create folder</span></button>
+</div>
+
+<div class="bookmark-context-menu" id="bookmarkContextMenu" role="menu" hidden></div>
+
+<dialog class="bookmark-editor-dialog" id="bookmarkEditorDialog" aria-labelledby="bookmarkEditorTitle">
+  <form class="bookmark-editor" id="bookmarkEditorForm">
+    <header>
+      <button class="bookmark-dialog-back" type="button" data-close-dialog="bookmarkEditorDialog" aria-label="Close">←</button>
+      <h2 id="bookmarkEditorTitle">Add bookmark</h2>
+      <button class="bookmark-dialog-save" type="submit" data-bookmark-copy="save">Save</button>
+    </header>
+    <input id="bookmarkEditorId" type="hidden">
+    <label class="bookmark-field bookmark-field-url"><span data-bookmark-copy="url">URL</span><input id="bookmarkUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com" required></label>
+    <label class="bookmark-field"><span data-bookmark-copy="name">Name</span><input id="bookmarkName" type="text" maxlength="160" autocomplete="off" required></label>
+    <label class="bookmark-field"><span data-bookmark-copy="note">Note</span><textarea id="bookmarkNote" maxlength="500" rows="3" placeholder="Optional"></textarea></label>
+    <div class="bookmark-editor-row">
+      <label class="bookmark-field"><span data-bookmark-copy="category">Category</span><select id="bookmarkCategory"></select></label>
+      <label class="bookmark-field"><span data-bookmark-copy="folder">Folder</span><select id="bookmarkFolder"></select></label>
+    </div>
+    <fieldset class="bookmark-icon-fieldset">
+      <legend data-bookmark-copy="icon">Icon</legend>
+      <div class="bookmark-icon-mode" role="tablist" aria-label="Icon source">
+        <button type="button" data-icon-mode="online" data-bookmark-copy="onlineIcon">Online icon</button>
+        <button type="button" data-icon-mode="color" data-bookmark-copy="colorIcon">Solid color</button>
+      </div>
+      <div class="bookmark-icon-preview" id="bookmarkIconPreview" aria-live="polite"></div>
+      <div class="bookmark-color-controls" id="bookmarkColorControls" hidden>
+        <div class="bookmark-color-palette" id="bookmarkColorPalette" aria-label="Icon color"></div>
+        <label class="bookmark-field"><span data-bookmark-copy="iconText">Icon text, 1–2 characters</span><input id="bookmarkIconText" type="text" maxlength="2" autocomplete="off"></label>
+      </div>
+    </fieldset>
+    <p class="bookmark-form-error" id="bookmarkFormError" role="alert"></p>
+  </form>
+</dialog>
+
+<dialog class="bookmark-editor-dialog folder-editor-dialog" id="folderEditorDialog" aria-labelledby="folderEditorTitle">
+  <form class="bookmark-editor" id="folderEditorForm">
+    <header>
+      <button class="bookmark-dialog-back" type="button" data-close-dialog="folderEditorDialog" aria-label="Close">←</button>
+      <h2 id="folderEditorTitle">Create folder</h2>
+      <button class="bookmark-dialog-save" type="submit" data-bookmark-copy="save">Save</button>
+    </header>
+    <input id="folderEditorId" type="hidden">
+    <label class="bookmark-field"><span id="folderNameLabel" data-bookmark-copy="folderName">Folder name</span><input id="folderName" type="text" maxlength="80" autocomplete="off" required></label>
+    <label class="bookmark-field" id="folderCategoryField"><span data-bookmark-copy="category">Category</span><select id="folderCategory"></select></label>
+    <fieldset class="bookmark-category-icon-fieldset" id="categoryIconFieldset" hidden>
+      <legend data-bookmark-copy="categoryIcon">Category icon</legend>
+      <div class="bookmark-category-icon-options" id="categoryIconOptions" role="radiogroup" aria-label="Category icon"></div>
+    </fieldset>
+    <fieldset class="bookmark-layout-fieldset" id="folderLayoutFieldset">
+      <legend data-bookmark-copy="folderSize">Folder size</legend>
+      <div class="bookmark-layout-options" id="folderLayoutOptions">
+        <button type="button" data-folder-layout="1x1"><i class="layout-swatch layout-swatch-1x1"></i><span>1 × 1</span></button>
+        <button type="button" data-folder-layout="2x1"><i class="layout-swatch layout-swatch-2x1"></i><span>2 × 1</span></button>
+        <button type="button" data-folder-layout="2x2"><i class="layout-swatch layout-swatch-2x2"></i><span>2 × 2</span></button>
+      </div>
+    </fieldset>
+    <p class="bookmark-form-error" id="folderFormError" role="alert"></p>
+  </form>
+</dialog>
+
+<dialog class="bookmark-folder-dialog" id="bookmarkFolderDialog" aria-labelledby="bookmarkFolderDialogTitle" data-folder-exit-drop>
+  <div class="bookmark-folder-exit-hint" data-bookmark-copy="dropToCategory">Drop here to move out of folder</div>
+  <section>
+    <header>
+      <form class="bookmark-folder-title-form" id="bookmarkFolderRenameForm">
+        <button class="bookmark-folder-title-display" id="bookmarkFolderDialogTitle" type="button" data-bookmark-action="edit-folder-name"></button>
+        <input id="bookmarkFolderDialogTitleInput" type="text" maxlength="80" autocomplete="off" data-bookmark-copy-aria-label="folderName" hidden>
+      </form>
+    </header>
+    <div class="bookmark-folder-dialog-grid" id="bookmarkFolderDialogGrid"></div>
+  </section>
+</dialog>
+
+<dialog class="bookmark-confirm-dialog bookmark-move-dialog" id="bookmarkMoveDialog" aria-labelledby="bookmarkMoveTitle">
+  <form id="bookmarkMoveForm">
+    <h2 id="bookmarkMoveTitle" data-bookmark-copy="moveBookmark">Move bookmark</h2>
+    <label class="bookmark-field"><span data-bookmark-copy="category">Category</span><select id="bookmarkMoveCategory"></select></label>
+    <label class="bookmark-field"><span data-bookmark-copy="folder">Folder</span><select id="bookmarkMoveFolder"></select></label>
+    <p class="bookmark-form-error" id="bookmarkMoveError" role="alert"></p>
+    <div><button type="button" data-close-dialog="bookmarkMoveDialog" data-bookmark-copy="cancel">Cancel</button><button class="bookmark-dialog-primary" type="submit" data-bookmark-copy="move">Move</button></div>
+  </form>
+</dialog>
+
+<dialog class="bookmark-confirm-dialog" id="bookmarkConfirmDialog" aria-labelledby="bookmarkConfirmTitle">
+  <form id="bookmarkConfirmForm">
+    <h2 id="bookmarkConfirmTitle">Delete item?</h2>
+    <p id="bookmarkConfirmText"></p>
+    <div><button type="button" data-close-dialog="bookmarkConfirmDialog" data-bookmark-copy="cancel">Cancel</button><button id="bookmarkConfirmMoveToUnfiled" type="submit" data-category-delete-mode="move-to-unfiled" data-bookmark-copy="moveToUnfiled" hidden>Move to Unfiled</button><button class="danger" id="bookmarkConfirmDelete" type="submit" data-category-delete-mode="delete-all" data-bookmark-copy="delete">Delete</button></div>
+  </form>
+</dialog>
+
+<div class="bookmark-toast" id="bookmarkToast" role="status" aria-live="polite"><span id="bookmarkToastText"></span><button id="bookmarkToastUndo" type="button" data-bookmark-copy="undo" hidden>Undo</button></div>
 
 <!-- ================================================================
      TOAST — floats above everything, used for action confirmations
@@ -459,13 +630,14 @@
 <script src="services/url-service.js"></script>
 <script src="services/html-service.js"></script>
 <script src="services/storage-service.js"></script>
+<script src="services/bookmarks-service.js"></script>
 <script src="services/tabs-service.js"></script>
 <script src="services/search-service.js"></script>
 <script src="services/metrics-service.js"></script>
-<script src="services/tools-service.js"></script>
-<script src="sidepanel.js"></script>
 
 <!-- Main dashboard logic — loads last so the DOM is ready -->
 <script src="app.js"></script>
+<script src="bookmarks.js"></script>
+<script type="module" src="effects.mjs"></script>
 </body>
 </html>

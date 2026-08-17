@@ -1,3 +1,10 @@
+BrowseLoom
+https://github.com/flySnail-jinx/browse-loom
+
+BrowseLoom is a derivative work based on Super Tab Out. BrowseLoom's
+modifications are distributed under the Apache License, Version 2.0. The
+required upstream attribution notices are preserved below.
+
 Super Tab Out
 Copyright (c) 2026 Sivan (Super Tab Out -- https://github.com/SivanCola/super-tab-out)
 
@@ -32,10 +39,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-This product includes QR Code generator library by Project Nayuki:
-https://www.nayuki.io/page/qr-code-generator-library
-https://github.com/nayuki/QR-Code-generator
-
-QR Code generator library is licensed under the MIT License. The required
-upstream copyright and permission notice is preserved in
-extension/vendor/qrcodegen.js.
+This product includes modified Liquid Ether, Light Rays, and Prism backgrounds
+from React Bits and bundled portions of Three.js. Their licenses and required
+notices are preserved in extension/THIRD_PARTY_NOTICES.txt.

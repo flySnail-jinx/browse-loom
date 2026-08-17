@@ -1,0 +1,43 @@
+export const EXTENSION_PACKAGE_FILES = Object.freeze([
+  'manifest.json',
+  'background.js',
+  'index.html',
+  'app.js',
+  'bookmarks.js',
+  'style.css',
+  'bookmarks.css',
+  'glass.css',
+  'effects.mjs',
+  'backgrounds/backgrounds.css',
+  'backgrounds/background-controller.mjs',
+  'backgrounds/background-registry.mjs',
+  'backgrounds/liquid-ether.mjs',
+  'backgrounds/light-rays.mjs',
+  'backgrounds/prism.mjs',
+  'theme-init.js',
+  'sidepanel.html',
+  'sidepanel.css',
+  'sidepanel.js',
+  'services/url-service.js',
+  'services/html-service.js',
+  'services/storage-service.js',
+  'services/bookmarks-service.js',
+  'services/tabs-service.js',
+  'services/search-service.js',
+  'services/metrics-service.js',
+  'vendor/three.core.min.js',
+  'vendor/three.module.min.js',
+  'THIRD_PARTY_NOTICES.txt',
+  '_locales/en/messages.json',
+  '_locales/zh_CN/messages.json',
+  'icons/icon16.png',
+  'icons/icon48.png',
+  'icons/icon128.png',
+]);
+
+export const ROOT_PACKAGE_FILES = Object.freeze(['LICENSE', 'NOTICE']);
+
+export const REQUIRED_ZIP_ENTRIES = Object.freeze([
+  ...EXTENSION_PACKAGE_FILES,
+  ...ROOT_PACKAGE_FILES,
+]);

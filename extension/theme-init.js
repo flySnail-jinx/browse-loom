@@ -2,10 +2,19 @@
    before the body paints — avoids a flash of the default palette on reload. */
 (function () {
   document.documentElement.dataset.theme = 'system';
+  document.documentElement.dataset.background = 'liquid-ether';
   try {
     var themes = ['system', 'white', 'material', 'cupertino', 'warm', 'midnight', 'arctic', 'forest', 'graphite', 'coast', 'plum', 'matcha', 'ember', 'lavender'];
     var t = localStorage.getItem('tab-out-theme');
     if (themes.indexOf(t) !== -1) document.documentElement.dataset.theme = t;
+  } catch (e) { /* localStorage unavailable — fall back to default */ }
+
+  try {
+    var backgrounds = ['liquid-ether', 'light-rays', 'prism', 'static'];
+    var background = localStorage.getItem('tab-out-background');
+    if (backgrounds.indexOf(background) !== -1) {
+      document.documentElement.dataset.background = background;
+    }
   } catch (e) { /* localStorage unavailable — fall back to default */ }
 
   try {
