@@ -9,6 +9,7 @@
     "package": "node scripts/package-extension.mjs",
     "package:chrome": "node scripts/package-extension.mjs chrome",
     "package:edge": "node scripts/package-extension.mjs edge",
+    "capture:store-assets": "node scripts/capture-store-screenshots.mjs",
     "test": "node tests/run-tests.mjs",
     "test:browser": "node scripts/test-chrome-extension.mjs",
     "validate": "npm run package && node scripts/validate-extension.mjs"

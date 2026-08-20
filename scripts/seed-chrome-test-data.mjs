@@ -17,9 +17,9 @@ const cleanup = stringFlag(values.cleanup ?? process.env.SEED_CLEANUP ?? '1');
 const seedRunId = `dev-seed-${Date.now()}`;
 
 const PINNED_TABS = [
-  { url: 'https://mail.google.com/mail/u/0/#inbox', pinned: true },
   { url: 'https://github.com/', pinned: true },
-  { url: 'https://www.youtube.com/', pinned: true },
+  { url: 'https://developer.chrome.com/docs/extensions/', pinned: true },
+  { url: 'https://web.dev/', pinned: true },
 ];
 
 const TAB_GROUPS = [
@@ -42,7 +42,7 @@ const TAB_GROUPS = [
       'https://github.com/flySnail-jinx/browse-loom',
       'https://github.com/flySnail-jinx/browse-loom/issues',
       'https://github.com/flySnail-jinx/browse-loom/pulls',
-      'https://github.com/zarazhangrui/tab-out',
+      'https://github.com/flySnail-jinx/browse-loom/actions',
     ],
   },
   {
@@ -52,8 +52,8 @@ const TAB_GROUPS = [
     urls: [
       'https://developer.chrome.com/docs/extensions/reference/api/tabs',
       'https://developer.chrome.com/docs/extensions/reference/api/tabs',
-      'https://stackoverflow.com/questions/tagged/google-chrome-extension',
-      'https://stackoverflow.com/questions/tagged/google-chrome-extension',
+      'https://developer.mozilla.org/en-US/docs/Web/API/Window',
+      'https://developer.mozilla.org/en-US/docs/Web/API/Window',
     ],
   },
   {
@@ -69,10 +69,10 @@ const TAB_GROUPS = [
 ];
 
 const UNGROUPED_TABS = [
-  'https://www.linkedin.com/feed/',
-  'https://x.com/home',
-  'https://docs.google.com/document/u/0/',
-  'https://www.notion.so/',
+  'https://news.ycombinator.com/',
+  'https://www.wikipedia.org/',
+  'https://www.w3.org/standards/',
+  'https://caniuse.com/',
   'https://example.com/',
   'https://example.org/',
 ];
@@ -114,6 +114,7 @@ function weekKey(date = new Date()) {
 function buildSeedStorage() {
   const seededAt = new Date().toISOString();
   const currentWeek = weekKey();
+  const bookmarkIcon = (color, text) => ({ type: 'color', color, text });
 
   // Intentionally seed a pre-v7 snapshot so browser acceptance also exercises
   // migration of legacy dismissed items and flat saved-session records.
@@ -128,7 +129,7 @@ function buildSeedStorage() {
       clock: true,
       date: true,
       motto: true,
-      mottoText: 'Local QA profile',
+      mottoText: 'Your browsing stays on this device.',
       externalFavicons: true,
     },
     deferred: [
@@ -255,6 +256,107 @@ function buildSeedStorage() {
       },
     },
     achievements: ['closed-10', 'saved-10', 'dedupe-10', 'session-saver'],
+    bookmarkLibrary: {
+      version: 3,
+      viewMode: 'grid',
+      categories: [
+        {
+          id: 'category-home', name: 'Home', icon: 'home', system: 'home', order: 0,
+          itemOrder: ['folder:seed-folder-build', 'folder:seed-folder-design', 'bookmark:seed-bookmark-webdev'],
+          createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-category-research', name: 'Research', icon: 'book', system: '', order: 1,
+          itemOrder: ['folder:seed-folder-research', 'bookmark:seed-bookmark-mdn'],
+          createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-category-inspiration', name: 'Inspiration', icon: 'sparkles', system: '', order: 2,
+          itemOrder: ['bookmark:seed-bookmark-design'],
+          createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'category-unfiled', name: 'Unfiled', icon: 'archive', system: 'unfiled', order: 3,
+          itemOrder: [], createdAt: seededAt, updatedAt: seededAt,
+        },
+      ],
+      folders: [
+        {
+          id: 'seed-folder-build', name: 'Build', icon: 'code', categoryId: 'category-home',
+          layout: '2x2', order: 0, createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-folder-design', name: 'Design', icon: 'palette', categoryId: 'category-home',
+          layout: '2x1', order: 1, createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-folder-research', name: 'Browser APIs', icon: 'book', categoryId: 'seed-category-research',
+          layout: '2x2', order: 0, createdAt: seededAt, updatedAt: seededAt,
+        },
+      ],
+      bookmarks: [
+        {
+          id: 'seed-bookmark-repo', title: 'BrowseLoom', url: 'https://github.com/flySnail-jinx/browse-loom',
+          note: 'Project source', categoryId: 'category-home', folderId: 'seed-folder-build',
+          icon: bookmarkIcon('#315f8c', 'BL'), order: 0, openCount: 12,
+          lastOpenedAt: isoMinutesAgo(45), createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-bookmark-chrome', title: 'Chrome Extensions', url: 'https://developer.chrome.com/docs/extensions/',
+          note: 'Platform documentation', categoryId: 'category-home', folderId: 'seed-folder-build',
+          icon: bookmarkIcon('#d9753f', 'CE'), order: 1, openCount: 9,
+          lastOpenedAt: isoMinutesAgo(80), createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-bookmark-actions', title: 'GitHub Actions', url: 'https://docs.github.com/actions',
+          note: 'Release automation', categoryId: 'category-home', folderId: 'seed-folder-build',
+          icon: bookmarkIcon('#24292f', 'GA'), order: 2, openCount: 5,
+          lastOpenedAt: isoMinutesAgo(180), createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-bookmark-a11y', title: 'Web Accessibility', url: 'https://web.dev/accessibility',
+          note: 'Inclusive interface patterns', categoryId: 'category-home', folderId: 'seed-folder-design',
+          icon: bookmarkIcon('#17736a', 'A11Y'), order: 0, openCount: 7,
+          lastOpenedAt: isoMinutesAgo(125), createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-bookmark-material', title: 'Material Design', url: 'https://m3.material.io/',
+          note: 'Interaction references', categoryId: 'category-home', folderId: 'seed-folder-design',
+          icon: bookmarkIcon('#6750a4', 'M3'), order: 1, openCount: 6,
+          lastOpenedAt: isoMinutesAgo(240), createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-bookmark-webdev', title: 'web.dev', url: 'https://web.dev/',
+          note: 'Modern web guidance', categoryId: 'category-home', folderId: null,
+          icon: bookmarkIcon('#0b57d0', 'W'), order: 0, openCount: 11,
+          lastOpenedAt: isoMinutesAgo(60), createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-bookmark-tabs', title: 'Tabs API', url: 'https://developer.chrome.com/docs/extensions/reference/api/tabs',
+          note: 'Tab lifecycle reference', categoryId: 'seed-category-research', folderId: 'seed-folder-research',
+          icon: bookmarkIcon('#4285f4', 'T'), order: 0, openCount: 10,
+          lastOpenedAt: isoMinutesAgo(35), createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-bookmark-groups', title: 'Tab Groups API', url: 'https://developer.chrome.com/docs/extensions/reference/api/tabGroups',
+          note: 'Native group management', categoryId: 'seed-category-research', folderId: 'seed-folder-research',
+          icon: bookmarkIcon('#34a853', 'TG'), order: 1, openCount: 8,
+          lastOpenedAt: isoMinutesAgo(95), createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-bookmark-mdn', title: 'MDN Web Docs', url: 'https://developer.mozilla.org/',
+          note: 'Web platform reference', categoryId: 'seed-category-research', folderId: null,
+          icon: bookmarkIcon('#1b1b1b', 'MDN'), order: 0, openCount: 13,
+          lastOpenedAt: isoMinutesAgo(25), createdAt: seededAt, updatedAt: seededAt,
+        },
+        {
+          id: 'seed-bookmark-design', title: 'Design Systems', url: 'https://www.designsystems.com/',
+          note: 'Visual system notes', categoryId: 'seed-category-inspiration', folderId: null,
+          icon: bookmarkIcon('#c44875', 'DS'), order: 0, openCount: 4,
+          lastOpenedAt: isoMinutesAgo(300), createdAt: seededAt, updatedAt: seededAt,
+        },
+      ],
+    },
   };
 }
 

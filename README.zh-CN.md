@@ -46,9 +46,9 @@ BrowseLoom 把打开的标签页、Chrome 原生 Tab Groups、本地书签、已
 
 ## 界面与控件
 
-![BrowseLoom 仪表盘](./store-assets/screenshot-1-dashboard.jpg)
+![BrowseLoom 标签工作台](./store-assets/browseloom-1-tabs.jpg)
 
-页头只保留问候语和日期，不再重复展示产品名。产品身份保留在浏览器 UI 和页脚中，让新标签页更轻。
+标签工作台把打开的页面整理成便于浏览的卡片，同时保留稍后阅读和已保存会话。这组截图由当前扩展在干净浏览器配置中实拍，内容全部来自公开演示页面。
 
 右上角控件保持紧凑：
 
@@ -74,15 +74,15 @@ BrowseLoom 把打开的标签页、Chrome 原生 Tab Groups、本地书签、已
 | 烬岩 | 深石板 + 暖色能量 |
 | 薰风 | 浅薰衣草 + 薄荷色 |
 
-更多发布截图：
+当前产品界面：
 
-| Chrome 分组 | 隐私模式 |
+| 书签工作台 | Chrome 分组 |
 | --- | --- |
-| ![Chrome Tab Groups 视图](./store-assets/screenshot-2-groups.jpg) | ![隐私模式](./store-assets/screenshot-3-privacy.jpg) |
+| ![BrowseLoom 书签工作台](./store-assets/browseloom-2-bookmarks.jpg) | ![Chrome Tab Groups 视图](./store-assets/browseloom-3-groups.jpg) |
 
-| 主题面板 | 中文界面 |
+| 隐私模式 | 外观设置 |
 | --- | --- |
-| ![主题选择器](./store-assets/screenshot-4-themes.jpg) | ![中文界面](./store-assets/screenshot-5-chinese.jpg) |
+| ![隐私模式](./store-assets/browseloom-4-privacy.jpg) | ![外观设置](./store-assets/browseloom-5-settings.jpg) |
 
 ---
 

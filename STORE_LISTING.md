@@ -121,34 +121,32 @@ https://github.com/flySnail-jinx/browse-loom/blob/main/PRIVACY.md
 Chrome Web Store screenshots should show the extension's actual UI. Recommended set:
 
 1. **Main dashboard in domain view**
-   - Upload: `store-assets/screenshot-1-dashboard.jpg`
+   - Upload: `store-assets/browseloom-1-tabs.jpg`
    - Show several domain cards.
    - Include the tab filter control and theme/language controls.
    - Demonstrates the primary new-tab value.
 
-2. **Chrome Tab Groups view**
-   - Upload: `store-assets/screenshot-2-groups.jpg`
+2. **Bookmark workspace**
+   - Upload: `store-assets/browseloom-2-bookmarks.jpg`
+   - Show categories, flexible folder boards, recent bookmarks, and popular bookmarks.
+   - Demonstrates the plugin-local bookmark workflow.
+
+3. **Chrome Tab Groups view**
+   - Upload: `store-assets/browseloom-3-groups.jpg`
    - Create at least one Chrome Tab Group before taking the screenshot.
    - Show the Groups / Domains toggle.
    - Demonstrates native group support.
 
-3. **Privacy mode**
-   - Upload: `store-assets/screenshot-3-privacy.jpg`
+4. **Privacy mode**
+   - Upload: `store-assets/browseloom-4-privacy.jpg`
    - Show the clock privacy screen.
    - Keep the UI free of private tab titles.
    - Demonstrates screen-sharing safety.
 
-4. **Theme picker**
-   - Upload: `store-assets/screenshot-4-themes.jpg`
-   - Open the theme menu.
-   - Show the 14 available palettes.
-   - Demonstrates customization.
-
-5. **Chinese UI**
-   - Upload: `store-assets/screenshot-5-chinese.jpg`
-   - Switch to `中`.
-   - Show the same dashboard or privacy mode in Simplified Chinese.
-   - Demonstrates bilingual support.
+5. **Appearance settings**
+   - Upload: `store-assets/browseloom-5-settings.jpg`
+   - Show language, theme, background, and type controls.
+   - Demonstrates customization and bilingual support.
 
 6. **Saved for later**
    - Save one or two tabs.
@@ -175,11 +173,11 @@ These files are generated in this repository and can be uploaded directly:
 | Store field | Local file |
 | --- | --- |
 | Store icon, 128x128 | `extension/icons/icon128.png` |
-| Screenshot 1 | `store-assets/screenshot-1-dashboard.jpg` |
-| Screenshot 2 | `store-assets/screenshot-2-groups.jpg` |
-| Screenshot 3 | `store-assets/screenshot-3-privacy.jpg` |
-| Screenshot 4 | `store-assets/screenshot-4-themes.jpg` |
-| Screenshot 5 | `store-assets/screenshot-5-chinese.jpg` |
+| Screenshot 1 | `store-assets/browseloom-1-tabs.jpg` |
+| Screenshot 2 | `store-assets/browseloom-2-bookmarks.jpg` |
+| Screenshot 3 | `store-assets/browseloom-3-groups.jpg` |
+| Screenshot 4 | `store-assets/browseloom-4-privacy.jpg` |
+| Screenshot 5 | `store-assets/browseloom-5-settings.jpg` |
 | Small promo tile, 440x280 | `store-assets/promo-small-440x280.jpg` |
 
 ## Release Package Checklist

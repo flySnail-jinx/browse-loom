@@ -59,9 +59,9 @@ Release notes are tracked in [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## Screens and Controls
 
-![BrowseLoom dashboard](./store-assets/screenshot-1-dashboard.jpg)
+![BrowseLoom tab workspace](./store-assets/browseloom-1-tabs.jpg)
 
-The page header keeps the greeting and date visible without repeating the product name. The product identity stays in the browser UI and footer so the new tab page reads lighter.
+The tab workspace groups open pages into scannable cards while keeping saved-for-later items and sessions close at hand. These screenshots were captured from the current extension with a clean profile and public demo pages.
 
 The top-right controls are intentionally compact:
 
@@ -87,15 +87,15 @@ Available themes:
 | Ember Slate | Dark slate with warm energy |
 | Lavender Breeze | Light lavender with mint |
 
-Additional release screenshots:
+Current product screens:
 
-| Chrome Groups | Privacy Mode |
+| Bookmark Workspace | Chrome Groups |
 | --- | --- |
-| ![Chrome Tab Groups view](./store-assets/screenshot-2-groups.jpg) | ![Privacy mode](./store-assets/screenshot-3-privacy.jpg) |
+| ![BrowseLoom bookmark workspace](./store-assets/browseloom-2-bookmarks.jpg) | ![Chrome Tab Groups view](./store-assets/browseloom-3-groups.jpg) |
 
-| Theme Picker | Chinese UI |
+| Privacy Mode | Appearance Settings |
 | --- | --- |
-| ![Theme picker](./store-assets/screenshot-4-themes.jpg) | ![Chinese interface](./store-assets/screenshot-5-chinese.jpg) |
+| ![Privacy mode](./store-assets/browseloom-4-privacy.jpg) | ![Appearance settings](./store-assets/browseloom-5-settings.jpg) |
 
 ---
 
