@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -48,7 +48,7 @@ class CdpPage {
     this.events.get(method).push(handler);
   }
 
-  async send(method, params = {}) {
+  async send(method, params = {}, timeoutMs = 8000) {
     await this.opened;
     const id = this.nextId++;
     this.ws.send(JSON.stringify({ id, method, params }));
@@ -58,7 +58,7 @@ class CdpPage {
         if (!this.pending.has(id)) return;
         this.pending.delete(id);
         reject(new Error(`CDP timeout: ${method}`));
-      }, 8000);
+      }, timeoutMs);
     });
   }
 
@@ -202,6 +202,72 @@ async function main() {
     await page.waitFor('document.querySelector("#themeCurrentBtn")');
     await page.waitFor('document.querySelector("#backgroundStage canvas")');
     await page.waitFor('window.SuperTabOutBookmarks && document.body.dataset.workspace === "tabs"');
+    if (process.env.SETTINGS_IA_ONLY === '1') {
+      await page.evaluate(`document.querySelector('#privacySettingsBtn').click()`);
+      await page.waitFor('document.querySelector("#privacySettings")?.open');
+      assert.deepEqual(await page.evaluate(`(() => {
+        const dialog = document.querySelector('#privacySettings');
+        const sidebar = dialog.querySelector('.settings-sidebar').getBoundingClientRect();
+        const content = dialog.querySelector('.settings-content').getBoundingClientRect();
+        return {
+          triggerCount: document.querySelectorAll('.global-settings-trigger').length,
+          tabLabels: Array.from(dialog.querySelectorAll('.settings-tab')).map(tab => tab.textContent.trim()),
+          leftMenuBeforeContent: sidebar.right <= content.left,
+          activeView: dialog.querySelector('.settings-tab.active')?.dataset.settingsView || '',
+          hasCloseControl: !!dialog.querySelector('[data-close-dialog], .settings-close, [aria-label="Close"]'),
+        };
+      })()`), {
+        triggerCount: 2,
+        tabLabels: ['Appearance', 'Privacy screen', 'Data & privacy', 'About'],
+        leftMenuBeforeContent: true,
+        activeView: 'appearance',
+        hasCloseControl: false,
+      });
+      if (process.env.SETTINGS_IA_SCREENSHOT) {
+        const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
+        await writeFile(resolve(process.env.SETTINGS_IA_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
+      }
+      await page.evaluate(`document.querySelector('#settingsTabData').click()`);
+      await page.waitFor('document.querySelector("#settingsPaneData")?.classList.contains("active")');
+      assert.equal(await page.evaluate(`document.querySelector('#settingsPaneData #bookmarkImportButton') !== null`), true);
+      assert.equal(await page.evaluate(`(() => { const dialog = document.querySelector('#privacySettings'); dialog.click(); return dialog.open; })()`), false);
+
+      await page.evaluate(`document.querySelector('[data-workspace-switch="bookmarks"]').click()`);
+      await page.waitFor('document.body.dataset.workspace === "bookmarks"');
+      await sleep(450);
+      await page.evaluate(`document.querySelector('.bookmark-import-trigger').click()`);
+      await page.waitFor('document.querySelector("#privacySettings")?.open && document.querySelector("#settingsPaneData")?.classList.contains("active")');
+      assert.equal(await page.evaluate(`document.querySelector('#bookmarkGlobalSettingsBtn')?.getAttribute('aria-expanded')`), 'true');
+      await page.evaluate(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))`);
+      await page.waitFor('!document.querySelector("#privacySettings")?.open');
+
+      await page.send('Emulation.setDeviceMetricsOverride', {
+        width: 390,
+        height: 844,
+        deviceScaleFactor: 1,
+        mobile: false,
+      });
+      await page.evaluate(`document.querySelector('#bookmarkGlobalSettingsBtn').click()`);
+      const mobileDialog = await page.evaluate(`(() => {
+        const dialog = document.querySelector('#privacySettings');
+        const rect = dialog.getBoundingClientRect();
+        return {
+          open: dialog.open,
+          rememberedView: dialog.querySelector('.settings-tab.active')?.dataset.settingsView || '',
+          insideViewport: rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight,
+          pageHasHorizontalOverflow: document.documentElement.scrollWidth > innerWidth,
+        };
+      })()`);
+      assert.deepEqual(mobileDialog, {
+        open: true,
+        rememberedView: 'data',
+        insideViewport: true,
+        pageHasHorizontalOverflow: false,
+      });
+      assert.deepEqual(page.errors.filter(error => !error.includes('/config.local.js')), []);
+      console.log('Settings information architecture regression passed.');
+      return;
+    }
     await page.evaluate(`document.body.dispatchEvent(new WheelEvent('wheel', {
       bubbles: true,
       cancelable: true,
@@ -612,19 +678,18 @@ async function main() {
     await page.waitFor('/\\d/.test(document.querySelector("#openTabsSummary")?.textContent || "")');
     assert.match(await page.evaluate(`document.querySelector('#openTabsSummary')?.textContent.trim() || ''`), /\d/);
     assert.equal(await page.evaluate(`document.querySelectorAll('footer, #statTabs').length`), 0);
-    await page.evaluate(`document.querySelector('#toolbarMoreBtn')?.click()`);
     await page.evaluate(`document.querySelector('#privacySettingsBtn')?.click()`);
     await page.evaluate(`document.querySelector('#settingsTabAbout')?.click()`);
     await page.waitFor('document.querySelector("#settingsPaneAbout")?.classList.contains("active")');
     assert.deepEqual(
       await page.evaluate(`(() => ({
         versionMatchesManifest: document.querySelector('#extensionVersion')?.textContent.trim() === 'v' + chrome.runtime.getManifest().version,
-        aboutTabSelected: document.querySelector('#settingsTabAbout')?.getAttribute('aria-selected'),
+        aboutTabCurrent: document.querySelector('#settingsTabAbout')?.getAttribute('aria-current'),
         links: Array.from(document.querySelectorAll('#settingsPaneAbout .about-links a')).map(link => link.textContent.trim()),
       }))()`),
       {
         versionMatchesManifest: true,
-        aboutTabSelected: 'true',
+        aboutTabCurrent: 'page',
         links: ['Project source', 'Open-source license', 'Attribution notices', 'Third-party notices'],
       },
     );
@@ -655,7 +720,7 @@ async function main() {
     });
     const mobileToolbar = await page.evaluate(`(() => {
       const toolbar = document.querySelector('.dashboard-toolbar');
-      const visibleControls = Array.from(toolbar.querySelectorAll('#openTabsSummary, .open-tabs-search-wrap, #openTabsViewToggle, #openTabsSortControl, #privacyToggle, #toolbarMoreBtn'))
+      const visibleControls = Array.from(toolbar.querySelectorAll('#openTabsSummary, .open-tabs-search-wrap, #openTabsViewToggle, #openTabsSortControl, #privacyToggle, #privacySettingsBtn, #toolbarMoreBtn'))
         .filter(element => element.getClientRects().length > 0)
         .map(element => {
           const rect = element.getBoundingClientRect();
@@ -674,7 +739,6 @@ async function main() {
     assert.ok(mobileToolbar.controls.every(control => control.left >= 0 && control.right <= mobileToolbar.viewportWidth), `Mobile toolbar control overflow: ${JSON.stringify(mobileToolbar)}`);
     await page.evaluate(`(() => {
       window.scrollTo(0, 0);
-      document.querySelector('#toolbarMoreBtn').click();
       document.querySelector('#privacySettingsBtn').click();
     })()`);
     const mobileSettingsPanel = await page.evaluate(`(() => {
@@ -698,7 +762,13 @@ async function main() {
     assert.ok(mobileSettingsPanel.top >= 0, `Settings panel top overflow: ${JSON.stringify(mobileSettingsPanel)}`);
     assert.ok(mobileSettingsPanel.bottom <= mobileSettingsPanel.viewportHeight, `Settings panel bottom overflow: ${JSON.stringify(mobileSettingsPanel)}`);
     assert.equal(mobileSettingsPanel.centerInside, true);
+    assert.equal(await page.evaluate(`(() => {
+      const panel = document.querySelector('#privacySettings');
+      panel.click();
+      return panel.open;
+    })()`), false);
     const escapeState = await page.evaluate(`(() => {
+      document.querySelector('#privacySettingsBtn').click();
       document.querySelector('[data-settings-view="privacy"]').click();
       const input = document.querySelector('#psMottoInput');
       input.focus();
@@ -706,11 +776,11 @@ async function main() {
       const panel = document.querySelector('#privacySettings');
       return {
         activeId: document.activeElement?.id || '',
-        panelOpen: getComputedStyle(panel).display !== 'none',
+        panelOpen: panel.open,
       };
     })()`);
     assert.notEqual(escapeState.activeId, 'psMottoInput');
-    assert.equal(escapeState.panelOpen, true);
+    assert.equal(escapeState.panelOpen, false);
     assert.deepEqual(page.errors.filter(error => !error.includes('/config.local.js')), []);
     page.close();
     page = null;

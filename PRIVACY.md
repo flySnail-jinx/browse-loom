@@ -1,6 +1,6 @@
 # Privacy Policy for BrowseLoom
 
-Last updated: August 13, 2026
+Last updated: August 21, 2026
 
 BrowseLoom is a local-first Chromium extension that replaces the new tab page with a dashboard for organizing open browser tabs and a separate plugin-local bookmark workspace.
 
@@ -37,7 +37,7 @@ BrowseLoom stores the following data locally on the user's device:
 - selected view mode
 - selected language
 - selected theme
-- cached favicon images
+- cached favicon images when the user enables external site icons
 - custom bookmark titles, URLs, notes, icon choices, folder layout, order, and local open counts
 
 Saved tabs, preferences, and settings are stored using `chrome.storage.local` and `localStorage`.
@@ -50,7 +50,7 @@ BrowseLoom does not:
 
 - sell user data
 - use user data for advertising
-- transfer tab lists to a remote server
+- transfer tab lists to a developer-operated server
 - collect analytics or telemetry
 - require an account
 - run a backend service
@@ -59,15 +59,15 @@ BrowseLoom's use of information received from Chrome extension APIs adheres to t
 
 ## External Requests
 
-BrowseLoom may request favicons from:
+External site icons are optional and disabled by default. If the user explicitly enables **Load site icons via DuckDuckGo** in BrowseLoom's privacy settings, BrowseLoom requests favicons from:
 
 ```text
 https://icons.duckduckgo.com
 ```
 
-These requests are used to display small site icons next to tab and custom bookmark entries. Favicons are cached locally for up to 7 days to reduce repeated network requests.
+Each request sends the website's domain name to DuckDuckGo so that the matching icon can be returned. The request does not include the full tab list or page content. These requests are used only to display small site icons next to tab and custom bookmark entries. Favicons are cached locally for up to 7 days to reduce repeated network requests.
 
-Users can disable external favicon requests in the privacy settings. When disabled, cached favicons may still render, but new domains will not request icons from the external service.
+Users can disable external favicon requests again at any time. When disabled, cached favicons may still render, but new domains will not request icons from the external service.
 
 Privacy mode does not provide a web search box and does not change the browser search provider.
 

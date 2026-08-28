@@ -27,7 +27,7 @@
       emptyFolderTitle: 'This folder is empty', emptyFolderBody: 'Add a bookmark directly to this folder.',
       searchPlaceholder: 'Search bookmarks', searchResults: 'Search results', noResults: 'No matching bookmarks',
       noResultsBody: 'Try another name, domain, URL, or note.',
-      edit: 'Edit', move: 'Move', moveBookmark: 'Move bookmark', open: 'Open', rename: 'Rename', delete: 'Delete', cancel: 'Cancel', undo: 'Undo',
+      edit: 'Edit', move: 'Move', moveBookmark: 'Move bookmark', open: 'Open', copyLink: 'Copy link', rename: 'Rename', delete: 'Delete', cancel: 'Cancel', undo: 'Undo',
       moveToUnfiled: 'Move to Unfiled', deleteAll: 'Delete all',
       dropToCategory: 'Drop here to move out of the folder',
       deleteBookmarkTitle: 'Delete bookmark?', deleteBookmarkBody: ({ name }) => `“${name}” will be removed from your bookmark library.`,
@@ -37,6 +37,10 @@
         ? `“${name}” contains ${bookmarkCount} bookmark${bookmarkCount === 1 ? '' : 's'} and ${folderCount} folder${folderCount === 1 ? '' : 's'}. Choose what should happen to them.`
         : `“${name}” is empty and will be removed.`,
       saved: 'Changes saved', moved: 'Item moved', addedBookmark: 'Bookmark added', addedFolder: 'Folder created', addedCategory: 'Category added', deleted: 'Item deleted', restored: 'Item restored',
+      bookmarkDeleted: 'Bookmark deleted', folderDeleted: ({ count }) => `Folder deleted. ${count} bookmark${count === 1 ? '' : 's'} moved to the category.`,
+      categoryMoved: ({ count }) => `Category deleted. ${count} item${count === 1 ? '' : 's'} moved to Unfiled.`,
+      categoryDeleted: ({ count }) => `Category and ${count} item${count === 1 ? '' : 's'} deleted.`,
+      linkCopied: 'Link copied', copyLinkFailed: 'Could not copy the link.',
       requiredName: 'Enter a name.', invalidUrl: 'Enter a valid http or https URL.', storageError: 'Could not update local storage.',
       unsupportedCurrentPage: 'This browser page cannot be bookmarked. Enter an http or https URL instead.',
       bookmarkSettings: 'Bookmark settings', importBrowserBookmarks: 'Import browser bookmarks',
@@ -66,7 +70,7 @@
       emptyFolderTitle: '这个文件夹还是空的', emptyFolderBody: '可以直接向当前文件夹添加书签。',
       searchPlaceholder: '搜索所有书签', searchResults: '搜索结果', noResults: '没有匹配的书签',
       noResultsBody: '可以换个名称、域名、链接或备注再试。',
-      edit: '编辑', move: '移动', moveBookmark: '移动书签', open: '打开', rename: '重命名', delete: '删除', cancel: '取消', undo: '撤销',
+      edit: '编辑', move: '移动', moveBookmark: '移动书签', open: '打开', copyLink: '复制链接', rename: '重命名', delete: '删除', cancel: '取消', undo: '撤销',
       moveToUnfiled: '移到未分类', deleteAll: '全部删除',
       dropToCategory: '拖到此处，移回当前分类',
       deleteBookmarkTitle: '删除这个书签？', deleteBookmarkBody: ({ name }) => `「${name}」将从书签库中移除。`,
@@ -76,6 +80,10 @@
         ? `「${name}」包含 ${bookmarkCount} 个书签和 ${folderCount} 个文件夹，请选择如何处理这些内容。`
         : `「${name}」是空分类，删除后会从侧栏移除。`,
       saved: '已保存修改', moved: '已移动', addedBookmark: '已新增书签', addedFolder: '已创建文件夹', addedCategory: '已新增分类', deleted: '已删除', restored: '已恢复',
+      bookmarkDeleted: '已删除书签', folderDeleted: ({ count }) => `已删除文件夹，其中 ${count} 个书签已移到分类根目录。`,
+      categoryMoved: ({ count }) => `已删除分类，并将 ${count} 项移到未分类。`,
+      categoryDeleted: ({ count }) => `已删除分类及其中 ${count} 项。`,
+      linkCopied: '链接已复制', copyLinkFailed: '无法复制链接。',
       requiredName: '请输入名称。', invalidUrl: '请输入有效的 http 或 https 链接。', storageError: '无法更新本地存储。',
       unsupportedCurrentPage: '当前浏览器页面无法收藏，请改为输入 http 或 https 链接。',
       bookmarkSettings: '书签设置', importBrowserBookmarks: '导入浏览器书签',
@@ -136,15 +144,13 @@
     folderPages: new Map(),
     pendingDelete: null,
     pendingMove: null,
-    undoSnapshot: null,
     draggedItem: null,
     submittingForms: new Set(),
-    externalFavicons: true,
+    externalFavicons: false,
     importingBookmarks: false,
     bookmarkPermissionGranted: false,
     bookmarkImportStatus: null,
   };
-  let toastTimer = null;
   let workspaceSwipeDelta = 0;
   let workspaceSwipeTimer = null;
   let workspaceSwipeLockedUntil = 0;
@@ -476,16 +482,10 @@
     renderAll();
   }
 
-  function showToast(message, { undo = false } = {}) {
-    const toast = document.getElementById('bookmarkToast');
-    const text = document.getElementById('bookmarkToastText');
-    const undoButton = document.getElementById('bookmarkToastUndo');
-    if (!toast || !text || !undoButton) return;
-    text.textContent = message;
-    undoButton.hidden = !undo;
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), undo ? 6000 : 2200);
+  function showToast(message, { undo } = {}) {
+    window.SuperTabOutToast?.show?.(message, typeof undo === 'function'
+      ? { actionLabel: t('undo'), onAction: undo, duration: 7000 }
+      : {});
   }
 
   function renderBookmarkImportControls() {
@@ -517,13 +517,6 @@
       state.bookmarkPermissionGranted = false;
     }
     renderBookmarkImportControls();
-  }
-
-  function openBookmarkSettings() {
-    const dialog = document.getElementById('bookmarkSettingsDialog');
-    if (!dialog) return;
-    showBookmarkDialog(dialog);
-    refreshBookmarkPermissionState();
   }
 
   async function importBrowserBookmarks() {
@@ -756,6 +749,7 @@
         <button type="button" role="menuitem" class="danger" data-context-action="delete" data-kind="folder" data-id="${escapeHtml(id)}">${escapeHtml(t('delete'))}</button>`;
     }
     return `<button type="button" role="menuitem" data-context-action="open" data-kind="bookmark" data-id="${escapeHtml(id)}">${escapeHtml(t('open'))}</button>
+      <button type="button" role="menuitem" data-context-action="copy-link" data-kind="bookmark" data-id="${escapeHtml(id)}">${escapeHtml(t('copyLink'))}</button>
       <button type="button" role="menuitem" data-context-action="edit" data-kind="bookmark" data-id="${escapeHtml(id)}">${escapeHtml(t('editBookmark'))}</button>
       <button type="button" role="menuitem" data-context-action="move" data-kind="bookmark" data-id="${escapeHtml(id)}">${escapeHtml(t('move'))}</button>
       <button type="button" role="menuitem" class="danger" data-context-action="delete" data-kind="bookmark" data-id="${escapeHtml(id)}">${escapeHtml(t('delete'))}</button>`;
@@ -999,7 +993,13 @@
     const categoryHasContents = categoryFolders.length > 0 || categoryBookmarkCount > 0;
     const moveToUnfiledButton = document.getElementById('bookmarkConfirmMoveToUnfiled');
     const deleteButton = document.getElementById('bookmarkConfirmDelete');
-    state.pendingDelete = { kind, id, hasContents: categoryHasContents };
+    state.pendingDelete = {
+      kind,
+      id,
+      hasContents: categoryHasContents,
+      bookmarkCount: kind === 'folder' ? folderItems(id).length : categoryBookmarkCount,
+      folderCount: categoryFolders.length,
+    };
     const copyKey = kind === 'category' ? 'deleteCategory' : (kind === 'folder' ? 'deleteFolder' : 'deleteBookmark');
     document.getElementById('bookmarkConfirmTitle').textContent = t(`${copyKey}Title`);
     document.getElementById('bookmarkConfirmText').textContent = t(`${copyKey}Body`, {
@@ -1053,6 +1053,18 @@
       await chrome.tabs.create({ url: bookmark.url, active: true });
     } catch {
       window.open(bookmark.url, '_blank', 'noopener');
+    }
+  }
+
+  async function copyBookmarkLink(id) {
+    const bookmark = bookmarkById(id);
+    if (!bookmark) return;
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+      await navigator.clipboard.writeText(bookmark.url);
+      showToast(t('linkCopied'));
+    } catch {
+      showToast(t('copyLinkFailed'));
     }
   }
 
@@ -1156,26 +1168,30 @@
         const result = pending.kind === 'category'
           ? await Bookmarks.deleteCategory(pending.id, { contentMode: categoryContentMode })
           : (pending.kind === 'folder' ? await Bookmarks.deleteFolder(pending.id) : await Bookmarks.deleteBookmark(pending.id));
-        state.undoSnapshot = result.previous;
         state.library = result.library;
         state.pendingDelete = null;
         if (deletingActiveCategory) state.activeCategoryId = UNFILED_CATEGORY_ID;
         closeBookmarkDialog(document.getElementById('bookmarkConfirmDialog'));
         closeBookmarkDialog(document.getElementById('bookmarkFolderDialog'));
         renderAll();
-        showToast(t('deleted'), { undo: true });
+        const affectedCount = pending.bookmarkCount + pending.folderCount;
+        const message = pending.kind === 'bookmark'
+          ? t('bookmarkDeleted')
+          : (pending.kind === 'folder'
+              ? t('folderDeleted', { count: pending.bookmarkCount })
+              : t(categoryContentMode === 'delete-all' ? 'categoryDeleted' : 'categoryMoved', { count: affectedCount }));
+        showToast(message, { undo: () => undoDelete(result.previous) });
       } catch {
         showToast(t('storageError'));
       }
     });
   }
 
-  async function undoDelete() {
-    if (!state.undoSnapshot) return;
+  async function undoDelete(snapshot) {
+    if (!snapshot) return;
     try {
-      const result = await Bookmarks.restoreLibrary(state.undoSnapshot);
+      const result = await Bookmarks.restoreLibrary(snapshot);
       state.library = result.library;
-      state.undoSnapshot = null;
       renderAll();
       showToast(t('restored'));
     } catch {
@@ -1204,6 +1220,7 @@
       else openBookmarkEditor(bookmarkById(id));
       return;
     }
+    if (contextAction === 'copy-link' && kind === 'bookmark') { await copyBookmarkLink(id); return; }
     if (contextAction === 'move' && kind === 'bookmark') { openMoveDialog(id); return; }
     if (contextAction === 'delete') openDeleteConfirm(kind, id);
   }
@@ -1249,9 +1266,6 @@
     } else if (action === 'add-category') {
       closeFloatingMenus();
       openFolderEditor(null, { category: true });
-    } else if (action === 'open-settings') {
-      closeFloatingMenus();
-      openBookmarkSettings();
     } else if (action === 'import-browser-bookmarks') {
       await importBrowserBookmarks();
     } else if (action === 'remove-bookmark-permission') {
@@ -1471,7 +1485,7 @@
     try {
       await Storage?.migrateStorage?.();
       const privacy = await Storage?.getPrivacySettings?.();
-      state.externalFavicons = privacy?.externalFavicons !== false;
+      state.externalFavicons = privacy?.externalFavicons === true;
       state.library = await Bookmarks.getLibrary();
     } catch {
       showToast(t('storageError'));
@@ -1482,6 +1496,9 @@
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('keydown', handleKeydown);
     document.addEventListener('keydown', handleDialogEscape, true);
+    document.addEventListener('browseloom-settings-view-change', event => {
+      if (event.detail?.view === 'data') refreshBookmarkPermissionState();
+    });
     document.addEventListener('wheel', handleWheel, { passive: false });
     document.addEventListener('dragstart', handleDragStart);
     document.addEventListener('dragover', handleDragOver);
@@ -1532,7 +1549,6 @@
     document.getElementById('bookmarkFolderDialogTitleInput')?.addEventListener('change', saveFolderViewerName);
     document.getElementById('bookmarkMoveForm')?.addEventListener('submit', saveMove);
     document.getElementById('bookmarkConfirmForm')?.addEventListener('submit', confirmDelete);
-    document.getElementById('bookmarkToastUndo')?.addEventListener('click', undoDelete);
     await openCapturedBookmarkDraft();
 
     if (chrome?.storage?.onChanged) {
@@ -1540,7 +1556,7 @@
         if (areaName !== 'local') return;
         if (changes.bookmarkLibrary) refreshLibrary();
         if (changes.privacySettings) {
-          state.externalFavicons = changes.privacySettings.newValue?.externalFavicons !== false;
+          state.externalFavicons = changes.privacySettings.newValue?.externalFavicons === true;
           renderAll();
         }
       });

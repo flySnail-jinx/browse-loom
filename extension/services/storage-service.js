@@ -3,7 +3,7 @@
 (function (global) {
   'use strict';
 
-  const CURRENT_SCHEMA_VERSION = 7;
+  const CURRENT_SCHEMA_VERSION = 8;
   const STORAGE_SCHEMA_KEY = 'storageSchemaVersion';
   const STORAGE_LAST_MIGRATED_KEY = 'storageLastMigratedAt';
   const DEFERRED_KEY = 'deferred';
@@ -28,7 +28,7 @@
     date: true,
     motto: true,
     mottoText: '',
-    externalFavicons: true,
+    externalFavicons: false,
   };
 
   const storageErrorListeners = [];
@@ -324,7 +324,7 @@
       date: source.date !== false,
       motto: source.motto !== false,
       mottoText: typeof source.mottoText === 'string' ? source.mottoText : '',
-      externalFavicons: source.externalFavicons !== false,
+      externalFavicons: source.externalFavicons === true,
     };
   }
 
@@ -618,6 +618,13 @@
         : [];
       updates[DEFERRED_KEY] = normalizeDeferred(legacyDeferred);
       updates[SAVED_SESSIONS_KEY] = normalizeSavedSessions(data[SAVED_SESSIONS_KEY]);
+    }
+
+    if (from < 8) {
+      updates[PRIVACY_SETTINGS_KEY] = {
+        ...normalizePrivacySettings(data[PRIVACY_SETTINGS_KEY]),
+        externalFavicons: false,
+      };
     }
 
     if (from !== CURRENT_SCHEMA_VERSION) {

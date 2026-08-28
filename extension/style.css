@@ -1754,6 +1754,28 @@ header {
   cursor: default;
 }
 
+.toast-dismiss {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  margin-left: 2px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  color: color-mix(in srgb, var(--paper) 72%, transparent);
+  background: transparent;
+  font: 700 18px/1 var(--font-sans);
+  cursor: pointer;
+}
+
+.toast-dismiss:hover,
+.toast-dismiss:focus-visible {
+  color: var(--paper);
+  background: color-mix(in srgb, var(--paper) 12%, transparent);
+  outline: none;
+}
+
 .refresh-btn {
   font-family: var(--font-sans);
   font-size: 11px;
@@ -4998,6 +5020,13 @@ body.privacy-mode .privacy-settings .theme-menu {
   padding: 0;
 }
 
+.privacy-settings .privacy-setting-disclosure {
+  margin: -2px 6px 2px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .privacy-settings .privacy-setting-input {
   min-height: 36px;
   padding: 8px 10px;
@@ -5032,6 +5061,410 @@ body.privacy-mode .privacy-settings .theme-menu {
 
   body.privacy-mode .privacy-settings .theme-menu {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* ================================================================
+   UNIFIED SETTINGS CENTER
+   One modal surface shared by the tab and bookmark workspaces.
+   ================================================================ */
+
+.global-settings-trigger {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  color: var(--muted);
+  background: var(--surface-soft);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, transform 160ms cubic-bezier(.22,1,.36,1);
+}
+
+.global-settings-trigger svg {
+  width: 20px;
+  height: 20px;
+}
+
+.global-settings-trigger:hover,
+.global-settings-trigger[aria-expanded="true"] {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--ink) 24%, var(--hairline));
+  background: var(--control-hover-bg);
+}
+
+.global-settings-trigger:active {
+  transform: scale(.96);
+}
+
+.global-settings-trigger:focus-visible {
+  outline: none;
+  border-color: var(--accent-slate);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.settings-dialog:not([open]) {
+  display: none;
+}
+
+.settings-dialog[open] {
+  display: block;
+}
+
+.settings-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(1040px, calc(100vw - 64px));
+  height: min(760px, calc(100dvh - 64px));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 16px;
+  color: var(--ink);
+  background: var(--surface-raised, var(--card-bg));
+  box-shadow: 0 24px 64px color-mix(in srgb, var(--shadow) 92%, transparent);
+  animation: settings-dialog-in 190ms cubic-bezier(.22,1,.36,1);
+}
+
+.settings-dialog::backdrop {
+  background: color-mix(in srgb, #10151f 34%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: settings-backdrop-in 160ms ease-out;
+}
+
+@keyframes settings-dialog-in {
+  from { opacity: 0; transform: translateY(12px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes settings-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.settings-dialog-shell {
+  display: grid;
+  grid-template-columns: 224px minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+}
+
+.settings-sidebar {
+  display: flex;
+  min-width: 0;
+  padding: 28px 16px 18px;
+  flex-direction: column;
+  border-right: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--surface-soft) 88%, var(--paper));
+}
+
+.settings-dialog .privacy-settings-title {
+  margin: 0 10px 22px;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 760;
+  line-height: 1.25;
+}
+
+.settings-dialog .settings-tabs {
+  display: flex;
+  padding: 0;
+  flex-direction: column;
+  gap: 5px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.settings-dialog .settings-tab {
+  display: grid;
+  min-height: 44px;
+  padding: 0 12px;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  border: 0;
+  border-radius: 10px;
+  color: var(--muted);
+  background: transparent;
+  font: 680 13px/1.25 var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.settings-dialog .settings-tab svg {
+  width: 20px;
+  height: 20px;
+}
+
+.settings-dialog .settings-tab:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+
+.settings-dialog .settings-tab.active {
+  color: var(--ink);
+  background: var(--surface-raised);
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--shadow) 58%, transparent);
+}
+
+.settings-dialog .settings-tab:focus-visible {
+  outline: 2px solid var(--accent-slate);
+  outline-offset: 2px;
+}
+
+.settings-sidebar-footer {
+  display: flex;
+  margin: auto 10px 0;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.settings-sidebar-footer strong {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.settings-content {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 42px 54px 56px;
+  background: var(--surface-raised, var(--card-bg));
+  scrollbar-gutter: stable;
+}
+
+.settings-dialog .settings-pane {
+  width: min(680px, 100%);
+  margin: 0 auto;
+}
+
+.settings-dialog .settings-pane.active:not([hidden]) {
+  display: grid;
+  gap: 22px;
+}
+
+.settings-pane-header {
+  display: block;
+  position: static;
+  z-index: auto;
+  margin: 0 0 4px;
+  padding: 0;
+  border: 0;
+  animation: none;
+}
+
+.settings-pane-header h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 24px;
+  font-weight: 760;
+  line-height: 1.2;
+}
+
+.settings-dialog .settings-section {
+  display: grid;
+  gap: 18px;
+  padding: 0;
+  border: 0;
+}
+
+.settings-dialog .settings-field {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-dialog .settings-field + .settings-field {
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+}
+
+.settings-dialog .settings-field-label,
+.settings-dialog .settings-section-title {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 720;
+  line-height: 1.3;
+}
+
+.settings-dialog .language-switcher,
+.settings-dialog .theme-picker,
+.settings-dialog .font-picker {
+  width: 100%;
+  height: auto;
+  position: relative;
+}
+
+.settings-dialog .language-current-btn,
+.settings-dialog .theme-current-btn,
+.settings-dialog .font-current-btn {
+  display: none;
+}
+
+.settings-dialog .language-menu,
+.settings-dialog .theme-menu,
+.settings-dialog .font-menu {
+  position: static;
+  width: 100%;
+  max-height: none;
+  overflow: visible;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.settings-dialog .language-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settings-dialog .theme-menu {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.settings-dialog .font-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settings-dialog .privacy-setting-row {
+  min-height: 52px;
+  padding: 9px 12px 9px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+  border-radius: 0;
+  background: transparent;
+  font-size: 13px;
+}
+
+.settings-dialog .privacy-setting-row:first-of-type {
+  border-top: 1px solid var(--hairline);
+}
+
+.settings-dialog .privacy-setting-row:hover {
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.settings-dialog .privacy-setting-sub {
+  padding: 2px 0 0;
+}
+
+.settings-dialog .privacy-setting-disclosure {
+  margin: -8px 4px 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.settings-data-section + .settings-data-section {
+  padding-top: 26px !important;
+  border-top: 1px solid var(--hairline) !important;
+}
+
+.settings-dialog .bookmark-settings-section-heading {
+  margin-top: -4px;
+}
+
+.settings-dialog .bookmark-import-note {
+  margin: 0;
+}
+
+.settings-dialog .bookmark-import-button {
+  width: min(360px, 100%);
+}
+
+.settings-dialog .about-product-title {
+  font-size: 18px;
+}
+
+.settings-dialog .about-product p,
+.settings-dialog .about-attribution,
+.settings-dialog .about-links a {
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .settings-dialog {
+    width: calc(100vw - 28px);
+    height: calc(100dvh - 28px);
+    border-radius: 14px;
+  }
+
+  .settings-dialog-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .settings-sidebar {
+    padding: 16px 14px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .settings-dialog .privacy-settings-title {
+    margin: 0 6px 12px;
+    font-size: 16px;
+  }
+
+  .settings-dialog .settings-tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .settings-dialog .settings-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .settings-dialog .settings-tab {
+    min-width: max-content;
+    grid-template-columns: 18px auto;
+  }
+
+  .settings-dialog .settings-tab svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .settings-sidebar-footer {
+    display: none;
+  }
+
+  .settings-content {
+    padding: 24px 22px 36px;
+  }
+
+  .settings-pane-header h2 {
+    font-size: 21px;
+  }
+
+  .settings-dialog .theme-menu {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 460px) {
+  .settings-dialog .font-menu {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-dialog .theme-menu {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 body[data-storage-blocked="forward-version"] {

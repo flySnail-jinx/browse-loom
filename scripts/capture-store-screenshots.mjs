@@ -247,7 +247,6 @@ async function main() {
     await page.evaluate(`(async () => {
       document.querySelector('#privacyToggle').click();
       await new Promise(resolve => setTimeout(resolve, 250));
-      document.querySelector('#toolbarMoreBtn').click();
       document.querySelector('#privacySettingsBtn').click();
     })()`);
     await page.waitFor('getComputedStyle(document.querySelector("#privacySettings")).display !== "none"');

@@ -4,6 +4,13 @@ English · [简体中文](./CHANGELOG.zh-CN.md)
 
 All notable changes to BrowseLoom are tracked here.
 
+## 1.1.1 - 2026-08-21
+
+### Changed
+
+- Disabled external favicon requests by default, including for existing settings migrated from an older version. The privacy settings now explain before opt-in that enabling site icons sends website domain names to `icons.duckduckgo.com`.
+- Updated the privacy policy and release metadata for the Chrome Web Store privacy disclosure requirements effective August 1, 2026.
+
 ## 1.1.0 - 2026-08-17
 
 ### Added

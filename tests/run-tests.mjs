@@ -38,9 +38,11 @@ function makeFakeStorage(seed = {}) {
   };
 }
 
-function testWorkspaceNavigationContract() {
+async function testWorkspaceNavigationContract() {
   const index = readFileSync(resolve(root, 'extension/index.html'), 'utf8');
   const css = readFileSync(resolve(root, 'extension/bookmarks.css'), 'utf8');
+  const dashboardCss = readFileSync(resolve(root, 'extension/style.css'), 'utf8');
+  const app = readFileSync(resolve(root, 'extension/app.js'), 'utf8');
   const ui = readFileSync(resolve(root, 'extension/bookmarks.js'), 'utf8');
   const background = readFileSync(resolve(root, 'extension/background.js'), 'utf8');
   const manifest = JSON.parse(readFileSync(resolve(root, 'extension/manifest.json'), 'utf8'));
@@ -72,17 +74,82 @@ function testWorkspaceNavigationContract() {
   assert.match(css, /\.bookmark-grid\[hidden\],[\s\S]*?\.bookmark-list\[hidden\],[\s\S]*?\.bookmark-empty\[hidden\],[\s\S]*?\.bookmark-empty-icon\[hidden\]\s*\{\s*display:\s*none;/);
   const emptyState = index.match(/<div class="bookmark-empty" id="bookmarkEmpty"[\s\S]*?<\/div>/)?.[0] || '';
   assert.match(emptyState, /<button class="bookmark-empty-icon"[^>]+data-bookmark-action="open-add-menu"/);
+  assert.match(emptyState, /class="bookmark-empty-import"[^>]+data-action="open-settings"[^>]+data-settings-view="data"/);
   assert.match(index, /<button class="bookmark-add-trigger"[^>]+data-bookmark-action="add-category"/);
-  assert.match(index, /<button class="bookmark-settings-trigger"[^>]+data-bookmark-action="open-settings"/);
-  assert.match(index, /id="bookmarkSettingsDialog"/);
+  assert.equal((index.match(/class="[^"]*global-settings-trigger/g) || []).length, 2);
+  assert.match(index, /id="privacySettings"[^>]+class="[^"]*settings-dialog|class="[^"]*settings-dialog[^"]*"[^>]+id="privacySettings"/);
+  const settingsDialogMarkup = index.match(/<dialog[^>]+id="privacySettings"[\s\S]*?<\/dialog>/)?.[0] || '';
+  assert.equal(settingsDialogMarkup.includes('data-close-dialog'), false);
+  assert.match(index, /id="settingsTabData"[^>]+data-settings-view="data"/);
+  assert.match(index, /id="settingsPaneData"[^>]+data-settings-pane="data"/);
+  assert.match(index, /id="bulkTabConfirmDialog"[^>]+aria-describedby="bulkTabConfirmText"/);
+  assert.match(index, /id="bulkTabConfirmCancel"[^>]+type="button"/);
+  assert.match(index, /id="toast"[^>]+role="status"[^>]+aria-live="polite"[^>]+aria-atomic="true"/);
+  assert.match(index, /id="toastDismiss"[^>]+type="button"/);
+  assert.equal(index.includes('id="bookmarkToast"'), false);
+  for (const action of ['close-all-open-tabs', 'close-domain-tabs', 'close-group-tabs', 'close-ungrouped-tabs', 'dedup-keep-one']) {
+    const handler = app.match(new RegExp(`if \\(action === '${action}'\\) \\{[\\s\\S]*?\\n  \\}`))?.[0] || '';
+    assert.match(handler, /openBulkTabCloseConfirm\(/, `${action} must use bulk confirmation`);
+  }
+  const closeExtraDashboardsHandler = app.match(/if \(action === 'close-tabout-dupes'\) \{[\s\S]*?\n  \}/)?.[0] || '';
+  assert.doesNotMatch(closeExtraDashboardsHandler, /openBulkTabCloseConfirm\(/);
+  assert.match(closeExtraDashboardsHandler, /closeTabsWithSnapshot\?\.\(tabIds, \{ allowDashboard: true \}\)/);
+  assert.match(closeExtraDashboardsHandler, /offerClosedTabsUndo\(result\)/);
+  const closeSingleTabHandler = app.match(/if \(action === 'close-single-tab'\) \{[\s\S]*?\n  \}/)?.[0] || '';
+  assert.doesNotMatch(closeSingleTabHandler, /openBulkTabCloseConfirm\(/);
+  assert.match(closeSingleTabHandler, /closeTabsWithSnapshot\?\.\(\[targetTabId\]\)/);
+  assert.match(closeSingleTabHandler, /offerClosedTabsUndo\(result, tr\('toastTabClosed'\)\)/);
+  assert.match(app, /window\.SuperTabOutToast = \{ show: showToast, dismiss: hideToast \}/);
+  assert.match(app, /actionLabel: tr\('undo'\)[\s\S]*?TabsService\.restoreClosedTabs\(result\.snapshot\)/);
+  assert.match(ui, /window\.SuperTabOutToast\?\.show\?/);
+  assert.match(ui, /showToast\(message, \{ undo: \(\) => undoDelete\(result\.previous\) \}\)/);
+  assert.equal(ui.includes('undoSnapshot'), false);
+  assert.equal(index.includes('bookmark-settings-trigger'), false);
+  assert.equal(index.includes('id="bookmarkSettingsDialog"'), false);
+  assert.match(index, /class="bookmark-import-trigger"[^>]+data-action="open-settings"[^>]+data-settings-view="data"/);
   assert.match(index, /id="bookmarkImportButton"[^>]+data-bookmark-action="import-browser-bookmarks"/);
+  assert.match(app, /panel\.showModal\(\)/);
+  assert.match(app, /settingsDialog\?\.addEventListener\('cancel'/);
+  assert.match(app, /event\.target === settingsDialog/);
+  assert.match(app, /const initialView = view \|\| \(document\.body\.classList\.contains\('privacy-mode'\) \? 'privacy' : activeSettingsView\)/);
+  assert.match(dashboardCss, /\.settings-dialog-shell\s*\{[\s\S]*?grid-template-columns:\s*224px minmax\(0, 1fr\)/);
+  assert.match(dashboardCss, /\.settings-dialog::backdrop\s*\{/);
   assert.deepEqual(manifest.optional_permissions, ['bookmarks']);
+  const faviconSetting = index.match(/<label class="privacy-setting-row">\s*<span data-i18n="externalFavicons"[\s\S]*?<\/label>/)?.[0] || '';
+  assert.equal(faviconSetting.includes('checked'), false);
+  assert.match(index, /data-i18n="externalFaviconsDisclosure"[^>]*>[^<]*icons\.duckduckgo\.com/);
   assert.equal(ui.includes("chrome.permissions.request({ permissions: ['bookmarks'] })"), true);
   assert.equal(ui.includes('Bookmarks.importBrowserTree(tree)'), true);
   const openBookmarkSource = ui.match(/async function openBookmark[\s\S]*?\n  }/)?.[0] || '';
   assert.match(openBookmarkSource, /chrome\.tabs\.create\(\{ url: bookmark\.url, active: true \}\)/);
   assert.equal(openBookmarkSource.includes('chrome.tabs.update'), false);
   assert.match(openBookmarkSource, /window\.open\(bookmark\.url, '_blank', 'noopener'\)/);
+  const copyBookmarkLinkSource = ui.match(/async function copyBookmarkLink[\s\S]*?\n  }/)?.[0] || '';
+  assert.match(ui, /data-context-action="copy-link" data-kind="bookmark"/);
+  assert.match(copyBookmarkLinkSource, /navigator\.clipboard\.writeText\(bookmark\.url\)/);
+  assert.match(copyBookmarkLinkSource, /showToast\(t\('linkCopied'\)\)/);
+  assert.match(copyBookmarkLinkSource, /showToast\(t\('copyLinkFailed'\)\)/);
+  assert.match(ui, /contextAction === 'copy-link' && kind === 'bookmark'/);
+  const copiedLinks = [];
+  const copyMessages = [];
+  await runInNewContext(`${copyBookmarkLinkSource}\ncopyBookmarkLink('bookmark-1');`, {
+    bookmarkById: () => ({ url: 'https://example.com/path?source=bookmark' }),
+    navigator: { clipboard: { writeText: async value => copiedLinks.push(value) } },
+    showToast: message => copyMessages.push(message),
+    t: key => key,
+    Error,
+  });
+  assert.deepEqual(copiedLinks, ['https://example.com/path?source=bookmark']);
+  assert.deepEqual(copyMessages, ['linkCopied']);
+  const failedCopyMessages = [];
+  await runInNewContext(`${copyBookmarkLinkSource}\ncopyBookmarkLink('bookmark-1');`, {
+    bookmarkById: () => ({ url: 'https://example.com/' }),
+    navigator: { clipboard: { writeText: async () => { throw new Error('denied'); } } },
+    showToast: message => failedCopyMessages.push(message),
+    t: key => key,
+    Error,
+  });
+  assert.deepEqual(failedCopyMessages, ['copyLinkFailed']);
   assert.equal(ui.includes("{ newTab: event.ctrlKey || event.metaKey }"), false);
   assert.equal(index.includes('id="bookmarkAddTrigger"'), false);
   assert.equal(index.includes('id="bookmarkAddMenu"'), true);
@@ -176,9 +243,9 @@ function testWorkspaceNavigationContract() {
   assert.equal(ui.includes("contentMode: categoryContentMode"), true);
   assert.equal(ui.includes("dialog.style.setProperty('--bookmark-folder-width'"), true);
   assert.match(css, /\.bookmark-add-trigger\s*\{[\s\S]*?width:\s*100%;[\s\S]*?grid-template-columns:\s*36px minmax\(0, 1fr\);/);
-  assert.match(css, /\.bookmark-settings-trigger\s*\{[\s\S]*?width:\s*44px;[\s\S]*?grid-template-columns:\s*44px;/);
+  assert.match(css, /\.bookmark-import-trigger\s*\{[\s\S]*?width:\s*100%;[\s\S]*?grid-template-columns:\s*36px minmax\(0, 1fr\);/);
   assert.match(css, /\.bookmark-add-trigger\s*\{[\s\S]*?margin:\s*auto 0 0;/);
-  assert.match(css, /\.bookmark-settings-trigger\s*\{[\s\S]*?margin:\s*4px 0 0;/);
+  assert.match(css, /\.bookmark-import-trigger\s*\{[\s\S]*?margin:\s*4px 0 0;/);
   assert.ok(manifest.commands?.['toggle-workspace']);
   assert.deepEqual(manifest.commands?.['bookmark-current-page']?.suggested_key, {
     default: 'Ctrl+Shift+D',
@@ -442,6 +509,113 @@ async function testTabsService() {
 
   await tabs.closeDuplicateTabs(['https://a.test'], true);
   assert.deepEqual(removed, [3]);
+
+  const bulkRemoved = [];
+  global.chrome = {
+    runtime: { id: 'ext' },
+    tabs: {
+      async query() {
+        return [
+          { id: 11, url: 'https://a.test/path', title: 'A', windowId: 1, index: 2, groupId: 8, active: true, pinned: false },
+          { id: 12, url: 'https://pinned.test', title: 'Pinned', windowId: 1, index: 0, groupId: -1, pinned: true },
+          { id: 13, url: 'chrome://settings/', title: 'Settings', windowId: 1, index: 1, groupId: -1, pinned: false },
+          { id: 14, url: 'chrome-extension://ext/index.html', title: 'BrowseLoom', windowId: 1, index: 3, groupId: -1, pinned: false },
+          { id: 15, url: 'https://gone.test', title: 'Gone', windowId: 2, index: 0, groupId: -1, pinned: false },
+        ];
+      },
+      async remove(tabId) {
+        if (tabId === 15) throw new Error('already gone');
+        bulkRemoved.push(tabId);
+      },
+    },
+    tabGroups: {
+      async query() { return [{ id: 8, title: 'Research', color: 'blue', collapsed: true }]; },
+    },
+  };
+
+  const bulkPlan = await tabs.prepareBulkClose([11, 12, 13, 14, 15]);
+  assert.equal(bulkPlan.count, 2);
+  assert.equal(bulkPlan.protectedPinned, 1);
+  assert.equal(bulkPlan.protectedInternal, 2);
+  assert.deepEqual(bulkPlan.snapshot.tabs[0], {
+    id: 11,
+    url: 'https://a.test/path',
+    title: 'A',
+    windowId: 1,
+    index: 2,
+    active: true,
+    pinned: false,
+    incognito: false,
+    groupId: 8,
+    groupKey: '1:8',
+    groupTitle: 'Research',
+    groupColor: 'blue',
+    groupCollapsed: true,
+  });
+  assert.equal((await tabs.prepareBulkClose([14], { allowDashboard: true })).count, 1);
+  const bulkClose = await tabs.closeTabsWithSnapshot([11, 12, 13, 15]);
+  assert.deepEqual(bulkRemoved, [11]);
+  assert.equal(bulkClose.closedCount, 1);
+  assert.equal(bulkClose.failedCount, 1);
+  assert.deepEqual(bulkClose.snapshot.tabs.map(tab => tab.id), [11]);
+
+  const restoredTabCreates = [];
+  const restoredWindowCreates = [];
+  const restoredGroups = [];
+  const restoredGroupUpdates = [];
+  const restoredActivations = [];
+  global.chrome = {
+    runtime: { id: 'ext' },
+    windows: {
+      async get(windowId) {
+        if (windowId === 1) return { id: 1 };
+        throw new Error('window gone');
+      },
+      async create(options) {
+        restoredWindowCreates.push(options);
+        return { id: 20, tabs: [{ id: 201, index: 0, url: options.url }] };
+      },
+    },
+    tabs: {
+      async query() { return []; },
+      async create(options) {
+        restoredTabCreates.push(options);
+        return { id: 101 + restoredTabCreates.length, index: options.index, url: options.url };
+      },
+      async group(options) {
+        restoredGroups.push(options.tabIds);
+        return 30 + restoredGroups.length;
+      },
+      async update(tabId, update) {
+        restoredActivations.push({ tabId, update });
+      },
+    },
+    tabGroups: {
+      async update(groupId, update) {
+        restoredGroupUpdates.push({ groupId, update });
+      },
+    },
+  };
+  const restoreResult = await tabs.restoreClosedTabs({
+    version: 1,
+    tabs: [
+      { id: 11, url: 'https://a.test/one', title: 'One', windowId: 1, index: 1, active: true, pinned: false, groupKey: '1:8', groupTitle: 'Research', groupColor: 'blue', groupCollapsed: true },
+      { id: 16, url: 'https://a.test/two', title: 'Two', windowId: 1, index: 2, active: false, pinned: false, groupKey: '1:8', groupTitle: 'Research', groupColor: 'blue', groupCollapsed: true },
+      { id: 17, url: 'https://b.test/', title: 'B', windowId: 2, index: 0, active: false, pinned: false, groupKey: '', incognito: false },
+    ],
+  });
+  assert.equal(restoreResult.restoredCount, 3);
+  assert.equal(restoreResult.failedCount, 0);
+  assert.equal(restoreResult.groupCount, 1);
+  assert.equal(restoreResult.groupFailedCount, 0);
+  assert.deepEqual(restoredTabCreates.map(item => ({ url: item.url, windowId: item.windowId, index: item.index })), [
+    { url: 'https://a.test/one', windowId: 1, index: 1 },
+    { url: 'https://a.test/two', windowId: 1, index: 2 },
+  ]);
+  assert.deepEqual(restoredWindowCreates, [{ url: 'https://b.test/', focused: false }]);
+  assert.deepEqual(restoredGroups, [[102, 103]]);
+  assert.deepEqual(restoredGroupUpdates, [{ groupId: 31, update: { title: 'Research', color: 'blue', collapsed: true } }]);
+  assert.deepEqual(restoredActivations, [{ tabId: 102, update: { active: true } }]);
 
   const focusedTabs = [];
   const focusedWindows = [];
@@ -747,8 +921,10 @@ async function testStorageService() {
     date: true,
     motto: true,
     mottoText: 'Focus',
-    externalFavicons: true,
+    externalFavicons: false,
   });
+  assert.equal(storage.normalizePrivacySettings({}).externalFavicons, false);
+  assert.equal(storage.normalizePrivacySettings({ externalFavicons: true }).externalFavicons, true);
   assert.equal(fakeStorage.store.bookmarkLibrary.version, 3);
   assert.equal(fakeStorage.store.bookmarkLibrary.viewMode, 'grid');
   assert.deepEqual(fakeStorage.store.bookmarkLibrary.categories.map(({ id, name, icon, system, order, itemOrder }) => ({ id, name, icon, system, order, itemOrder })), [
@@ -849,9 +1025,17 @@ async function testStorageService() {
   global.chrome = { storage: { local: legacyBookmarkStorage } };
   const bookmarkMigration = await storage.migrateStorage();
   assert.equal(bookmarkMigration.changed, true);
-  assert.equal(legacyBookmarkStorage.store.storageSchemaVersion, 7);
+  assert.equal(legacyBookmarkStorage.store.storageSchemaVersion, storage.CURRENT_SCHEMA_VERSION);
   assert.equal(legacyBookmarkStorage.store.bookmarkLibrary.version, 3);
   assert.equal(legacyBookmarkStorage.store.bookmarkLibrary.categories.some(category => category.icon === 'shopping'), true);
+
+  const legacyFaviconStorage = makeFakeStorage({
+    storageSchemaVersion: 7,
+    privacySettings: { externalFavicons: true },
+  });
+  global.chrome = { storage: { local: legacyFaviconStorage } };
+  await storage.migrateStorage();
+  assert.equal(legacyFaviconStorage.store.privacySettings.externalFavicons, false);
 
   const futureStorage = makeFakeStorage({ storageSchemaVersion: storage.CURRENT_SCHEMA_VERSION + 1 });
   global.chrome = { storage: { local: futureStorage } };
@@ -1185,7 +1369,7 @@ function testHtmlService() {
 }
 
 testUrlService();
-testWorkspaceNavigationContract();
+await testWorkspaceNavigationContract();
 await testBackgroundRegistryContract();
 await testBackgroundBookmarkCapture();
 await testTabsService();

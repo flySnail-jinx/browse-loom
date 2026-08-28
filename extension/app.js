@@ -605,6 +605,8 @@ const UI_COPY = {
     settingsSectionsLabel: 'Settings sections',
     appearanceSettings: 'Appearance',
     privacyScreenSettings: 'Privacy screen',
+    dataPrivacySettings: 'Data & privacy',
+    networkPrivacySettings: 'Network privacy',
     aboutSettings: 'About',
     aboutDescription: 'A local-first dashboard for organizing open browser tabs.',
     projectInformation: 'Project information',
@@ -663,7 +665,8 @@ const UI_COPY = {
     clock: 'Clock',
     date: 'Date',
     customText: 'Custom text',
-    externalFavicons: 'Load site icons',
+    externalFavicons: 'Load site icons via DuckDuckGo',
+    externalFaviconsDisclosure: 'Optional and off by default. When enabled, BrowseLoom sends each website domain to icons.duckduckgo.com to retrieve its icon.',
     mottoPlaceholder: 'Type your text here...',
     closeExtras: 'Close extras',
     search: 'Filter tabs',
@@ -734,6 +737,7 @@ const UI_COPY = {
     restoreSessionWindows: 'Restore windows',
     deleteSession: 'Delete',
     undo: 'Undo',
+    dismissToast: 'Dismiss notification',
     savedSessionTabs: ({ count }) => `${count} tab${count !== 1 ? 's' : ''}`,
     noResults: 'No results',
     inboxZeroTitle: 'Inbox zero, but for tabs.',
@@ -745,6 +749,15 @@ const UI_COPY = {
     duplicates: ({ count }) => `${count} duplicate${count !== 1 ? 's' : ''}`,
     more: ({ count }) => `+${count} more`,
     closeAllTabs: ({ count }) => `Close all ${count} tab${count !== 1 ? 's' : ''}`,
+    bulkCloseTitle: ({ count }) => `Close ${count} tab${count !== 1 ? 's' : ''}?`,
+    bulkCloseButton: ({ count }) => `Close ${count} tab${count !== 1 ? 's' : ''}`,
+    bulkCloseScopeAll: 'all open tabs',
+    bulkCloseScopeDomain: ({ label }) => `the ${label} card`,
+    bulkCloseScopeGroup: ({ label }) => `the ${label} Chrome group`,
+    bulkCloseScopeUngrouped: 'all ungrouped tabs',
+    bulkCloseScopeDuplicates: 'the selected duplicate tabs',
+    bulkCloseScopeExtraDashboards: 'the extra BrowseLoom tabs',
+    bulkCloseBody: ({ scope, protectedCount = 0 }) => `Scope: ${scope}. Pinned tabs and browser or extension pages stay open.${protectedCount ? ` ${protectedCount} protected tab${protectedCount === 1 ? ' is' : 's are'} excluded.` : ''}`,
     closeDuplicates: ({ count }) => `Close ${count} duplicate${count !== 1 ? 's' : ''}`,
     domainCount: ({ count }) => `${count} domain${count !== 1 ? 's' : ''}`,
     groupCount: ({ count }) => `${count} group${count !== 1 ? 's' : ''}`,
@@ -763,6 +776,12 @@ const UI_COPY = {
     toastClosedChromeGroup: ({ count }) => `Closed ${count} tab${count !== 1 ? 's' : ''} from group`,
     toastUngrouped: ({ count }) => `Ungrouped ${count} tab${count !== 1 ? 's' : ''}`,
     toastAllTabsClosed: 'All tabs closed. Fresh start.',
+    toastBulkTabsClosed: ({ count }) => `${count} tab${count !== 1 ? 's' : ''} closed`,
+    toastBulkTabsRestored: ({ count }) => `${count} tab${count !== 1 ? 's' : ''} restored`,
+    toastBulkTabsPartiallyRestored: ({ restored, failed }) => `${restored} restored, ${failed} could not be restored`,
+    toastBulkTabsRestoredWithoutGroups: ({ count }) => `${count} tabs restored, but some group details could not be rebuilt`,
+    toastBulkTabsRestoreFailed: 'Could not restore the closed tabs',
+    toastNoTabsClosed: 'No tabs were closed. They may already be gone.',
     toastGroupCreated: 'Created Chrome tab group',
     toastSmartGrouped: ({ count }) => `Created ${count} smart group${count !== 1 ? 's' : ''}`,
     toastSmartGroupNone: 'No matching tabs to group yet',
@@ -793,6 +812,8 @@ const UI_COPY = {
     settingsSectionsLabel: '设置分区',
     appearanceSettings: '外观',
     privacyScreenSettings: '隐私屏幕',
+    dataPrivacySettings: '数据与隐私',
+    networkPrivacySettings: '网络隐私',
     aboutSettings: '关于',
     aboutDescription: '一个用于整理浏览器已打开标签页的本地优先面板。',
     projectInformation: '项目信息',
@@ -851,7 +872,8 @@ const UI_COPY = {
     clock: '时钟',
     date: '日期',
     customText: '自定义文字',
-    externalFavicons: '加载网站图标',
+    externalFavicons: '通过 DuckDuckGo 加载网站图标',
+    externalFaviconsDisclosure: '此功能可选且默认关闭。开启后，BrowseLoom 会将各网站域名发送至 icons.duckduckgo.com 以获取网站图标。',
     mottoPlaceholder: '输入你的文字...',
     closeExtras: '关闭多余项',
     search: '过滤标签页',
@@ -922,6 +944,7 @@ const UI_COPY = {
     restoreSessionWindows: '按窗口恢复',
     deleteSession: '删除',
     undo: '撤销',
+    dismissToast: '关闭提示',
     savedSessionTabs: ({ count }) => `${count} 个标签页`,
     noResults: '没有结果',
     inboxZeroTitle: '标签页清空了。',
@@ -933,6 +956,15 @@ const UI_COPY = {
     duplicates: ({ count }) => `重复 ${count} 个`,
     more: ({ count }) => `还有 ${count} 个`,
     closeAllTabs: ({ count }) => `关闭 ${count} 个标签页`,
+    bulkCloseTitle: ({ count }) => `关闭 ${count} 个标签页？`,
+    bulkCloseButton: ({ count }) => `关闭 ${count} 个标签页`,
+    bulkCloseScopeAll: '所有已打开标签页',
+    bulkCloseScopeDomain: ({ label }) => `「${label}」域名卡片`,
+    bulkCloseScopeGroup: ({ label }) => `「${label}」Chrome 分组`,
+    bulkCloseScopeUngrouped: '所有未分组标签页',
+    bulkCloseScopeDuplicates: '选中的重复标签页',
+    bulkCloseScopeExtraDashboards: '多余的 BrowseLoom 标签页',
+    bulkCloseBody: ({ scope, protectedCount = 0 }) => `范围：${scope}。固定标签页、浏览器内部页和扩展页面会保留。${protectedCount ? `已排除 ${protectedCount} 个受保护标签页。` : ''}`,
     closeDuplicates: ({ count }) => `关闭 ${count} 个重复项`,
     domainCount: ({ count }) => `${count} 个域名`,
     groupCount: ({ count }) => `${count} 个分组`,
@@ -951,6 +983,12 @@ const UI_COPY = {
     toastClosedChromeGroup: ({ count }) => `已从分组关闭 ${count} 个标签页`,
     toastUngrouped: ({ count }) => `已取消 ${count} 个标签页的分组`,
     toastAllTabsClosed: '所有标签页已关闭。重新开始。',
+    toastBulkTabsClosed: ({ count }) => `已关闭 ${count} 个标签页`,
+    toastBulkTabsRestored: ({ count }) => `已恢复 ${count} 个标签页`,
+    toastBulkTabsPartiallyRestored: ({ restored, failed }) => `已恢复 ${restored} 个，另有 ${failed} 个无法恢复`,
+    toastBulkTabsRestoredWithoutGroups: ({ count }) => `已恢复 ${count} 个标签页，但部分分组关系无法重建`,
+    toastBulkTabsRestoreFailed: '无法恢复刚关闭的标签页',
+    toastNoTabsClosed: '没有关闭标签页，它们可能已先被关闭。',
     toastGroupCreated: '已创建 Chrome 标签分组',
     toastSmartGrouped: ({ count }) => `已创建 ${count} 个智能分组`,
     toastSmartGroupNone: '暂时没有可自动分组的标签页',
@@ -1093,14 +1131,16 @@ function initSettingsPanelLayout() {
   if (panel && panel.parentElement !== document.body) document.body.append(panel);
 }
 
+let activeSettingsView = 'appearance';
+
 function setSettingsView(view = 'appearance') {
-  const activeView = ['appearance', 'privacy', 'about'].includes(view) ? view : 'appearance';
+  const activeView = ['appearance', 'privacy', 'data', 'about'].includes(view) ? view : 'appearance';
+  activeSettingsView = activeView;
 
   document.querySelectorAll('.settings-tab[data-settings-view]').forEach(tab => {
     const selected = tab.dataset.settingsView === activeView;
     tab.classList.toggle('active', selected);
-    tab.setAttribute('aria-selected', selected ? 'true' : 'false');
-    tab.setAttribute('tabindex', selected ? '0' : '-1');
+    tab.setAttribute('aria-current', selected ? 'page' : 'false');
   });
 
   document.querySelectorAll('.settings-pane[data-settings-pane]').forEach(pane => {
@@ -1114,6 +1154,7 @@ function setSettingsView(view = 'appearance') {
     setThemeMenuOpen(false);
     setFontMenuOpen(false);
   }
+  document.dispatchEvent(new CustomEvent('browseloom-settings-view-change', { detail: { view: activeView } }));
 }
 
 function applyStaticTranslations() {
@@ -1148,8 +1189,10 @@ function applyStaticTranslations() {
     privacyToggle.setAttribute('title', tr('privacyToggleTitle'));
     privacyToggle.setAttribute('aria-label', tr('privacyToggleTitle'));
   }
-  const privacySettingsBtn = document.getElementById('privacySettingsBtn');
-  if (privacySettingsBtn) privacySettingsBtn.setAttribute('aria-label', tr('settingsTitle'));
+  document.querySelectorAll('.global-settings-trigger').forEach(button => {
+    button.setAttribute('title', tr('settingsTitle'));
+    button.setAttribute('aria-label', tr('settingsTitle'));
+  });
   const toolbarMoreBtn = document.getElementById('toolbarMoreBtn');
   if (toolbarMoreBtn) {
     toolbarMoreBtn.setAttribute('title', tr('moreActions'));
@@ -1590,19 +1633,27 @@ function animateCardOut(card) {
  * Brief pop-up notification at the bottom of the screen.
  */
 let toastHideTimer = null;
-let toastActionCleanup = null;
+
+function hideToast() {
+  const toast = document.getElementById('toast');
+  if (toastHideTimer) clearTimeout(toastHideTimer);
+  toastHideTimer = null;
+  toast?.classList.remove('visible');
+  toast?.querySelector('.toast-action')?.remove();
+}
 
 function showToast(message, options = {}) {
   const toast = document.getElementById('toast');
   const text = document.getElementById('toastText');
-  if (!toast || !text) return;
+  const dismiss = document.getElementById('toastDismiss');
+  if (!toast || !text || !dismiss) return;
 
   if (toastHideTimer) clearTimeout(toastHideTimer);
-  if (typeof toastActionCleanup === 'function') toastActionCleanup();
-  toastActionCleanup = null;
 
   text.textContent = message;
   toast.querySelector('.toast-action')?.remove();
+  dismiss.setAttribute('aria-label', tr('dismissToast'));
+  dismiss.onclick = hideToast;
 
   if (options.actionLabel && typeof options.onAction === 'function') {
     const button = document.createElement('button');
@@ -1611,24 +1662,135 @@ function showToast(message, options = {}) {
     button.textContent = options.actionLabel;
     const handleAction = async () => {
       button.disabled = true;
-      if (toastHideTimer) clearTimeout(toastHideTimer);
-      toast.classList.remove('visible');
+      hideToast();
       try { await options.onAction(); } catch (err) {
         console.error('[tab-out] Toast action failed:', err);
         showToast(tr('toastStorageFailed'));
       }
     };
     button.addEventListener('click', handleAction);
-    toastActionCleanup = () => button.removeEventListener('click', handleAction);
-    toast.appendChild(button);
+    toast.insertBefore(button, dismiss);
   }
 
   toast.classList.add('visible');
-  toastHideTimer = setTimeout(() => {
-    toast.classList.remove('visible');
-    toastHideTimer = null;
-  }, options.duration || (options.actionLabel ? 7000 : 2500));
+  toastHideTimer = setTimeout(hideToast, options.duration || (options.actionLabel ? 7000 : 2500));
 }
+
+window.SuperTabOutToast = { show: showToast, dismiss: hideToast };
+
+let pendingBulkClose = null;
+let bulkCloseBusy = false;
+let bulkClosePreparing = false;
+
+async function openBulkTabCloseConfirm({ tabIds, scope, trigger, allowDashboard = false, activity = null }) {
+  const dialog = document.getElementById('bulkTabConfirmDialog');
+  const title = document.getElementById('bulkTabConfirmTitle');
+  const text = document.getElementById('bulkTabConfirmText');
+  const submit = document.getElementById('bulkTabConfirmSubmit');
+  if (!dialog || !title || !text || !submit || dialog.open || bulkCloseBusy || bulkClosePreparing) return;
+
+  bulkClosePreparing = true;
+  try {
+    const plan = await TabsService?.prepareBulkClose?.(tabIds, { allowDashboard });
+    if (dialog.open) return;
+    if (!plan?.count) {
+      showToast(tr('toastNoTabsClosed'));
+      return;
+    }
+    pendingBulkClose = {
+      tabIds: plan.snapshot.tabs.map(tab => tab.id),
+      scope,
+      trigger: trigger instanceof HTMLElement ? trigger : null,
+      allowDashboard,
+      activity,
+    };
+    const protectedCount = plan.protectedPinned + plan.protectedInternal;
+    title.textContent = tr('bulkCloseTitle', { count: plan.count });
+    text.textContent = tr('bulkCloseBody', { scope, protectedCount });
+    submit.textContent = tr('bulkCloseButton', { count: plan.count });
+    submit.disabled = false;
+    dialog.showModal();
+    requestAnimationFrame(() => document.getElementById('bulkTabConfirmCancel')?.focus({ preventScroll: true }));
+  } catch (error) {
+    console.error('[tab-out] Failed to prepare bulk close:', error);
+    showToast(tr('toastNoTabsClosed'));
+  } finally {
+    bulkClosePreparing = false;
+  }
+}
+
+function offerClosedTabsUndo(result, message = tr('toastBulkTabsClosed', { count: result?.closedCount || 0 })) {
+  if (!result?.closedCount || !result.snapshot) return;
+  showToast(message, {
+    actionLabel: tr('undo'),
+    duration: 7000,
+    onAction: async () => {
+      const restored = await TabsService.restoreClosedTabs(result.snapshot);
+      await renderDashboard();
+      if (restored.restoredCount === 0) {
+        showToast(tr('toastBulkTabsRestoreFailed'));
+      } else if (restored.failedCount > 0) {
+        showToast(tr('toastBulkTabsPartiallyRestored', {
+          restored: restored.restoredCount,
+          failed: restored.failedCount,
+        }));
+      } else if (restored.groupFailedCount > 0) {
+        showToast(tr('toastBulkTabsRestoredWithoutGroups', { count: restored.restoredCount }));
+      } else {
+        showToast(tr('toastBulkTabsRestored', { count: restored.restoredCount }));
+      }
+    },
+  });
+}
+
+async function confirmBulkTabClose(event) {
+  event.preventDefault();
+  if (!pendingBulkClose || bulkCloseBusy) return;
+  const pending = pendingBulkClose;
+  const dialog = document.getElementById('bulkTabConfirmDialog');
+  const submit = document.getElementById('bulkTabConfirmSubmit');
+  const cancel = document.getElementById('bulkTabConfirmCancel');
+  bulkCloseBusy = true;
+  if (submit) submit.disabled = true;
+  if (cancel) cancel.disabled = true;
+
+  try {
+    const result = await TabsService?.closeTabsWithSnapshot?.(pending.tabIds, { allowDashboard: pending.allowDashboard });
+    if (dialog?.open) dialog.close('confirmed');
+    if (!result?.closedCount) {
+      showToast(tr('toastNoTabsClosed'));
+      return;
+    }
+
+    playCloseSound();
+    await renderDashboard();
+    await recordActivity({ type: 'closed', count: result.closedCount, ...(pending.activity || {}) });
+    offerClosedTabsUndo(result);
+  } catch (error) {
+    console.error('[tab-out] Failed to close tabs:', error);
+    if (dialog?.open) dialog.close('error');
+    showToast(tr('toastNoTabsClosed'));
+  } finally {
+    bulkCloseBusy = false;
+    if (submit) submit.disabled = false;
+    if (cancel) cancel.disabled = false;
+  }
+}
+
+const bulkTabConfirmDialog = document.getElementById('bulkTabConfirmDialog');
+document.getElementById('bulkTabConfirmForm')?.addEventListener('submit', confirmBulkTabClose);
+document.getElementById('bulkTabConfirmCancel')?.addEventListener('click', () => bulkTabConfirmDialog?.close('cancel'));
+bulkTabConfirmDialog?.addEventListener('cancel', event => {
+  if (bulkCloseBusy) event.preventDefault();
+});
+bulkTabConfirmDialog?.addEventListener('click', event => {
+  if (!bulkCloseBusy && event.target === bulkTabConfirmDialog) bulkTabConfirmDialog.close('cancel');
+});
+bulkTabConfirmDialog?.addEventListener('close', () => {
+  const trigger = pendingBulkClose?.trigger;
+  pendingBulkClose = null;
+  if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+});
 
 function initStorageErrorToasts() {
   if (!StorageService?.onStorageError) return;
@@ -1726,7 +1888,7 @@ function isSafeNavUrl(url) {
    ---------------------------------------------------------------- */
 const FAVICON_CACHE_PREFIX = 'favicon:';
 const FAVICON_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-let externalFaviconsEnabled = true;
+let externalFaviconsEnabled = false;
 
 function readCachedFavicon(domain) {
   if (!domain) return null;
@@ -3323,7 +3485,11 @@ document.addEventListener('click', async (e) => {
   }
 
   if (action === 'open-settings') {
-    setSettingsPanelOpen(true);
+    closeGroupActionMenus();
+    setSettingsPanelOpen(true, {
+      view: actionEl.dataset.settingsView,
+      trigger: actionEl,
+    });
     return;
   }
 
@@ -3394,15 +3560,14 @@ document.addEventListener('click', async (e) => {
 
   // ---- Close duplicate Tab Out tabs ----
   if (action === 'close-tabout-dupes') {
-    await closeTabOutDupes();
+    const dashboardTabs = openTabs.filter(tab => tab.isTabOut);
+    const keep = dashboardTabs.find(tab => tab.active) || dashboardTabs[0];
+    const tabIds = dashboardTabs.filter(tab => tab.id !== keep?.id).map(tab => tab.id).filter(Number.isFinite);
+    const result = await TabsService?.closeTabsWithSnapshot?.(tabIds, { allowDashboard: true });
+    if (!result?.closedCount) return;
     playCloseSound();
-    const banner = document.getElementById('tabOutDupeBanner');
-    if (banner) {
-      banner.style.transition = 'opacity 0.4s';
-      banner.style.opacity = '0';
-      setTimeout(() => { banner.style.display = 'none'; banner.style.opacity = '1'; }, 400);
-    }
-    showToast(tr('toastClosedExtraTabOut'));
+    await renderDashboard();
+    offerClosedTabsUndo(result);
     return;
   }
 
@@ -3433,13 +3598,15 @@ document.addEventListener('click', async (e) => {
     const tabUrl = actionEl.dataset.tabUrl;
     if (!Number.isFinite(tabId) && !tabUrl) return;
 
-    // Each rendered row represents exactly one browser tab. URL fallback is
-    // retained only for legacy markup without a numeric id.
-    const closeCount = Number.isFinite(tabId)
-      ? 1
-      : (openTabs.filter(t => !t.pinned && t.url === tabUrl).length || 1);
-    if (Number.isFinite(tabId)) await closeTabsByIds([tabId]);
-    else await closeTabsByUrls([tabUrl]);
+    // Each rendered row represents exactly one browser tab. Legacy markup
+    // without an id falls back to the first exact, unpinned URL match.
+    const fallbackTab = Number.isFinite(tabId)
+      ? null
+      : openTabs.find(tab => !tab.pinned && tab.url === tabUrl && Number.isFinite(tab.id));
+    const targetTabId = Number.isFinite(tabId) ? tabId : fallbackTab?.id;
+    if (!Number.isFinite(targetTabId)) return;
+    const result = await TabsService?.closeTabsWithSnapshot?.([targetTabId]);
+    if (!result?.closedCount) return;
 
     playCloseSound();
 
@@ -3464,8 +3631,8 @@ document.addEventListener('click', async (e) => {
       }, 200);
     }
 
-    showToast(tr('toastTabClosed'));
-    await recordActivity({ type: 'closed', count: closeCount });
+    offerClosedTabsUndo(result, tr('toastTabClosed'));
+    await recordActivity({ type: 'closed', count: result.closedCount });
     return;
   }
 
@@ -3655,22 +3822,13 @@ document.addEventListener('click', async (e) => {
     const group    = domainGroups.find(g => g.domain === domainKey);
     if (!group) return;
 
-    const urls = group.tabs.map(t => t.url);
-    await closeTabsByUrls(urls);
-
-    if (card) {
-      playCloseSound();
-      animateCardOut(card);
-    }
-
-    // Remove from in-memory groups
-    const idx = domainGroups.indexOf(group);
-    if (idx !== -1) domainGroups.splice(idx, 1);
-
     const groupLabel = group.domain === '__landing-pages__' ? tr('homepages') : (group.label || friendlyDomain(group.domain));
-    showToast(tr('toastClosedFromGroup', { count: urls.length, label: groupLabel }));
-    await recordActivity({ type: 'closed', count: urls.length, domain: group.domain });
-
+    await openBulkTabCloseConfirm({
+      tabIds: group.tabs.map(tab => tab.id).filter(Number.isFinite),
+      scope: tr('bulkCloseScopeDomain', { label: groupLabel }),
+      trigger: actionEl,
+      activity: { domain: group.domain },
+    });
     return;
   }
 
@@ -3680,11 +3838,18 @@ document.addEventListener('click', async (e) => {
     const urls = urlsEncoded.split(',').map(u => decodeURIComponent(u)).filter(Boolean);
     if (urls.length === 0) return;
 
-    await closeDuplicateTabs(urls, true);
-    playCloseSound();
-    await renderDashboard();
-    showToast(tr('toastClosedDuplicates'));
-    await recordActivity({ type: 'duplicateClosed', count: urls.length });
+    const tabIds = [];
+    for (const url of urls) {
+      const matching = openTabs.filter(tab => tab.url === url && !tab.pinned);
+      const keep = matching.find(tab => tab.active) || matching[0];
+      matching.forEach(tab => { if (tab.id !== keep?.id && Number.isFinite(tab.id)) tabIds.push(tab.id); });
+    }
+    await openBulkTabCloseConfirm({
+      tabIds,
+      scope: tr('bulkCloseScopeDuplicates'),
+      trigger: actionEl,
+      activity: { type: 'duplicateClosed' },
+    });
     return;
   }
 
@@ -3719,11 +3884,11 @@ document.addEventListener('click', async (e) => {
     const ungroupedTabs = getRealTabs().filter(t => t.groupId === -1);
     const tabIds = ungroupedTabs.map(tab => tab.id).filter(Boolean);
     if (tabIds.length === 0) return;
-    await closeTabsByIds(tabIds);
-    playCloseSound();
-    animateCardOut(actionEl.closest('.ungrouped-section'));
-    showToast(tr('toastClosedUngrouped', { count: tabIds.length }));
-    await recordActivity({ type: 'closed', count: tabIds.length });
+    await openBulkTabCloseConfirm({
+      tabIds,
+      scope: tr('bulkCloseScopeUngrouped'),
+      trigger: actionEl,
+    });
     return;
   }
 
@@ -3795,18 +3960,12 @@ document.addEventListener('click', async (e) => {
     if (!Number.isFinite(groupId)) return;
     const groupTabs = openTabs.filter(t => t.groupId === groupId);
     const tabIds    = groupTabs.map(t => t.id);
-    await closeTabsByIds(tabIds);
-    playCloseSound();
-
-    const cardEl = document.querySelector(`[data-group-id="group-${groupId}"]`);
-    if (cardEl) {
-      const rect = cardEl.getBoundingClientRect();
-      shootConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
-      animateCardOut(cardEl);
-    }
-
-    showToast(tr('toastClosedChromeGroup', { count: tabIds.length }));
-    await recordActivity({ type: 'closed', count: tabIds.length });
+    const groupInfo = tabGroupsList.find(group => group.id === groupId);
+    await openBulkTabCloseConfirm({
+      tabIds,
+      scope: tr('bulkCloseScopeGroup', { label: groupInfo?.title || tr('unnamedGroup') }),
+      trigger: actionEl,
+    });
     return;
   }
 
@@ -3898,31 +4057,11 @@ document.addEventListener('click', async (e) => {
 
   // ---- Close ALL open tabs ----
   if (action === 'close-all-open-tabs') {
-    // Exclude Tab Out's own new-tab pages (across Chrome/Edge/Brave) and
-    // other internal schemes so we don't close the page the user is on.
-    const allUrls = openTabs
-      .filter(t =>
-        t.url &&
-        !t.isTabOut &&
-        !t.url.startsWith('chrome') &&
-        !t.url.startsWith('edge:') &&
-        !t.url.startsWith('brave:') &&
-        !t.url.startsWith('about:')
-      )
-      .map(t => t.url);
-    await closeTabsByUrls(allUrls);
-    playCloseSound();
-
-    document.querySelectorAll('#openTabsMissions .mission-card').forEach(c => {
-      shootConfetti(
-        c.getBoundingClientRect().left + c.offsetWidth / 2,
-        c.getBoundingClientRect().top  + c.offsetHeight / 2
-      );
-      animateCardOut(c);
+    await openBulkTabCloseConfirm({
+      tabIds: openTabs.map(tab => tab.id).filter(Number.isFinite),
+      scope: tr('bulkCloseScopeAll'),
+      trigger: actionEl,
     });
-
-    showToast(tr('toastAllTabsClosed'));
-    await recordActivity({ type: 'closed', count: allUrls.length });
     return;
   }
 });
@@ -4307,7 +4446,7 @@ document.addEventListener('load', (e) => {
    a locked session is reopened.
    ---------------------------------------------------------------- */
 
-const PRIVACY_DEFAULTS = { clock: true, date: true, motto: true, mottoText: '', externalFavicons: true };
+const PRIVACY_DEFAULTS = { clock: true, date: true, motto: true, mottoText: '', externalFavicons: false };
 
 async function getPrivacyMode() {
   try {
@@ -4343,9 +4482,7 @@ async function setPrivacyMode(enabled) {
     startPrivacyClock();
   } else {
     const panel = document.getElementById('privacySettings');
-    const btn = document.getElementById('privacySettingsBtn');
-    if (panel) panel.style.display = 'none';
-    if (btn) btn.setAttribute('aria-expanded', 'false');
+    if (panel?.open) setSettingsPanelOpen(false);
     stopPrivacyClock();
     // Refresh is suppressed while locked (see scheduleRefresh); catch up now.
     renderDashboard();
@@ -4376,8 +4513,8 @@ async function applyPrivacyWidgets() {
   const mottoEdit = document.getElementById('psMottoEdit');
   if (mottoEdit) mottoEdit.style.display = s.motto ? '' : 'none';
   const faviconCb = document.getElementById('psFavicons');
-  if (faviconCb) faviconCb.checked = s.externalFavicons !== false;
-  externalFaviconsEnabled = s.externalFavicons !== false;
+  if (faviconCb) faviconCb.checked = s.externalFavicons === true;
+  externalFaviconsEnabled = s.externalFavicons === true;
 }
 
 let privacyClockInterval = null;
@@ -4419,51 +4556,54 @@ document.getElementById('privacyToggle')?.addEventListener('click', togglePrivac
 
 function isSettingsPanelOpen() {
   const panel = document.getElementById('privacySettings');
-  return Boolean(panel && panel.style.display !== 'none');
+  return Boolean(panel?.open);
 }
 
-function positionSettingsPanel() {
-  const panel = document.getElementById('privacySettings');
-  const btn = document.getElementById('toolbarMoreBtn');
-  if (!panel || !btn) return;
+let settingsTriggerElement = null;
 
-  const rect = btn.getBoundingClientRect();
-  const gutter = window.innerWidth <= 560 ? 14 : 18;
-  const top = Math.max(gutter, Math.min(rect.bottom + 8, window.innerHeight - 120));
-  const maxHeight = Math.max(220, window.innerHeight - top - gutter);
-  panel.style.setProperty('--settings-panel-top', `${top}px`);
-  panel.style.setProperty('--settings-panel-left', `${gutter}px`);
-  panel.style.setProperty('--settings-panel-right', `${Math.max(gutter, window.innerWidth - rect.right)}px`);
-  panel.style.setProperty('--settings-panel-max-height', `${maxHeight}px`);
-}
-
-function setSettingsPanelOpen(open) {
+function setSettingsPanelOpen(open, { view, trigger } = {}) {
   const panel = document.getElementById('privacySettings');
   if (!panel) return;
   if (open) {
-    setSettingsView(document.body.classList.contains('privacy-mode') ? 'privacy' : 'appearance');
-    positionSettingsPanel();
+    settingsTriggerElement = trigger instanceof HTMLElement ? trigger : document.activeElement;
+    const initialView = view || (document.body.classList.contains('privacy-mode') ? 'privacy' : activeSettingsView);
+    setSettingsView(initialView);
+    if (!panel.open) panel.showModal();
+    document.querySelectorAll('.global-settings-trigger').forEach(button => button.setAttribute('aria-expanded', 'true'));
+    panel.querySelector('.settings-tab.active')?.focus({ preventScroll: true });
+    return;
   }
-  panel.style.display = open ? '' : 'none';
-  if (!open) {
-    setLanguageMenuOpen(false);
-    setThemeMenuOpen(false);
-    setFontMenuOpen(false);
-  }
+  setLanguageMenuOpen(false);
+  setThemeMenuOpen(false);
+  setFontMenuOpen(false);
+  if (panel.open) panel.close();
 }
 
-window.addEventListener('resize', () => {
-  if (isSettingsPanelOpen()) positionSettingsPanel();
+const settingsDialog = document.getElementById('privacySettings');
+settingsDialog?.addEventListener('cancel', event => {
+  event.preventDefault();
+  setSettingsPanelOpen(false);
 });
-
-window.addEventListener('scroll', () => {
-  if (isSettingsPanelOpen()) positionSettingsPanel();
-}, { passive: true });
+settingsDialog?.addEventListener('click', event => {
+  if (event.target === settingsDialog) setSettingsPanelOpen(false);
+});
+settingsDialog?.addEventListener('close', () => {
+  document.querySelectorAll('.global-settings-trigger').forEach(button => button.setAttribute('aria-expanded', 'false'));
+  const trigger = settingsTriggerElement;
+  settingsTriggerElement = null;
+  if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus({ preventScroll: true });
+});
 
 // Esc toggles privacy. Typing in any text input first defuses Esc to just
 // blur the field — including the open-tabs search handled above.
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
+  if (document.getElementById('bulkTabConfirmDialog')?.open) return;
+  if (isSettingsPanelOpen()) {
+    e.preventDefault();
+    setSettingsPanelOpen(false);
+    return;
+  }
   // The bookmark workspace owns Escape for its menus and dialogs. Privacy
   // mode remains a tab-management shortcut and must not steal that key.
   if (document.body.dataset.workspace === 'bookmarks') return;
@@ -4502,11 +4642,6 @@ document.addEventListener('keydown', (e) => {
     active.blur();
     return;
   }
-  if (isSettingsPanelOpen()) {
-    e.preventDefault();
-    setSettingsPanelOpen(false);
-    return;
-  }
   e.preventDefault();
   togglePrivacyMode();
 });
@@ -4523,12 +4658,6 @@ document.addEventListener('click', (e) => {
   const fontPicker = document.getElementById('fontPicker');
   if (fontPicker && target && !fontPicker.contains(target)) setFontMenuOpen(false);
 
-  const panel = document.getElementById('privacySettings');
-  const btn   = document.getElementById('toolbarMoreBtn');
-  const settingsTrigger = document.getElementById('privacySettingsBtn');
-  if (!panel || panel.style.display === 'none') return;
-  if (target && (panel.contains(target) || (btn && btn.contains(target)) || (settingsTrigger && settingsTrigger.contains(target)))) return;
-  setSettingsPanelOpen(false);
 });
 
 for (const id of ['psClock', 'psDate', 'psMotto', 'psFavicons']) {
@@ -4537,7 +4666,7 @@ for (const id of ['psClock', 'psDate', 'psMotto', 'psFavicons']) {
     s.clock  = document.getElementById('psClock')?.checked ?? true;
     s.date   = document.getElementById('psDate')?.checked ?? true;
     s.motto  = document.getElementById('psMotto')?.checked ?? true;
-    s.externalFavicons = document.getElementById('psFavicons')?.checked ?? true;
+    s.externalFavicons = document.getElementById('psFavicons')?.checked ?? false;
     await savePrivacySettings(s);
     await applyPrivacyWidgets();
     renderDashboard();

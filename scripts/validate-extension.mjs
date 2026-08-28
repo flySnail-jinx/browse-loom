@@ -164,7 +164,7 @@ function checkDashboardInformationStructure() {
   if (/<footer\b/i.test(indexHtml)) {
     fail('index.html must not restore the redundant in-page dashboard footer');
   }
-  for (const id of ['openTabsSummary', 'settingsTabAbout', 'settingsPaneAbout', 'extensionVersion']) {
+  for (const id of ['openTabsSummary', 'privacySettings', 'settingsTabData', 'settingsPaneData', 'settingsTabAbout', 'settingsPaneAbout', 'extensionVersion']) {
     if (!indexHtml.includes(`id="${id}"`)) {
       fail(`index.html is missing dashboard information structure element: ${id}`);
     }

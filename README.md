@@ -9,7 +9,7 @@
 <h3>The Local-First New Tab Dashboard for Chrome</h3>
 
 <p>
-  <img alt="version v1.1.0" src="https://img.shields.io/badge/version-v1.1.0-2388d9?labelColor=555555">
+  <img alt="version v1.1.1" src="https://img.shields.io/badge/version-v1.1.1-2388d9?labelColor=555555">
   <img alt="platform Chrome" src="https://img.shields.io/badge/platform-Chrome-9a9a9a?labelColor=555555">
   <img alt="built with MV3 and Vanilla JS" src="https://img.shields.io/badge/built%20with-MV3%20%2B%20Vanilla%20JS-ff7a3d?labelColor=555555">
   <img alt="license Apache 2.0" src="https://img.shields.io/badge/license-Apache--2.0-35c52a?labelColor=555555">
@@ -266,9 +266,9 @@ Stored locally:
 - theme choice
 - favicon cache
 
-External favicon requests can be disabled from privacy settings. When disabled, cached favicons can still render, but new domains will not call the icon service.
+External favicon requests are disabled by default. The privacy settings explain that enabling site icons sends website domain names to DuckDuckGo; requests begin only after the user turns this option on. When disabled, cached favicons can still render, but new domains will not call the icon service.
 
-The only routine external request, when enabled, is:
+The only routine external request, after the user enables it, is:
 
 - `icons.duckduckgo.com` for favicons, cached locally for 7 days
 

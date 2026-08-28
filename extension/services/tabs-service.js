@@ -211,6 +211,194 @@
     return toClose;
   }
 
+  async function prepareBulkClose(tabIds, options = {}) {
+    const chromeApi = getChromeApi();
+    if (!chromeApi?.tabs || !Array.isArray(tabIds) || tabIds.length === 0) {
+      return { requestedCount: 0, count: 0, protectedPinned: 0, protectedInternal: 0, snapshot: { version: 1, tabs: [] } };
+    }
+
+    const requestedIds = new Set(tabIds.map(Number).filter(Number.isFinite));
+    const extensionId = chromeApi.runtime?.id || '';
+    const allTabs = await chromeApi.tabs.query({});
+    const selectedTabs = allTabs.filter(tab => requestedIds.has(Number(tab.id)));
+    const groupMap = new Map();
+    if (chromeApi.tabGroups) {
+      try {
+        const groups = await chromeApi.tabGroups.query({});
+        groups.forEach(group => groupMap.set(group.id, group));
+      } catch {}
+    }
+
+    const protectedPinned = selectedTabs.filter(tab => tab.pinned === true).length;
+    const allowDashboard = options.allowDashboard === true;
+    const isAllowedInternal = tab => allowDashboard && isDashboardTab(tab, extensionId);
+    const protectedInternal = selectedTabs.filter(tab => tab.pinned !== true && isInternalUrl(tab.url || '', extensionId) && !isAllowedInternal(tab)).length;
+    const tabs = selectedTabs
+      .filter(tab => tab.pinned !== true && (!isInternalUrl(tab.url || '', extensionId) || isAllowedInternal(tab)))
+      .map(tab => {
+        const url = isAllowedInternal(tab) ? (tab.url || '') : normalizeRestorableUrl(tab.url || '');
+        if (!url) return null;
+        const group = Number.isFinite(tab.groupId) && tab.groupId >= 0 ? groupMap.get(tab.groupId) : null;
+        return {
+          id: tab.id,
+          url,
+          title: typeof tab.title === 'string' ? tab.title : url,
+          windowId: tab.windowId,
+          index: Number.isFinite(Number(tab.index)) ? Number(tab.index) : 0,
+          active: tab.active === true,
+          pinned: false,
+          incognito: tab.incognito === true,
+          groupId: group?.id ?? -1,
+          groupKey: group ? `${tab.windowId}:${group.id}` : '',
+          groupTitle: typeof group?.title === 'string' ? group.title : '',
+          groupColor: CHROME_GROUP_COLORS.has(group?.color) ? group.color : '',
+          groupCollapsed: group?.collapsed === true,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.windowId - b.windowId || a.index - b.index);
+
+    return {
+      requestedCount: requestedIds.size,
+      count: tabs.length,
+      protectedPinned,
+      protectedInternal,
+      snapshot: { version: 1, createdAt: new Date().toISOString(), tabs },
+    };
+  }
+
+  async function closeTabsWithSnapshot(tabIds, options = {}) {
+    const chromeApi = getChromeApi();
+    const plan = await prepareBulkClose(tabIds, options);
+    if (!chromeApi?.tabs || plan.count === 0) {
+      return { ...plan, closedCount: 0, failedCount: plan.count };
+    }
+
+    const closedIds = new Set();
+    for (const tab of plan.snapshot.tabs) {
+      try {
+        await chromeApi.tabs.remove(tab.id);
+        closedIds.add(tab.id);
+      } catch {
+        // A tab may disappear after confirmation. Keep closing the rest.
+      }
+    }
+
+    const closedTabs = plan.snapshot.tabs.filter(tab => closedIds.has(tab.id));
+    return {
+      ...plan,
+      count: closedTabs.length,
+      closedCount: closedTabs.length,
+      failedCount: plan.snapshot.tabs.length - closedTabs.length,
+      snapshot: { ...plan.snapshot, tabs: closedTabs },
+    };
+  }
+
+  async function restoreClosedTabs(snapshot) {
+    const chromeApi = getChromeApi();
+    const sourceTabs = Array.isArray(snapshot?.tabs) ? snapshot.tabs : [];
+    if (!chromeApi?.tabs || !chromeApi?.windows || sourceTabs.length === 0) {
+      return { restoredCount: 0, failedCount: sourceTabs.length, groupCount: 0, groupFailedCount: 0, windowCount: 0 };
+    }
+
+    const windows = new Map();
+    sourceTabs.forEach(tab => {
+      if (!windows.has(tab.windowId)) windows.set(tab.windowId, []);
+      windows.get(tab.windowId).push(tab);
+    });
+
+    const restoredPairs = [];
+    let failedCount = 0;
+    let windowCount = 0;
+
+    for (const [originalWindowId, windowTabs] of windows) {
+      const orderedTabs = [...windowTabs].sort((a, b) => a.index - b.index);
+      let targetWindowId = originalWindowId;
+      let windowExists = false;
+      try {
+        if (chromeApi.windows.get) {
+          const existingWindow = await chromeApi.windows.get(originalWindowId);
+          windowExists = existingWindow?.id != null;
+        } else {
+          await chromeApi.tabs.query({ windowId: originalWindowId });
+          windowExists = true;
+        }
+      } catch {}
+
+      if (!windowExists) {
+        const first = orderedTabs.shift();
+        try {
+          const createdWindow = await chromeApi.windows.create({
+            ...(!isBrowserNewTabUrl(first.url) ? { url: first.url } : {}),
+            focused: false,
+            ...(first.incognito ? { incognito: true } : {}),
+          });
+          targetWindowId = createdWindow?.id;
+          const createdTab = createdWindow?.tabs?.find(tab => tab?.id != null)
+            || (Number.isFinite(Number(targetWindowId)) ? (await chromeApi.tabs.query({ windowId: targetWindowId }))[0] : null);
+          if (!createdTab?.id || !Number.isFinite(Number(targetWindowId))) throw new Error('restore-window-failed');
+          restoredPairs.push({ source: first, restored: createdTab, windowId: targetWindowId });
+          windowCount += 1;
+        } catch {
+          failedCount += orderedTabs.length + 1;
+          continue;
+        }
+      }
+
+      for (const source of orderedTabs) {
+        try {
+          const restored = await chromeApi.tabs.create({
+            ...(!isBrowserNewTabUrl(source.url) ? { url: source.url } : {}),
+            windowId: targetWindowId,
+            active: false,
+            index: Math.max(0, source.index),
+            pinned: source.pinned === true,
+          });
+          restoredPairs.push({ source, restored, windowId: targetWindowId });
+        } catch {
+          failedCount += 1;
+        }
+      }
+    }
+
+    const groups = new Map();
+    restoredPairs.forEach(pair => {
+      if (!pair.source.groupKey || !pair.restored?.id) return;
+      const key = `${pair.windowId}:${pair.source.groupKey}`;
+      if (!groups.has(key)) groups.set(key, { source: pair.source, tabIds: [] });
+      groups.get(key).tabIds.push(pair.restored.id);
+    });
+
+    let groupCount = 0;
+    let groupFailedCount = 0;
+    for (const group of groups.values()) {
+      try {
+        const groupId = await chromeApi.tabs.group({ tabIds: group.tabIds });
+        const update = {};
+        if (group.source.groupTitle) update.title = group.source.groupTitle;
+        if (CHROME_GROUP_COLORS.has(group.source.groupColor)) update.color = group.source.groupColor;
+        update.collapsed = group.source.groupCollapsed === true;
+        if (chromeApi.tabGroups && Object.keys(update).length > 0) await chromeApi.tabGroups.update(groupId, update);
+        groupCount += 1;
+      } catch {
+        // Tabs are still restored even if Chrome refuses to rebuild a group.
+        groupFailedCount += 1;
+      }
+    }
+
+    for (const pair of restoredPairs.filter(item => item.source.active)) {
+      try { await chromeApi.tabs.update(pair.restored.id, { active: true }); } catch {}
+    }
+
+    return {
+      restoredCount: restoredPairs.length,
+      failedCount,
+      groupCount,
+      groupFailedCount,
+      windowCount,
+    };
+  }
+
   async function focusTab(url) {
     const chromeApi = getChromeApi();
     if (!chromeApi?.tabs || !chromeApi?.windows || !url) return null;
@@ -603,6 +791,9 @@
     exactUnpinnedIdsForUrls,
     closeTabsByUrls,
     closeTabsByIds,
+    prepareBulkClose,
+    closeTabsWithSnapshot,
+    restoreClosedTabs,
     focusTab,
     focusTabById,
     focusTabWithQuickReturn,

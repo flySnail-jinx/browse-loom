@@ -116,8 +116,8 @@ function buildSeedStorage() {
   const currentWeek = weekKey();
   const bookmarkIcon = (color, text) => ({ type: 'color', color, text });
 
-  // Intentionally seed a pre-v7 snapshot so browser acceptance also exercises
-  // migration of legacy dismissed items and flat saved-session records.
+  // Intentionally seed a pre-v8 snapshot so browser acceptance also exercises
+  // legacy cleanup plus the migration that disables external favicons until opt-in.
   return {
     storageSchemaVersion: 2,
     storageLastMigratedAt: seededAt,
