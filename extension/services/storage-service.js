@@ -14,6 +14,7 @@
   const DOMAIN_CARD_PREFERENCES_KEY = 'domainCardPreferences';
   const PRIVACY_MODE_KEY = 'privacyMode';
   const PRIVACY_SETTINGS_KEY = 'privacySettings';
+  const SEARCH_SETTINGS_KEY = 'searchSettings';
   const BOOKMARK_LIBRARY_KEY = 'bookmarkLibrary';
   const HOME_CATEGORY_ID = 'category-home';
   const UNFILED_CATEGORY_ID = 'category-unfiled';
@@ -64,6 +65,21 @@
       quota: isQuotaError(error),
       message: error?.message || String(error || 'Storage operation failed'),
     };
+  }
+
+  function normalizeSearchSettings(value) {
+    const engineService = global.SuperTabOutSearchEngines;
+    if (!engineService?.normalizeSearchSettings) {
+      return {
+        version: 1,
+        defaultEngineId: 'google',
+        enabledEngineIds: ['baidu', 'bing', 'google', 'duckduckgo'],
+        engineOrder: ['baidu', 'bing', 'google', 'duckduckgo'],
+        baiduSuggestionsEnabled: false,
+        customEngines: [],
+      };
+    }
+    return engineService.normalizeSearchSettings(value);
   }
 
   function notifyStorageError(error, operation) {
@@ -838,6 +854,23 @@
     await set({ [PRIVACY_SETTINGS_KEY]: normalizePrivacySettings(settings) });
   }
 
+  async function getSearchSettings() {
+    const data = await get(SEARCH_SETTINGS_KEY);
+    return normalizeSearchSettings(data[SEARCH_SETTINGS_KEY]);
+  }
+
+  async function setSearchSettings(settings) {
+    const normalized = normalizeSearchSettings(settings);
+    await set({ [SEARCH_SETTINGS_KEY]: normalized });
+    return normalized;
+  }
+
+  async function mutateSearchSettings(updater) {
+    if (typeof updater !== 'function') throw new TypeError('search-settings-updater-required');
+    const mutation = await mutateStoredValue(SEARCH_SETTINGS_KEY, normalizeSearchSettings, updater);
+    return { settings: mutation.value, result: mutation.result, previous: mutation.previous };
+  }
+
   async function getBookmarkLibrary() {
     const data = await get(BOOKMARK_LIBRARY_KEY);
     return normalizeBookmarkLibrary(data[BOOKMARK_LIBRARY_KEY]);
@@ -863,6 +896,7 @@
     ACHIEVEMENTS_KEY,
     DOMAIN_CARD_PREFERENCES_KEY,
     BOOKMARK_LIBRARY_KEY,
+    SEARCH_SETTINGS_KEY,
     HOME_CATEGORY_ID,
     UNFILED_CATEGORY_ID,
     BOOKMARK_FOLDER_ICON_IDS,
@@ -878,6 +912,7 @@
     normalizeViewMode,
     normalizeDomainCardPreferences,
     normalizePrivacySettings,
+    normalizeSearchSettings,
     normalizeBookmarkLibrary,
     normalizeBookmarkFolderIcon,
     suggestBookmarkFolderIcon,
@@ -907,6 +942,9 @@
     setPrivacyMode,
     getPrivacySettings,
     setPrivacySettings,
+    getSearchSettings,
+    setSearchSettings,
+    mutateSearchSettings,
     getBookmarkLibrary,
     setBookmarkLibrary,
     mutateBookmarkLibrary,

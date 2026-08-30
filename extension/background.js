@@ -48,9 +48,27 @@ async function openSidePanel(tab) {
 
 async function configureActionClickBehavior() {
   try {
-    // The toolbar action owns quick bookmark capture instead of the side panel.
+    // BrowseLoom handles the toolbar action explicitly instead of delegating it
+    // to Chrome's side-panel behavior.
     await chrome.sidePanel?.setPanelBehavior?.({ openPanelOnActionClick: false });
   } catch {}
+}
+
+async function openBrowseLoom(sourceTab) {
+  const windowId = sourceTab?.windowId;
+  const query = windowId == null ? { currentWindow: true } : { windowId };
+  try {
+    const tabs = await chrome.tabs.query(query);
+    const dashboard = tabs.find(tab => self.SuperTabOutTabs?.isDashboardTab?.(tab, chrome.runtime.id));
+    if (dashboard?.id != null) {
+      await chrome.tabs.update(dashboard.id, { active: true });
+      return dashboard;
+    }
+  } catch {}
+  return chrome.tabs.create({
+    url: chrome.runtime.getURL('index.html'),
+    ...(windowId == null ? {} : { windowId }),
+  });
 }
 
 function isBookmarkablePageUrl(value) {
@@ -244,7 +262,7 @@ chrome.runtime.onStartup.addListener(() => {
   updateBadge();
   configureActionClickBehavior();
 });
-chrome.action.onClicked.addListener(openCurrentPageBookmarkDraft);
+chrome.action.onClicked.addListener(openBrowseLoom);
 chrome.tabs.onCreated.addListener(updateBadge);
 chrome.tabs.onRemoved.addListener(updateBadge);
 chrome.tabs.onUpdated.addListener(updateBadge);

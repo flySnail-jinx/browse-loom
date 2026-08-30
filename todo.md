@@ -18,6 +18,7 @@
 ## 结构治理
 
 - [ ] 单独评审 `extension/app.js` 的分拆方案；按持久化、标签操作、会话、渲染和隐私交互设置模块 seam，不做机械按函数拆文件。
+- [ ] 收口 Preferences 服务：以外观、工作区、隐私屏幕和搜索等领域配置为边界提供统一读写接口；保留各领域独立存储、校验和演进，不合并成万能 `appSettings`。
 - [ ] 清理 `extension/style.css`、`extension/sidepanel.css`、`extension/glass.css` 和 `extension/effects.mjs` 中已经没有 DOM 消费者的历史 Command Dock / Tools 样式与选择器。
 - [ ] 将浏览器回归接入 CI；在具备 Chrome for Testing 的 runner 上执行，避免把本机浏览器路径写入仓库。
 

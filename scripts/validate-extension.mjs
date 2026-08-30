@@ -43,6 +43,12 @@ function checkManifest() {
   if (manifest.permissions?.includes('bookmarks')) {
     fail('manifest.json must not require bookmarks at install time');
   }
+  if (!manifest.optional_host_permissions?.includes('https://suggestion.baidu.com/*')) {
+    fail('manifest.json must declare Baidu suggestions as an optional host permission');
+  }
+  if (manifest.host_permissions?.includes('https://suggestion.baidu.com/*')) {
+    fail('Baidu suggestions must not be a required host permission');
+  }
 
   const quickReturnCommand = manifest.commands?.['toggle-quick-return'];
   if (quickReturnCommand?.suggested_key?.default !== 'Ctrl+Shift+Z') {
@@ -65,8 +71,8 @@ function checkManifest() {
   if (bookmarkPageCommand?.description !== '__MSG_commandBookmarkCurrentPage__') {
     fail('manifest.json bookmark current page command must use the localized description');
   }
-  if (manifest.action?.default_title !== '__MSG_actionBookmarkCurrentPage__') {
-    fail('manifest.json toolbar action must use the localized bookmark current page title');
+  if (manifest.action?.default_title !== '__MSG_actionOpenBrowseLoom__') {
+    fail('manifest.json toolbar action must use the localized BrowseLoom entry title');
   }
 
   for (const path of [
@@ -75,17 +81,23 @@ function checkManifest() {
     manifest.background?.service_worker,
     'app.js',
     'bookmarks.js',
+    'wallpaper-ui.js',
+    'search-engine-ui.js',
     'style.css',
     'bookmarks.css',
+    'search-engines.css',
     'glass.css',
     'effects.mjs',
     'backgrounds/backgrounds.css',
     'backgrounds/background-controller.mjs',
     'backgrounds/background-registry.mjs',
+    'backgrounds/mountain-default.jpg',
     'backgrounds/liquid-ether.mjs',
     'backgrounds/light-rays.mjs',
     'backgrounds/prism.mjs',
     'theme-init.js',
+    'services/search-engine-service.js',
+    'services/wallpaper-service.js',
   ]) {
     if (path && !existsSync(join(extensionDir, path))) {
       fail(`manifest or runtime references missing file: ${path}`);
@@ -164,9 +176,14 @@ function checkDashboardInformationStructure() {
   if (/<footer\b/i.test(indexHtml)) {
     fail('index.html must not restore the redundant in-page dashboard footer');
   }
-  for (const id of ['openTabsSummary', 'privacySettings', 'settingsTabData', 'settingsPaneData', 'settingsTabAbout', 'settingsPaneAbout', 'extensionVersion']) {
+  for (const id of ['privacySettings', 'settingsTabData', 'settingsPaneData', 'settingsTabAbout', 'settingsPaneAbout', 'extensionVersion']) {
     if (!indexHtml.includes(`id="${id}"`)) {
       fail(`index.html is missing dashboard information structure element: ${id}`);
+    }
+  }
+  for (const removedId of ['openTabsSummary', 'bookmarkSectionTitle', 'bookmarkSectionCount']) {
+    if (indexHtml.includes(`id="${removedId}"`)) {
+      fail(`index.html restored redundant dashboard statistic: ${removedId}`);
     }
   }
   if (appJs.includes("getElementById('statTabs')")) {

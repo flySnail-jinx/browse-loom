@@ -39,8 +39,10 @@ BrowseLoom stores the following data locally on the user's device:
 - selected theme
 - cached favicon images when the user enables external site icons
 - custom bookmark titles, URLs, notes, icon choices, folder layout, order, and local open counts
+- search engine visibility, order, default selection, and user-defined HTTPS search templates
+- user-imported wallpaper images, generated thumbnails, focal points, and overlay settings
 
-Saved tabs, preferences, and settings are stored using `chrome.storage.local` and `localStorage`.
+Saved tabs, preferences, and settings are stored using `chrome.storage.local` and `localStorage`. User wallpaper image data is stored separately in the extension's local IndexedDB database. Wallpaper files are never uploaded by BrowseLoom.
 
 Quick return navigation stores only the dashboard and destination tab/window IDs in `chrome.storage.session`. This data remains in memory, is not persisted to disk, and is cleared when the browser restarts, the extension reloads, or the extension is disabled.
 
@@ -69,7 +71,15 @@ Each request sends the website's domain name to DuckDuckGo so that the matching 
 
 Users can disable external favicon requests again at any time. When disabled, cached favicons may still render, but new domains will not request icons from the external service.
 
-Privacy mode does not provide a web search box and does not change the browser search provider.
+Online search suggestions are optional and disabled by default. If the user explicitly enables **Baidu search suggestions**, BrowseLoom requests suggestions from:
+
+```text
+https://suggestion.baidu.com
+```
+
+Only text typed while the search box is explicitly using a web search engine is sent. BrowseLoom omits credentials and does not send the user's tab list, bookmarks, saved sessions, or page content. Local tab and bookmark filtering never calls this endpoint. Disabling suggestions revokes the optional host permission; web searches continue to work without suggestions.
+
+Submitting a web search opens the selected engine's HTTPS search URL. User-defined engines are stored locally as URL templates containing a `%s` query placeholder.
 
 ## Permissions
 
@@ -83,6 +93,7 @@ BrowseLoom requests the following extension permissions:
 | `sidePanel` | Show the optional side panel tab center |
 | `sessions` | Display and restore recently closed browser tabs/windows |
 | `bookmarks` (optional) | Read the current browser bookmark tree after the user explicitly starts an import |
+| `https://suggestion.baidu.com/*` (optional host) | Fetch Baidu suggestions only after the user explicitly enables online suggestions |
 
 The extension requests `bookmarks` at runtime rather than installation. The browser permission warning says the extension can read and change bookmarks because that is the API's permission scope, but BrowseLoom only calls the read-only bookmark-tree API. It does not create, edit, move, or delete bookmarks in the browser. Imported copies are written to the extension's local `bookmarkLibrary`; no bookmark data is transmitted to a server.
 
@@ -98,8 +109,11 @@ Users can delete stored data by:
 - clearing extension site data / browser storage
 - removing saved-for-later items inside the extension UI; removal physically deletes the item from extension storage
 - deleting custom bookmarks or folders inside the bookmark workspace
+- deleting individual wallpapers in Appearance settings
+- removing the extension or clearing its extension storage, which permanently removes the local wallpaper library
 
 Users can revoke the optional browser bookmark permission from the bookmark settings panel after importing.
+Users can revoke the optional Baidu suggestion host permission by turning off Baidu suggestions in Search settings.
 
 ## Children
 

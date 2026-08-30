@@ -413,6 +413,57 @@ function initThemeSwitcher() {
 
 
 /* ----------------------------------------------------------------
+   CONTENT CARD OPACITY
+
+   One appearance preference controls the card material in both workspaces.
+   Only the surface alpha changes; text and controls remain fully opaque.
+   ---------------------------------------------------------------- */
+const CARD_OPACITY_STORAGE_KEY = 'tab-out-card-opacity';
+const CARD_OPACITY_DEFAULT = 60;
+const CARD_OPACITY_MIN = 40;
+const CARD_OPACITY_MAX = 100;
+
+function normalizeCardOpacity(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return CARD_OPACITY_DEFAULT;
+  return Math.min(CARD_OPACITY_MAX, Math.max(CARD_OPACITY_MIN, Math.round(numeric)));
+}
+
+function getCardOpacity() {
+  try {
+    const stored = localStorage.getItem(CARD_OPACITY_STORAGE_KEY);
+    return stored === null ? CARD_OPACITY_DEFAULT : normalizeCardOpacity(stored);
+  } catch {
+    return CARD_OPACITY_DEFAULT;
+  }
+}
+
+function applyCardOpacity(value, { save = false } = {}) {
+  const opacity = normalizeCardOpacity(value);
+  document.documentElement.style.setProperty('--content-card-opacity', `${opacity}%`);
+  document.documentElement.dataset.cardOpacity = String(opacity);
+  const range = document.getElementById('cardOpacityRange');
+  const output = document.getElementById('cardOpacityValue');
+  if (range) {
+    range.value = String(opacity);
+    range.setAttribute('aria-valuetext', `${opacity}%`);
+  }
+  if (output) output.value = `${opacity}%`;
+  if (save) {
+    try { localStorage.setItem(CARD_OPACITY_STORAGE_KEY, String(opacity)); } catch {}
+  }
+  return opacity;
+}
+
+function initCardOpacityControl() {
+  const range = document.getElementById('cardOpacityRange');
+  applyCardOpacity(getCardOpacity());
+  range?.addEventListener('input', event => applyCardOpacity(event.currentTarget.value));
+  range?.addEventListener('change', event => applyCardOpacity(event.currentTarget.value, { save: true }));
+}
+
+
+/* ----------------------------------------------------------------
    FONT + DENSITY SWITCHER
 
    Presets use system CSS generic families only. We do not bundle,
@@ -603,6 +654,11 @@ const UI_COPY = {
     languageCurrentTitle: ({ language }) => `Language: ${language}`,
     settingsTitle: 'Settings',
     settingsSectionsLabel: 'Settings sections',
+    generalSettings: 'General',
+    defaultWorkspaceLabel: 'Default page',
+    defaultWorkspaceDescription: 'Used for new tabs and the extension toolbar button.',
+    workspaceTabs: 'Tab management',
+    workspaceBookmarks: 'Bookmark management',
     appearanceSettings: 'Appearance',
     privacyScreenSettings: 'Privacy screen',
     dataPrivacySettings: 'Data & privacy',
@@ -634,10 +690,13 @@ const UI_COPY = {
     themeLavender: 'Lavender Breeze',
     themeCurrentTitle: ({ theme }) => `Theme: ${theme}`,
     backgroundLabel: 'Background',
+    backgroundMountain: 'Snow peaks',
     backgroundLiquidEther: 'Liquid glow',
     backgroundLightRays: 'Light rays',
     backgroundPrism: 'Prism',
     backgroundStatic: 'Static',
+    cardOpacityLabel: 'Card opacity',
+    cardOpacityDescription: 'Applies to cards in tabs and bookmarks.',
     fontLabel: 'Type',
     fontEntryLabel: 'Type',
     fontSystem: 'System',
@@ -810,6 +869,11 @@ const UI_COPY = {
     languageCurrentTitle: ({ language }) => `语言：${language}`,
     settingsTitle: '设置',
     settingsSectionsLabel: '设置分区',
+    generalSettings: '常规',
+    defaultWorkspaceLabel: '默认打开页面',
+    defaultWorkspaceDescription: '用于新标签页和扩展图标。',
+    workspaceTabs: '标签管理',
+    workspaceBookmarks: '书签管理',
     appearanceSettings: '外观',
     privacyScreenSettings: '隐私屏幕',
     dataPrivacySettings: '数据与隐私',
@@ -841,10 +905,13 @@ const UI_COPY = {
     themeLavender: '薰风',
     themeCurrentTitle: ({ theme }) => `主题：${theme}`,
     backgroundLabel: '背景',
+    backgroundMountain: '雪峰',
     backgroundLiquidEther: '流光液体',
     backgroundLightRays: '光束',
     backgroundPrism: '棱镜',
     backgroundStatic: '静态',
+    cardOpacityLabel: '卡片不透明度',
+    cardOpacityDescription: '同时应用于标签页和书签页的卡片。',
     fontLabel: '字体',
     fontEntryLabel: '字体',
     fontSystem: '系统',
@@ -1131,10 +1198,58 @@ function initSettingsPanelLayout() {
   if (panel && panel.parentElement !== document.body) document.body.append(panel);
 }
 
-let activeSettingsView = 'appearance';
+const DEFAULT_WORKSPACE_STORAGE_KEY = 'tab-out-default-workspace';
+const DEFAULT_WORKSPACES = ['tabs', 'bookmarks'];
 
-function setSettingsView(view = 'appearance') {
-  const activeView = ['appearance', 'privacy', 'data', 'about'].includes(view) ? view : 'appearance';
+function getDefaultWorkspace() {
+  const current = document.documentElement.dataset.defaultWorkspace;
+  return DEFAULT_WORKSPACES.includes(current) ? current : 'tabs';
+}
+
+function syncDefaultWorkspaceControls() {
+  const current = getDefaultWorkspace();
+  document.querySelectorAll('[data-default-workspace]').forEach(button => {
+    const selected = button.dataset.defaultWorkspace === current;
+    button.setAttribute('aria-checked', selected ? 'true' : 'false');
+    button.tabIndex = selected ? 0 : -1;
+  });
+}
+
+function applyDefaultWorkspace(workspace, { save = false } = {}) {
+  const next = DEFAULT_WORKSPACES.includes(workspace) ? workspace : 'tabs';
+  document.documentElement.dataset.defaultWorkspace = next;
+  if (save) {
+    try {
+      localStorage.setItem(DEFAULT_WORKSPACE_STORAGE_KEY, next);
+    } catch { /* Keep the selection for this page when localStorage is unavailable. */ }
+  }
+  syncDefaultWorkspaceControls();
+  return next;
+}
+
+function initDefaultWorkspaceSettings() {
+  applyDefaultWorkspace(getDefaultWorkspace(), { save: false });
+  const controls = [...document.querySelectorAll('[data-default-workspace]')];
+  controls.forEach((control, index) => {
+    control.addEventListener('keydown', event => {
+      const directions = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 };
+      let nextIndex = index;
+      if (event.key in directions) nextIndex = (index + directions[event.key] + controls.length) % controls.length;
+      else if (event.key === 'Home') nextIndex = 0;
+      else if (event.key === 'End') nextIndex = controls.length - 1;
+      else return;
+      event.preventDefault();
+      const nextControl = controls[nextIndex];
+      applyDefaultWorkspace(nextControl.dataset.defaultWorkspace, { save: true });
+      nextControl.focus();
+    });
+  });
+}
+
+let activeSettingsView = 'general';
+
+function setSettingsView(view = 'general') {
+  const activeView = ['general', 'search', 'appearance', 'privacy', 'data', 'about'].includes(view) ? view : 'general';
   activeSettingsView = activeView;
 
   document.querySelectorAll('.settings-tab[data-settings-view]').forEach(tab => {
@@ -1823,8 +1938,6 @@ function checkAndShowEmptyState() {
     </div>
   `;
 
-  const summaryEl = document.getElementById('openTabsSummary');
-  if (summaryEl) summaryEl.textContent = tr('domainTabSummary', { domainCount: 0, tabCount: 0 });
 }
 
 /**
@@ -2997,13 +3110,11 @@ function buildDomainSortControl(activeMode) {
   </span>`;
 }
 
-function updateOpenTabsToolbar({ activeView, summary, tabCount, sortMode = 'stable' }) {
-  const summaryEl = document.getElementById('openTabsSummary');
+function updateOpenTabsToolbar({ activeView, tabCount, sortMode = 'stable' }) {
   const viewEl = document.getElementById('openTabsViewToggle');
   const sortEl = document.getElementById('openTabsSortControl');
   const closeAllEl = document.getElementById('closeAllOpenTabsMenuItem');
 
-  if (summaryEl) summaryEl.textContent = summary;
   if (viewEl) viewEl.innerHTML = buildViewToggle(activeView);
   if (sortEl) sortEl.innerHTML = activeView === 'domain' ? buildDomainSortControl(sortMode) : '';
   if (closeAllEl) {
@@ -3230,11 +3341,8 @@ async function renderGroupView() {
     .filter(g => g.tabs.length > 0)
     .sort((a, b) => Math.min(...a.tabs.map(t => t.index)) - Math.min(...b.tabs.map(t => t.index)));
 
-  const groupCount = sortedGroups.length;
-
   updateOpenTabsToolbar({
     activeView: 'group',
-    summary: tr('groupTabSummary', { groupCount, tabCount: realTabs.length }),
     tabCount: realTabs.length,
   });
 
@@ -3409,7 +3517,6 @@ async function renderDomainView(realTabs) {
   if (domainGroups.length > 0 && openTabsSection) {
     updateOpenTabsToolbar({
       activeView: 'domain',
-      summary: tr('domainTabSummary', { domainCount: domainGroups.length, tabCount: realTabs.length }),
       tabCount: realTabs.length,
       sortMode: domainCardPreferences.sortMode,
     });
@@ -3418,7 +3525,6 @@ async function renderDomainView(realTabs) {
   } else if (openTabsSection) {
     updateOpenTabsToolbar({
       activeView: 'domain',
-      summary: tr('domainTabSummary', { domainCount: 0, tabCount: 0 }),
       tabCount: 0,
       sortMode: domainCardPreferences.sortMode,
     });
@@ -3490,6 +3596,11 @@ document.addEventListener('click', async (e) => {
       view: actionEl.dataset.settingsView,
       trigger: actionEl,
     });
+    return;
+  }
+
+  if (action === 'set-default-workspace') {
+    applyDefaultWorkspace(actionEl.dataset.defaultWorkspace, { save: true });
     return;
   }
 
@@ -4334,6 +4445,9 @@ async function applyDashboardSearch(query) {
   const trimmed = String(query || '').trim();
   if (!trimmed) {
     resetDashboardSearch();
+    document.dispatchEvent(new CustomEvent('browseloom-local-search-results', {
+      detail: { surface: 'tabs', query: '', count: 0 },
+    }));
     return;
   }
 
@@ -4345,11 +4459,20 @@ async function applyDashboardSearch(query) {
   applyOpenTabSearchResults(results, trimmed);
   applySavedSearchResults(results, trimmed);
   applySavedSessionSearchResults(results, trimmed);
+  document.dispatchEvent(new CustomEvent('browseloom-local-search-results', {
+    detail: { surface: 'tabs', query: trimmed, count: results.length },
+  }));
 }
+
+window.SuperTabOutDashboardSearch = {
+  apply: applyDashboardSearch,
+  reset: resetDashboardSearch,
+};
 
 // ---- Open-tabs search — filter domain cards and chips as user types ----
 document.addEventListener('input', async (e) => {
   if (e.target.id !== 'openTabsSearch') return;
+  if (e.target.dataset.searchMode === 'external') return;
   await applyDashboardSearch(e.target.value);
 });
 
@@ -4357,11 +4480,13 @@ document.addEventListener('input', async (e) => {
 document.addEventListener('keydown', (e) => {
   const search = document.getElementById('openTabsSearch');
   if (!search) return;
+  if (search.dataset.searchMode === 'external' && document.activeElement === search) return;
 
   // "/" focuses the search (unless the user is already typing somewhere
   // else, or the privacy screen is covering the dashboard).
   if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
     if (document.body.classList.contains('privacy-mode')) return;
+    if (document.body.dataset.workspace === 'bookmarks') return;
     const tag = document.activeElement?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     e.preventDefault();
@@ -4576,7 +4701,12 @@ function setSettingsPanelOpen(open, { view, trigger } = {}) {
   setLanguageMenuOpen(false);
   setThemeMenuOpen(false);
   setFontMenuOpen(false);
+  const restoreTarget = settingsTriggerElement;
+  if (panel.contains(document.activeElement)) document.activeElement.blur();
   if (panel.open) panel.close();
+  if (restoreTarget instanceof HTMLElement && restoreTarget.isConnected) {
+    queueMicrotask(() => restoreTarget.focus({ preventScroll: true }));
+  }
 }
 
 const settingsDialog = document.getElementById('privacySettings');
@@ -4591,7 +4721,11 @@ settingsDialog?.addEventListener('close', () => {
   document.querySelectorAll('.global-settings-trigger').forEach(button => button.setAttribute('aria-expanded', 'false'));
   const trigger = settingsTriggerElement;
   settingsTriggerElement = null;
-  if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus({ preventScroll: true });
+  if (trigger instanceof HTMLElement && trigger.isConnected) {
+    requestAnimationFrame(() => {
+      if (trigger.isConnected) trigger.focus({ preventScroll: true });
+    });
+  }
 });
 
 // Esc toggles privacy. Typing in any text input first defuses Esc to just
@@ -4765,7 +4899,9 @@ document.addEventListener('keydown', async (e) => {
    INITIALIZE
    ---------------------------------------------------------------- */
 initSettingsPanelLayout();
+initDefaultWorkspaceSettings();
 initThemeSwitcher();
+initCardOpacityControl();
 initFontSwitcher();
 initLanguageSwitcher();
 loadExtensionVersion();

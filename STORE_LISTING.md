@@ -38,6 +38,7 @@ BrowseLoom replaces your new tab page with a local dashboard for open browser ta
 It helps you understand what is open, find the right tab faster, clean up duplicates, and close groups of tabs without accidentally touching pinned tabs.
 
 Highlights:
+- Use up to 10 personal wallpapers stored only in the local browser profile
 - Group tabs by domain or by Chrome's native Tab Groups
 - Filter tabs instantly with the / shortcut
 - Hide tab details with privacy mode before screen sharing
@@ -53,7 +54,7 @@ Highlights:
 - Store preferences and saved tabs locally
 
 Privacy:
-BrowseLoom does not require an account, does not use analytics, does not sell data, and does not upload your tab list to a server. Saved tabs and preferences stay on your device. The extension may request favicons from DuckDuckGo's icon service and cache them locally for up to 7 days; users can disable external favicon requests in privacy settings.
+BrowseLoom does not require an account, does not use analytics, does not sell data, and does not upload your tab list or personal wallpapers to a server. Saved tabs, preferences, and imported wallpapers stay on your device. The extension may request favicons from DuckDuckGo's icon service when enabled. Baidu suggestions are separately optional and off by default; when enabled, text typed while any web search engine is selected is sent to suggestion.baidu.com.
 
 Attribution:
 BrowseLoom is distributed under the Apache License 2.0. It is a derivative work based on Super Tab Out by Sivan, which is licensed under Apache-2.0. Super Tab Out includes modified portions of Tab Out by Zara Zhang, which is licensed under the MIT License. Required upstream notices are preserved in this project's NOTICE file. This project is not affiliated with Google, Chrome, Microsoft Edge, Brave, DuckDuckGo, or the upstream authors.
@@ -79,6 +80,7 @@ Use these explanations in the Privacy / Permissions sections if requested.
 | `sidePanel` | Required to provide the optional side panel tab center while the user stays on the current webpage. |
 | `sessions` | Required to show and restore recently closed browser tabs/windows. |
 | `bookmarks` (optional) | Requested only when the user starts import, to read the current browser bookmark tree and copy supported links into BrowseLoom's local bookmark workspace. The browser's bookmarks are never changed. |
+| `https://suggestion.baidu.com/*` (optional host) | Requested only when the user enables Baidu suggestions, so the extension can fetch suggestions for text typed while any web search engine is selected. |
 
 ## Privacy Practices Answers
 
@@ -93,6 +95,7 @@ Suggested factual answers based on the current implementation:
 - The extension uses tab titles and URLs only to render and manage the local dashboard.
 - The extension uses `chrome.sessions` only to show and restore recently closed tabs/windows.
 - The extension requests favicons from `icons.duckduckgo.com` only when external favicons are enabled, and caches them locally.
+- The extension requests Baidu suggestions only when the user enables them and types while any web search engine is selected; credentials are omitted.
 
 ## Support / Homepage URLs
 

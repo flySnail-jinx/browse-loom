@@ -31,8 +31,8 @@
     "message": "收藏当前网页",
     "description": "打开已预填书签草稿的快捷键说明。"
   },
-  "actionBookmarkCurrentPage": {
-    "message": "收藏当前网页",
-    "description": "打开已预填书签草稿的工具栏按钮说明。"
+  "actionOpenBrowseLoom": {
+    "message": "打开 BrowseLoom",
+    "description": "打开已配置 BrowseLoom 工作区的工具栏按钮说明。"
   }
 }

@@ -11,12 +11,19 @@
   <link rel="stylesheet" href="glass.css">
   <link rel="stylesheet" href="backgrounds/backgrounds.css">
   <link rel="stylesheet" href="bookmarks.css">
+  <link rel="stylesheet" href="search-engines.css">
 
   <!-- Apply saved theme before body paints (avoids flash of default palette) -->
   <script src="theme-init.js"></script>
 </head>
 <body>
 <div class="background-stage" id="backgroundStage" aria-hidden="true"></div>
+<header class="app-navigation" aria-label="BrowseLoom">
+  <div class="app-navigation-inner">
+    <div class="app-search-slot"></div>
+    <div class="app-actions-slot"></div>
+  </div>
+</header>
 <div class="container">
 
 
@@ -26,9 +33,11 @@
        ================================================================ -->
   <header class="dashboard-toolbar">
     <div class="header-right">
-      <div class="open-tabs-summary" id="openTabsSummary" aria-live="polite"></div>
-      <div class="open-tabs-search-wrap">
-        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+      <div class="open-tabs-search-wrap" data-search-surface="tabs">
+        <button class="search-source-button" type="button" data-search-action="toggle-source-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Search source">
+          <span class="search-source-mark" aria-hidden="true">⌕</span>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m4 6 4 4 4-4"></path></svg>
+        </button>
         <input type="text" class="open-tabs-search" id="openTabsSearch" placeholder="Filter tabs" autocomplete="off" spellcheck="false" data-i18n-placeholder="search" aria-label="Filter tabs">
         <span class="open-tabs-search-hint">/</span>
       </div>
@@ -211,7 +220,15 @@
           <aside class="settings-sidebar">
             <div class="privacy-settings-title" id="settingsDialogTitle" data-i18n="settingsTitle">Settings</div>
             <nav class="settings-tabs" aria-label="Settings sections" data-i18n-aria-label="settingsSectionsLabel">
-              <button class="settings-tab active" id="settingsTabAppearance" data-action="set-settings-view" data-settings-view="appearance" type="button" aria-current="page" aria-controls="settingsPaneAppearance">
+              <button class="settings-tab active" id="settingsTabGeneral" data-action="set-settings-view" data-settings-view="general" type="button" aria-current="page" aria-controls="settingsPaneGeneral">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"></path><circle cx="16" cy="7" r="2"></circle><circle cx="8" cy="17" r="2"></circle></svg>
+                <span data-i18n="generalSettings">General</span>
+              </button>
+              <button class="settings-tab" id="settingsTabSearch" data-action="set-settings-view" data-settings-view="search" type="button" aria-current="false" aria-controls="settingsPaneSearch">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 5 5"></path></svg>
+                <span data-search-copy="searchSettings">Search</span>
+              </button>
+              <button class="settings-tab" id="settingsTabAppearance" data-action="set-settings-view" data-settings-view="appearance" type="button" aria-current="false" aria-controls="settingsPaneAppearance">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v2.25M12 18.75V21M3 12h2.25M18.75 12H21M5.64 5.64l1.59 1.59M16.77 16.77l1.59 1.59M18.36 5.64l-1.59 1.59M7.23 16.77l-1.59 1.59"></path><circle cx="12" cy="12" r="4"></circle></svg>
                 <span data-i18n="appearanceSettings">Appearance</span>
               </button>
@@ -236,7 +253,86 @@
 
           <div class="settings-content">
 
-        <section class="settings-pane active" id="settingsPaneAppearance" data-settings-pane="appearance" aria-labelledby="settingsTabAppearance">
+        <section class="settings-pane active" id="settingsPaneGeneral" data-settings-pane="general" aria-labelledby="settingsTabGeneral">
+          <header class="settings-pane-header"><h2 data-i18n="generalSettings">General</h2></header>
+          <div class="settings-section">
+            <div class="settings-field">
+              <div class="settings-field-label" id="defaultWorkspaceLabel" data-i18n="defaultWorkspaceLabel">Default page</div>
+              <p class="settings-field-description" data-i18n="defaultWorkspaceDescription">Used for new tabs and the extension toolbar button.</p>
+              <div class="default-workspace-options" role="radiogroup" aria-labelledby="defaultWorkspaceLabel">
+                <button class="default-workspace-option" type="button" role="radio" aria-checked="true"
+                        data-action="set-default-workspace" data-default-workspace="tabs">
+                  <span class="default-workspace-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18M8 4v5"></path></svg></span>
+                  <span data-i18n="workspaceTabs">Tab management</span>
+                  <span class="default-workspace-option-check" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 10 3 3 7-7"></path></svg></span>
+                </button>
+                <button class="default-workspace-option" type="button" role="radio" aria-checked="false"
+                        data-action="set-default-workspace" data-default-workspace="bookmarks" tabindex="-1">
+                  <span class="default-workspace-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V21l-5-3-5 3V4.75Z"></path></svg></span>
+                  <span data-i18n="workspaceBookmarks">Bookmark management</span>
+                  <span class="default-workspace-option-check" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 10 3 3 7-7"></path></svg></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-pane" id="settingsPaneSearch" data-settings-pane="search" aria-labelledby="settingsTabSearch" hidden>
+          <header class="settings-pane-header"><h2 data-search-copy="searchSettings">Search</h2></header>
+
+          <div class="settings-section search-settings-section">
+            <div class="settings-section-title" data-search-copy="builtInEngines">Built-in engines</div>
+            <p class="settings-field-description" data-search-copy="builtInDescription">Choose the default web search and which engines appear in the search source menu.</p>
+            <div class="search-engine-settings-list" id="searchEngineSettingsList"></div>
+          </div>
+
+          <div class="settings-section search-settings-section">
+            <div class="settings-section-title" data-search-copy="onlineSuggestions">Online suggestions</div>
+            <label class="privacy-setting-row">
+              <span data-search-copy="baiduSuggestions">Baidu search suggestions</span>
+              <span class="privacy-setting-switch">
+                <input type="checkbox" id="baiduSuggestionsToggle">
+                <span class="privacy-setting-switch-track" aria-hidden="true"></span>
+              </span>
+            </label>
+            <p class="privacy-setting-disclosure" id="baiduSuggestionsDisclosure" data-search-copy="baiduSuggestionsDisclosure">Off by default. When enabled, text typed in Baidu mode is sent to suggestion.baidu.com.</p>
+            <p class="search-settings-status" id="searchSettingsStatus" role="status" aria-live="polite" hidden></p>
+          </div>
+
+          <div class="settings-section search-settings-section">
+            <div class="search-custom-heading">
+              <div>
+                <div class="settings-section-title" data-search-copy="customEngines">Custom engines</div>
+                <p class="settings-field-description" data-search-copy="customDescription">Add an HTTPS search URL containing exactly one %s placeholder.</p>
+              </div>
+              <button class="search-settings-add" id="addCustomSearchEngine" type="button" data-search-copy="addEngine">Add engine</button>
+            </div>
+            <div class="search-custom-engine-list" id="customSearchEngineList"></div>
+
+            <form class="search-custom-form" id="customSearchEngineForm" hidden novalidate>
+              <input id="customSearchEngineId" type="hidden">
+              <label class="search-custom-field">
+                <span data-search-copy="engineName">Name</span>
+                <input id="customSearchEngineName" type="text" maxlength="40" autocomplete="off" required>
+              </label>
+              <label class="search-custom-field">
+                <span data-search-copy="engineUrl">Search URL</span>
+                <input id="customSearchEngineUrl" type="url" maxlength="2048" autocomplete="off" placeholder="https://example.com/search?q=%s" required>
+              </label>
+              <label class="search-custom-color-field">
+                <span data-search-copy="engineColor">Icon color</span>
+                <input id="customSearchEngineColor" type="color" value="#64748b">
+              </label>
+              <p class="search-custom-error" id="customSearchEngineError" role="alert"></p>
+              <div class="search-custom-actions">
+                <button type="button" id="cancelCustomSearchEngine" data-search-copy="cancel">Cancel</button>
+                <button type="submit" class="search-custom-save" data-search-copy="saveEngine">Save engine</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section class="settings-pane" id="settingsPaneAppearance" data-settings-pane="appearance" aria-labelledby="settingsTabAppearance" hidden>
           <header class="settings-pane-header"><h2 data-i18n="appearanceSettings">Appearance</h2></header>
           <div class="settings-section">
             <div class="settings-field">
@@ -248,8 +344,13 @@
               <div class="settings-field-control" id="settingsThemeSlot"></div>
             </div>
             <div class="settings-field">
-              <div class="settings-field-label" id="backgroundPickerLabel" data-i18n="backgroundLabel">Background</div>
+              <div class="settings-field-label" id="backgroundPickerLabel" data-wallpaper-copy="systemBackgrounds">System backgrounds</div>
               <div class="background-options" role="radiogroup" aria-labelledby="backgroundPickerLabel">
+                <button class="background-option" type="button" role="radio" aria-checked="false"
+                        data-action="set-background" data-background-id="mountain">
+                  <span class="background-option-preview background-option-preview-mountain" aria-hidden="true"></span>
+                  <span class="background-option-label" data-i18n="backgroundMountain">Snow peaks</span>
+                </button>
                 <button class="background-option" type="button" role="radio" aria-checked="false"
                         data-action="set-background" data-background-id="liquid-ether">
                   <span class="background-option-preview background-option-preview-liquid" aria-hidden="true"><i></i></span>
@@ -271,6 +372,39 @@
                   <span class="background-option-label" data-i18n="backgroundStatic">Static</span>
                 </button>
               </div>
+            </div>
+            <div class="settings-field user-wallpaper-settings" id="userWallpaperSettings">
+              <div class="user-wallpaper-heading">
+                <div>
+                  <div class="settings-field-label" id="userWallpaperLabel" data-wallpaper-copy="myWallpapers">My wallpapers</div>
+                  <p class="settings-field-description" data-wallpaper-copy="wallpaperDescription">Images stay in this browser profile.</p>
+                </div>
+                <div class="user-wallpaper-heading-actions">
+                  <span class="user-wallpaper-count" id="userWallpaperCount" aria-live="polite">0 / 10</span>
+                  <button class="user-wallpaper-upload" id="userWallpaperUpload" type="button" data-wallpaper-copy="uploadWallpapers">Upload wallpapers</button>
+                  <input id="userWallpaperInput" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple hidden>
+                </div>
+              </div>
+              <div class="user-wallpaper-persistence" id="userWallpaperPersistence" role="status" hidden></div>
+              <div class="user-wallpaper-progress" id="userWallpaperProgress" role="status" aria-live="polite" hidden>
+                <div class="user-wallpaper-progress-track" aria-hidden="true"><span id="userWallpaperProgressBar"></span></div>
+                <div class="user-wallpaper-progress-copy" id="userWallpaperProgressCopy"></div>
+                <button id="userWallpaperCancelImport" type="button" data-wallpaper-copy="cancelPending">Cancel pending</button>
+              </div>
+              <div class="user-wallpaper-empty" id="userWallpaperEmpty">
+                <strong data-wallpaper-copy="emptyTitle">Use a photo from this device</strong>
+                <span data-wallpaper-copy="emptyBody">Upload up to 10 JPEG, PNG, or WebP images.</span>
+              </div>
+              <div class="user-wallpaper-grid" id="userWallpaperGrid" role="radiogroup" aria-labelledby="userWallpaperLabel" hidden></div>
+            </div>
+            <div class="settings-field">
+              <label class="settings-field-label" for="cardOpacityRange" data-i18n="cardOpacityLabel">Card opacity</label>
+              <div class="card-opacity-control">
+                <input id="cardOpacityRange" type="range" min="40" max="100" step="1" value="60"
+                       aria-describedby="cardOpacityDescription">
+                <output id="cardOpacityValue" for="cardOpacityRange">60%</output>
+              </div>
+              <p class="settings-field-description" id="cardOpacityDescription" data-i18n="cardOpacityDescription">Applies to cards in tabs and bookmarks.</p>
             </div>
             <div class="settings-field">
               <div class="settings-field-label" data-i18n="fontLabel">Typography</div>
@@ -408,6 +542,12 @@
        Right: saved for later checklist
        The right column only renders when it has items (JS controls this)
        ================================================================ -->
+  <section class="local-search-fallback" id="dashboardSearchFallback" hidden>
+    <h2 data-search-copy="noLocalResults">No local results</h2>
+    <p id="dashboardSearchFallbackText"></p>
+    <div class="local-search-fallback-actions" data-search-fallback-actions="tabs"></div>
+  </section>
+
   <div class="dashboard-columns" id="dashboardColumns">
 
     <!-- LEFT COLUMN: Open tabs -->
@@ -468,11 +608,14 @@
 
 <section class="bookmark-workspace" id="bookmarkWorkspace" aria-label="Bookmarks" hidden>
   <header class="bookmark-toolbar">
-    <label class="bookmark-search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+    <div class="bookmark-search" data-search-surface="bookmarks">
+      <button class="search-source-button" type="button" data-search-action="toggle-source-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Search source">
+        <span class="search-source-mark" aria-hidden="true">⌕</span>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m4 6 4 4 4-4"></path></svg>
+      </button>
       <input id="bookmarkSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Search bookmarks" aria-label="Search bookmarks">
       <kbd>/</kbd>
-    </label>
+    </div>
     <div class="bookmark-toolbar-actions">
       <div class="bookmark-view-toggle" id="bookmarkViewToggle" role="tablist" aria-label="Bookmark view">
         <button type="button" data-bookmark-view="grid" aria-label="Icon view" title="Icon view">
@@ -482,12 +625,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg>
         </button>
       </div>
-      <button class="global-settings-trigger bookmark-global-settings-trigger" id="bookmarkGlobalSettingsBtn" type="button"
-              data-action="open-settings" aria-haspopup="dialog" aria-controls="privacySettings" aria-expanded="false"
-              data-i18n-title="settingsTitle" data-i18n-aria-label="settingsTitle"
-              title="Settings" aria-label="Settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 10 3.01V3h4v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.8 7l-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"></path></svg>
-      </button>
     </div>
   </header>
 
@@ -506,10 +643,6 @@
     </aside>
 
     <main class="bookmark-main" id="bookmarkMain">
-      <div class="bookmark-main-heading">
-        <h1 id="bookmarkSectionTitle">Home</h1>
-        <span id="bookmarkSectionCount"></span>
-      </div>
       <div class="bookmark-grid" id="bookmarkGrid"></div>
       <div class="bookmark-list" id="bookmarkList" hidden></div>
       <div class="bookmark-empty" id="bookmarkEmpty" hidden>
@@ -517,15 +650,18 @@
         <h2 data-bookmark-copy="emptyTitle">Build your bookmark desk</h2>
         <p data-bookmark-copy="emptyBody">Add a bookmark or folder. Everything stays in this extension.</p>
         <button class="bookmark-empty-import" type="button" data-action="open-settings" data-settings-view="data" data-bookmark-copy="importBrowserBookmarks">Import browser bookmarks</button>
+        <div class="local-search-fallback bookmark-search-fallback" id="bookmarkSearchFallback" hidden>
+          <div class="local-search-fallback-actions" data-search-fallback-actions="bookmarks"></div>
+        </div>
       </div>
     </main>
 
-    <aside class="bookmark-activity-panel" aria-labelledby="recentBookmarksTitle">
+    <aside class="bookmark-activity-panel bookmark-activity-recent" aria-labelledby="recentBookmarksTitle">
       <h2 id="recentBookmarksTitle" data-bookmark-copy="recent">Recently opened</h2>
       <div class="bookmark-activity-list" id="recentBookmarks"></div>
     </aside>
 
-    <aside class="bookmark-activity-panel" aria-labelledby="popularBookmarksTitle">
+    <aside class="bookmark-activity-panel bookmark-activity-popular" aria-labelledby="popularBookmarksTitle">
       <h2 id="popularBookmarksTitle" data-bookmark-copy="popular">Most opened</h2>
       <div class="bookmark-activity-list" id="popularBookmarks"></div>
     </aside>
@@ -652,6 +788,57 @@
   </form>
 </dialog>
 
+<dialog class="wallpaper-editor-dialog" id="wallpaperEditorDialog" aria-labelledby="wallpaperEditorTitle">
+  <form class="wallpaper-editor" id="wallpaperEditorForm">
+    <header>
+      <div>
+        <h2 id="wallpaperEditorTitle" data-wallpaper-copy="adjustWallpaper">Adjust wallpaper</h2>
+        <p id="wallpaperEditorName"></p>
+      </div>
+      <button class="wallpaper-editor-close" id="wallpaperEditorClose" type="button" data-wallpaper-copy-aria-label="cancel">×</button>
+    </header>
+    <div class="wallpaper-editor-preview" id="wallpaperEditorPreview" tabindex="0" data-wallpaper-copy-aria-label="dragToPosition">
+      <img id="wallpaperEditorImage" alt="" draggable="false">
+      <span id="wallpaperEditorOverlay" aria-hidden="true"></span>
+      <span class="wallpaper-editor-drag-hint" data-wallpaper-copy="dragToPosition">Drag to position</span>
+    </div>
+    <div class="wallpaper-editor-controls">
+      <label>
+        <span data-wallpaper-copy="horizontalPosition">Horizontal position</span>
+        <input id="wallpaperFocalX" type="range" min="0" max="100" step="1" value="50">
+      </label>
+      <label>
+        <span data-wallpaper-copy="verticalPosition">Vertical position</span>
+        <input id="wallpaperFocalY" type="range" min="0" max="100" step="1" value="50">
+      </label>
+      <label>
+        <span data-wallpaper-copy="overlayStrength">Overlay strength</span>
+        <span class="wallpaper-overlay-control"><input id="wallpaperOverlay" type="range" min="0" max="60" step="1" value="20"><output id="wallpaperOverlayValue">20%</output></span>
+      </label>
+    </div>
+    <div class="wallpaper-dialog-actions">
+      <button id="wallpaperResetPosition" type="button" data-wallpaper-copy="resetCenter">Reset center</button>
+      <span></span>
+      <button id="wallpaperEditorCancel" type="button" data-wallpaper-copy="cancel">Cancel</button>
+      <button class="wallpaper-editor-save" type="submit" data-wallpaper-copy="saveChanges">Save changes</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="wallpaper-delete-dialog" id="wallpaperDeleteDialog" aria-labelledby="wallpaperDeleteTitle" aria-describedby="wallpaperDeleteText">
+  <form id="wallpaperDeleteForm">
+    <img id="wallpaperDeletePreview" alt="">
+    <div>
+      <h2 id="wallpaperDeleteTitle" data-wallpaper-copy="deleteWallpaperTitle">Delete wallpaper?</h2>
+      <p id="wallpaperDeleteText"></p>
+    </div>
+    <div class="wallpaper-dialog-actions">
+      <button id="wallpaperDeleteCancel" type="button" data-wallpaper-copy="cancel">Cancel</button>
+      <button class="danger" id="wallpaperDeleteConfirm" type="submit" data-wallpaper-copy="deleteWallpaper">Delete wallpaper</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- ================================================================
      TOAST — floats above everything, used for action confirmations
      Hidden by default via CSS (opacity:0, translateY)
@@ -673,6 +860,8 @@
 <!-- Shared services — classic scripts keep the no-build MV3 setup intact. -->
 <script src="services/url-service.js"></script>
 <script src="services/html-service.js"></script>
+<script src="services/search-engine-service.js"></script>
+<script src="services/wallpaper-service.js"></script>
 <script src="services/storage-service.js"></script>
 <script src="services/bookmarks-service.js"></script>
 <script src="services/tabs-service.js"></script>
@@ -682,6 +871,8 @@
 <!-- Main dashboard logic — loads last so the DOM is ready -->
 <script src="app.js"></script>
 <script src="bookmarks.js"></script>
+<script src="search-engine-ui.js"></script>
+<script src="wallpaper-ui.js"></script>
 <script type="module" src="effects.mjs"></script>
 </body>
 </html>

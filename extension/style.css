@@ -6,6 +6,7 @@
 
 /* System font stacks only. No bundled font files, no @font-face, no network calls. */
 :root {
+  --workspace-max-width: 1680px;
   --font-sans: system-ui, ui-sans-serif, sans-serif;
   --font-serif: ui-serif, serif;
   --font-mono: ui-monospace, monospace;
@@ -846,7 +847,7 @@ body::before {
 .container {
   position: relative;
   z-index: 1;
-  max-width: 960px;
+  max-width: var(--workspace-max-width);
   min-height: 100vh;
   margin: 0 auto;
   padding: 48px 32px 80px;
@@ -858,7 +859,7 @@ body::before {
 /* When the saved-for-later sidebar is open, expand the container
    so the tab grid still has room for 2-3 columns */
 .container:has(.dashboard-columns) {
-  max-width: 1300px;
+  max-width: var(--workspace-max-width);
 }
 
 /* ---- Header ---- */
@@ -1025,7 +1026,7 @@ header {
 
 /* ---- Mission Cards ---- */
 .missions {
-  columns: 280px;
+  columns: 300px;
   column-gap: 12px;
   margin-bottom: 40px;
 }
@@ -3567,6 +3568,35 @@ body.privacy-mode .privacy-screen { display: flex; }
   gap: 8px;
 }
 
+.card-opacity-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-opacity-control input[type="range"] {
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--accent-slate);
+  cursor: pointer;
+}
+
+.card-opacity-control input[type="range"]:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.card-opacity-control output {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 .privacy-settings .language-switcher,
 .privacy-settings .appearance-group {
   width: 100%;
@@ -3821,13 +3851,13 @@ body {
 }
 
 .container {
-  max-width: 1160px;
+  max-width: var(--workspace-max-width);
   padding: 36px 36px 72px;
   min-height: 100vh;
 }
 
 .container:has(.dashboard-columns) {
-  max-width: 1380px;
+  max-width: var(--workspace-max-width);
 }
 
 header {
@@ -4320,7 +4350,7 @@ header {
 }
 
 .missions {
-  columns: 310px;
+  columns: 300px;
   column-gap: 14px;
 }
 
@@ -4529,7 +4559,7 @@ header {
 
 @media (min-width: 1180px) {
   .container:has(.dashboard-columns) {
-    max-width: min(1380px, calc(100vw - var(--command-dock-safe-area, 92px)));
+    max-width: min(var(--workspace-max-width), calc(100vw - var(--command-dock-safe-area, 92px)));
   }
 }
 
@@ -4732,6 +4762,84 @@ header {
 
 .settings-field-control {
   min-width: 0;
+}
+
+.settings-field-description {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.default-workspace-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.default-workspace-option {
+  display: grid;
+  min-height: 76px;
+  padding: 14px 15px;
+  grid-template-columns: 28px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-soft) 76%, transparent);
+  color: var(--ink);
+  font: 680 13px/1.35 var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.default-workspace-option:hover {
+  border-color: color-mix(in srgb, var(--accent-slate) 45%, var(--hairline));
+  background: color-mix(in srgb, var(--accent-slate) 7%, var(--surface-raised));
+}
+
+.default-workspace-option[aria-checked="true"] {
+  border-color: color-mix(in srgb, var(--accent-slate) 68%, var(--hairline));
+  background: color-mix(in srgb, var(--accent-slate) 10%, var(--surface-raised));
+  box-shadow: 0 5px 16px color-mix(in srgb, var(--shadow) 42%, transparent);
+}
+
+.default-workspace-option:focus-visible {
+  outline: 2px solid var(--accent-slate);
+  outline-offset: 2px;
+}
+
+.default-workspace-option-icon,
+.default-workspace-option-check {
+  display: inline-grid;
+  place-items: center;
+}
+
+.default-workspace-option-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.default-workspace-option-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: var(--surface-raised);
+  background: var(--accent-slate);
+  opacity: 0;
+  transform: scale(.75);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.default-workspace-option-check svg {
+  width: 14px;
+  height: 14px;
+}
+
+.default-workspace-option[aria-checked="true"] .default-workspace-option-check {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .privacy-settings .language-switcher,
@@ -5459,6 +5567,10 @@ body.privacy-mode .privacy-settings .theme-menu {
 }
 
 @media (max-width: 460px) {
+  .default-workspace-options {
+    grid-template-columns: 1fr;
+  }
+
   .settings-dialog .font-menu {
     grid-template-columns: 1fr;
   }

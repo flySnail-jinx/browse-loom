@@ -11,6 +11,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 const urls = require(resolve(root, 'extension/services/url-service.js'));
 const tabs = require(resolve(root, 'extension/services/tabs-service.js'));
+const searchEngines = require(resolve(root, 'extension/services/search-engine-service.js'));
+const wallpapers = require(resolve(root, 'extension/services/wallpaper-service.js'));
 const storage = require(resolve(root, 'extension/services/storage-service.js'));
 const bookmarks = require(resolve(root, 'extension/services/bookmarks-service.js'));
 const search = require(resolve(root, 'extension/services/search-service.js'));
@@ -42,9 +44,12 @@ async function testWorkspaceNavigationContract() {
   const index = readFileSync(resolve(root, 'extension/index.html'), 'utf8');
   const css = readFileSync(resolve(root, 'extension/bookmarks.css'), 'utf8');
   const dashboardCss = readFileSync(resolve(root, 'extension/style.css'), 'utf8');
+  const glassCss = readFileSync(resolve(root, 'extension/glass.css'), 'utf8');
+  const searchEngineCss = readFileSync(resolve(root, 'extension/search-engines.css'), 'utf8');
   const app = readFileSync(resolve(root, 'extension/app.js'), 'utf8');
   const ui = readFileSync(resolve(root, 'extension/bookmarks.js'), 'utf8');
   const background = readFileSync(resolve(root, 'extension/background.js'), 'utf8');
+  const searchEngineUi = readFileSync(resolve(root, 'extension/search-engine-ui.js'), 'utf8');
   const manifest = JSON.parse(readFileSync(resolve(root, 'extension/manifest.json'), 'utf8'));
   const enLocale = JSON.parse(readFileSync(resolve(root, 'extension/_locales/en/messages.json'), 'utf8'));
   const zhLocale = JSON.parse(readFileSync(resolve(root, 'extension/_locales/zh_CN/messages.json'), 'utf8'));
@@ -76,12 +81,32 @@ async function testWorkspaceNavigationContract() {
   assert.match(emptyState, /<button class="bookmark-empty-icon"[^>]+data-bookmark-action="open-add-menu"/);
   assert.match(emptyState, /class="bookmark-empty-import"[^>]+data-action="open-settings"[^>]+data-settings-view="data"/);
   assert.match(index, /<button class="bookmark-add-trigger"[^>]+data-bookmark-action="add-category"/);
-  assert.equal((index.match(/class="[^"]*global-settings-trigger/g) || []).length, 2);
+  assert.equal((index.match(/class="[^"]*global-settings-trigger/g) || []).length, 1);
   assert.match(index, /id="privacySettings"[^>]+class="[^"]*settings-dialog|class="[^"]*settings-dialog[^"]*"[^>]+id="privacySettings"/);
   const settingsDialogMarkup = index.match(/<dialog[^>]+id="privacySettings"[\s\S]*?<\/dialog>/)?.[0] || '';
   assert.equal(settingsDialogMarkup.includes('data-close-dialog'), false);
   assert.match(index, /id="settingsTabData"[^>]+data-settings-view="data"/);
   assert.match(index, /id="settingsPaneData"[^>]+data-settings-pane="data"/);
+  assert.match(index, /id="settingsTabGeneral"[^>]+data-settings-view="general"/);
+  assert.match(index, /id="settingsPaneGeneral"[^>]+data-settings-pane="general"/);
+  assert.match(index, /id="settingsTabSearch"[^>]+data-settings-view="search"/);
+  assert.match(index, /id="settingsPaneSearch"[^>]+data-settings-pane="search"/);
+  assert.match(index, /class="app-navigation"/);
+  assert.match(index, /class="app-search-slot"/);
+  assert.match(index, /id="searchSettingsStatus"[^>]+role="status"[^>]+aria-live="polite"/);
+  assert.match(searchEngineUi, /function setupAppNavigation\(\)/);
+  assert.match(searchEngineUi, /permissionReloadRequired/);
+  assert.equal((index.match(/data-search-surface=/g) || []).length, 2);
+  assert.match(index, /id="baiduSuggestionsToggle"/);
+  assert.match(index, /id="customSearchEngineForm"/);
+  assert.match(searchEngineUi, /credentials:\s*'omit'/);
+  assert.match(searchEngineUi, /chrome\.permissions\.request\(\{ origins: \[Engines\.BAIDU_SUGGESTION_ORIGIN\] \}\)/);
+  assert.equal(manifest.optional_host_permissions?.includes('https://suggestion.baidu.com/*'), true);
+  assert.equal((index.match(/data-action="set-default-workspace"/g) || []).length, 2);
+  assert.match(app, /DEFAULT_WORKSPACE_STORAGE_KEY = 'tab-out-default-workspace'/);
+  assert.match(app, /localStorage\.setItem\(DEFAULT_WORKSPACE_STORAGE_KEY, next\)/);
+  assert.match(ui, /document\.documentElement\.dataset\.defaultWorkspace === 'bookmarks'/);
+  assert.match(ui, /applyWorkspaceShell\(defaultWorkspace\)/);
   assert.match(index, /id="bulkTabConfirmDialog"[^>]+aria-describedby="bulkTabConfirmText"/);
   assert.match(index, /id="bulkTabConfirmCancel"[^>]+type="button"/);
   assert.match(index, /id="toast"[^>]+role="status"[^>]+aria-live="polite"[^>]+aria-atomic="true"/);
@@ -211,9 +236,27 @@ async function testWorkspaceNavigationContract() {
   assert.equal(ui.includes("categoryIconMarkup(normalizedCategoryIcon(category))"), true);
   assert.match(css, /\.bookmark-category-icon-options\s*\{[\s\S]*?grid-template-columns:\s*repeat\(6,/);
   assert.match(css, /\.bookmark-shell\s*\{[\s\S]*?grid-template-columns:\s*216px minmax\(420px, 1fr\)/);
-  assert.match(css, /\.bookmark-library-panel\s*\{[\s\S]*?background:\s*var\(--bookmark-readable-surface\);[\s\S]*?backdrop-filter:\s*blur\(18px\) saturate\(118%\);/);
+  assert.match(dashboardCss, /:root\s*\{[\s\S]*?--workspace-max-width:\s*1680px;/);
+  assert.match(dashboardCss, /\.missions\s*\{[\s\S]*?columns:\s*300px;/);
+  assert.match(dashboardCss, /@media \(min-width:\s*1180px\)[\s\S]*?max-width:\s*min\(var\(--workspace-max-width\), calc\(100vw - var\(--command-dock-safe-area, 92px\)\)\)/);
+  assert.match(glassCss, /\.container\s*\{[\s\S]*?max-width:\s*var\(--workspace-max-width\);/);
+  assert.match(searchEngineCss, /@media \(min-width:\s*1180px\)[\s\S]*?\.app-navigation-inner\s*\{[\s\S]*?width:\s*min\(var\(--workspace-max-width\), calc\(100vw - var\(--command-dock-safe-area, 92px\)\)\)/);
+  assert.match(css, /\.bookmark-toolbar\s*\{[\s\S]*?max-width:\s*var\(--workspace-max-width\);/);
+  assert.match(css, /\.bookmark-shell\s*\{[\s\S]*?max-width:\s*var\(--workspace-max-width\);/);
+  assert.match(css, /\.bookmark-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(6, minmax\(0, 1fr\)\);/);
+  assert.match(css, /@media \(max-width:\s*1799px\)[\s\S]*?\.bookmark-grid\s*\{[\s\S]*?repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(css, /@media \(max-width:\s*1599px\)[\s\S]*?\.bookmark-grid\s*\{[\s\S]*?repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(css, /@media \(min-width:\s*1180px\)[\s\S]*?\.bookmark-toolbar,[\s\S]*?\.bookmark-shell\s*\{[\s\S]*?width:\s*min\(var\(--workspace-max-width\), calc\(100vw - var\(--command-dock-safe-area, 92px\)\)\)/);
+  assert.match(css, /@media \(max-width:\s*1333px\)[\s\S]*?grid-template-areas:[\s\S]*?"library main recent"[\s\S]*?"library main popular"/);
+  assert.match(index, /class="bookmark-activity-panel bookmark-activity-recent"/);
+  assert.match(index, /class="bookmark-activity-panel bookmark-activity-popular"/);
+  const bookmarkLibraryPanelCss = css.match(/\.bookmark-library-panel\s*\{([\s\S]*?)\n\}/)?.[1] || '';
+  assert.match(bookmarkLibraryPanelCss, /background:\s*var\(--bookmark-readable-surface\);/);
+  assert.equal(bookmarkLibraryPanelCss.includes('backdrop-filter'), false);
   assert.match(css, /\.bookmark-library-panel::before\s*\{\s*display:\s*none;/);
-  assert.match(css, /\.bookmark-workspace\s*\{[\s\S]*?--bookmark-readable-surface:\s*color-mix\(in srgb, var\(--card-bg\) 82%, transparent\);/);
+  assert.match(css, /\.bookmark-workspace\s*\{[\s\S]*?--bookmark-readable-surface:\s*var\(--content-card-surface\);/);
+  assert.match(css, /\.bookmark-library-panel,[\s\S]*?background:\s*var\(--content-card-surface\);/);
+  assert.match(css, /\.bookmark-folder-board\s*\{[\s\S]*?background:\s*var\(--content-card-surface\);/);
   assert.match(css, /\.bookmark-nav-select,[\s\S]*?background:\s*transparent;/);
   assert.match(css, /\.bookmark-nav-select\.active\s*\{[\s\S]*?background:\s*var\(--bookmark-readable-surface-strong\);/);
   assert.match(css, /\.bookmark-nav-count\s*\{[\s\S]*?display:\s*block;/);
@@ -252,10 +295,14 @@ async function testWorkspaceNavigationContract() {
     mac: 'MacCtrl+Shift+D',
   });
   assert.equal(manifest.commands?.['bookmark-current-page']?.description, '__MSG_commandBookmarkCurrentPage__');
-  assert.equal(manifest.action?.default_title, '__MSG_actionBookmarkCurrentPage__');
+  assert.equal(manifest.action?.default_title, '__MSG_actionOpenBrowseLoom__');
   assert.equal(enLocale.commandBookmarkCurrentPage.message, 'Bookmark the current page');
   assert.equal(zhLocale.commandBookmarkCurrentPage.message, '收藏当前网页');
-  assert.match(background, /chrome\.action\.onClicked\.addListener\(openCurrentPageBookmarkDraft\)/);
+  assert.equal(enLocale.actionOpenBrowseLoom.message, 'Open BrowseLoom');
+  assert.equal(zhLocale.actionOpenBrowseLoom.message, '打开 BrowseLoom');
+  assert.match(background, /chrome\.action\.onClicked\.addListener\(openBrowseLoom\)/);
+  assert.match(background, /self\.SuperTabOutTabs\?\.isDashboardTab\?\./);
+  assert.match(background, /command === 'bookmark-current-page'[\s\S]*?openCurrentPageBookmarkDraft\(tab\)/);
   assert.match(background, /chrome\.storage\.session\.set/);
   assert.match(background, /message\?\.type === 'consume-bookmark-capture'/);
   assert.match(background, /async function saveCurrentSession\(scope = 'currentWindow'\)/);
@@ -268,6 +315,7 @@ async function testWorkspaceNavigationContract() {
 
 async function testBackgroundRegistryContract() {
   const index = readFileSync(resolve(root, 'extension/index.html'), 'utf8');
+  const manifest = JSON.parse(readFileSync(resolve(root, 'extension/manifest.json'), 'utf8'));
   const effects = readFileSync(resolve(root, 'extension/effects.mjs'), 'utf8');
   const controller = readFileSync(resolve(root, 'extension/backgrounds/background-controller.mjs'), 'utf8');
   const registry = readFileSync(resolve(root, 'extension/backgrounds/background-registry.mjs'), 'utf8');
@@ -275,28 +323,58 @@ async function testBackgroundRegistryContract() {
   const prism = readFileSync(resolve(root, 'extension/backgrounds/prism.mjs'), 'utf8');
   const backgroundCss = readFileSync(resolve(root, 'extension/backgrounds/backgrounds.css'), 'utf8');
   const themeInit = readFileSync(resolve(root, 'extension/theme-init.js'), 'utf8');
+  const glassCss = readFileSync(resolve(root, 'extension/glass.css'), 'utf8');
+  const dashboardCss = readFileSync(resolve(root, 'extension/style.css'), 'utf8');
+  const bookmarksCss = readFileSync(resolve(root, 'extension/bookmarks.css'), 'utf8');
+  const searchEngineCss = readFileSync(resolve(root, 'extension/search-engines.css'), 'utf8');
 
   assert.match(index, /id="backgroundStage"/);
   assert.equal(index.includes('id="liquidEther"'), false);
   assert.match(index, /href="backgrounds\/backgrounds\.css"/);
   assert.deepEqual(
     [...index.matchAll(/data-background-id="([^"]+)"/g)].map(match => match[1]),
-    ['liquid-ether', 'light-rays', 'prism', 'static'],
+    ['mountain', 'liquid-ether', 'light-rays', 'prism', 'static'],
   );
   assert.deepEqual(
     [...registry.matchAll(/\n\s+id: "([^"]+)"/g)].map(match => match[1]),
-    ['liquid-ether', 'light-rays', 'prism', 'static'],
+    ['mountain', 'liquid-ether', 'light-rays', 'prism', 'static'],
   );
-  assert.match(registry, /DEFAULT_BACKGROUND_ID = "liquid-ether"/);
+  assert.match(registry, /DEFAULT_BACKGROUND_ID = "mountain"/);
   assert.match(registry, /getBackgroundDefinition\(id\)\?\.id \|\| DEFAULT_BACKGROUND_ID/);
   assert.match(effects, /createBackgroundController/);
   assert.equal(effects.includes('mountLiquidEther'), false);
   assert.match(controller, /activeBackground\.dispose\(\);[\s\S]{0,160}container\.replaceChildren\(\);/);
-  assert.match(controller, /Falling back to static/);
+  assert.match(controller, /Falling back to mountain/);
+  assert.match(controller, /WallpaperService\.getWallpaper\(id\)/);
+  assert.match(controller, /URL\.createObjectURL\(record\.blob\)/);
+  assert.equal(controller.includes('container.replaceChildren(layer)'), false);
+  assert.ok(controller.indexOf('await image.decode()') < controller.indexOf('container.replaceChildren(mounted.element)'));
+  assert.match(controller, /window\.addEventListener\("storage", onStorage\)/);
   assert.match(controller, /localStorage\.setItem\(BACKGROUND_STORAGE_KEY, id\)/);
   assert.match(controller, /event\.key === "ArrowRight"/);
   assert.match(themeInit, /localStorage\.getItem\('tab-out-background'\)/);
-  assert.match(themeInit, /dataset\.background = 'liquid-ether'/);
+  assert.match(themeInit, /dataset\.background = 'mountain'/);
+  assert.match(themeInit, /background\.indexOf\('user:'\) === 0/);
+  assert.match(index, /id="userWallpaperInput"[^>]+accept="image\/jpeg,image\/png,image\/webp/);
+  assert.match(index, /id="userWallpaperGrid"[^>]+role="radiogroup"/);
+  assert.match(index, /id="wallpaperEditorDialog"/);
+  assert.match(index, /id="wallpaperDeleteDialog"/);
+  assert.match(index, /services\/wallpaper-service\.js[\s\S]+wallpaper-ui\.js[\s\S]+effects\.mjs/);
+  assert.equal(manifest.permissions?.includes('unlimitedStorage'), false);
+  assert.match(index, /id="cardOpacityRange"[^>]+min="40"[^>]+max="100"[^>]+value="60"/);
+  assert.match(themeInit, /localStorage\.getItem\('tab-out-card-opacity'\)/);
+  assert.match(themeInit, /style\.setProperty\('--content-card-opacity'/);
+  assert.match(glassCss, /--content-card-opacity:\s*60%;/);
+  assert.match(glassCss, /--content-card-surface:\s*color-mix\(in srgb, var\(--card-bg\) var\(--content-card-opacity\), transparent\);/);
+  assert.match(glassCss, /\.mission-card,[\s\S]*?background:\s*var\(--content-card-surface\);/);
+  assert.match(glassCss, /\.mission-card,[\s\S]*?backdrop-filter:\s*none;/);
+  assert.match(glassCss, /\.deferred-column,[\s\S]*?background:\s*var\(--content-card-surface\);[\s\S]*?backdrop-filter:\s*none;/);
+  assert.match(bookmarksCss, /--bookmark-readable-surface:\s*var\(--content-card-surface\);/);
+  assert.match(bookmarksCss, /\.bookmark-search\s*\{[\s\S]*?background:\s*var\(--content-card-surface\);/);
+  assert.match(searchEngineCss, /\.app-search-slot \.open-tabs-search-wrap,[\s\S]*?background:\s*var\(--content-card-surface\);[\s\S]*?backdrop-filter:\s*none;/);
+  assert.match(dashboardCss, /\.card-opacity-control input\[type="range"\]/);
+  assert.match(themeInit, /dataset\.defaultWorkspace = 'tabs'/);
+  assert.match(themeInit, /localStorage\.getItem\('tab-out-default-workspace'\)/);
   assert.match(lightRays, /prefers-reduced-motion: reduce/);
   assert.match(lightRays, /visibilitychange/);
   assert.match(lightRays, /renderer\.forceContextLoss\(\)/);
@@ -305,12 +383,49 @@ async function testBackgroundRegistryContract() {
   assert.match(prism, /framesPerSecond = 30/);
   assert.match(prism, /renderer\.forceContextLoss\(\)/);
   assert.match(backgroundCss, /\.background-option:focus-visible/);
+  assert.match(backgroundCss, /url\("\.\/mountain-default\.jpg"\)/);
+  assert.match(backgroundCss, /\.user-wallpaper-layer\.is-ready/);
+  assert.match(backgroundCss, /\.wallpaper-delete-dialog\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?inset:\s*0;[\s\S]*?margin:\s*auto;/);
+  assert.match(backgroundCss, /prefers-reduced-motion: reduce[\s\S]+\.user-wallpaper-layer/);
+}
+
+function testWallpaperServiceContract() {
+  assert.equal(wallpapers.MAX_WALLPAPERS, 10);
+  assert.equal(wallpapers.MAX_SOURCE_BYTES, 20 * 1024 * 1024);
+  assert.equal(wallpapers.MAX_STORED_BYTES, 8 * 1024 * 1024);
+  assert.equal(wallpapers.MAX_LONG_EDGE, 3840);
+  assert.equal(wallpapers.isWallpaperId('user:test-id'), true);
+  assert.equal(wallpapers.isWallpaperId('mountain'), false);
+  assert.equal(wallpapers.detectImageType(Uint8Array.from([0xff, 0xd8, 0xff])), 'image/jpeg');
+  assert.equal(wallpapers.detectImageType(Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])), 'image/png');
+  assert.equal(wallpapers.detectImageType(Uint8Array.from([
+    0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50,
+  ])), 'image/webp');
+  assert.equal(wallpapers.isAnimatedImage(Uint8Array.from([...Buffer.from('RIFFxxxxWEBPANIM')]), 'image/webp'), true);
+  assert.equal(wallpapers.isAnimatedImage(Uint8Array.from([...Buffer.from('PNG acTL')]), 'image/png'), true);
+  assert.deepEqual(wallpapers.ACCEPTED_TYPES, ['image/jpeg', 'image/png', 'image/webp']);
+
+  const source = readFileSync(resolve(root, 'extension/services/wallpaper-service.js'), 'utf8');
+  const ui = readFileSync(resolve(root, 'extension/wallpaper-ui.js'), 'utf8');
+  assert.match(source, /indexedDB\.open\(DB_NAME, DB_VERSION\)/);
+  assert.match(source, /database\.transaction\(STORE_NAME, 'readwrite'\)/);
+  assert.match(source, /currentCount \+ records\.length > MAX_WALLPAPERS/);
+  assert.match(source, /navigator\.storage\.persist/);
+  assert.match(source, /shouldOptimize[\s\S]+MAX_STORED_BYTES[\s\S]+MAX_LONG_EDGE/);
+  assert.match(source, /shouldCancel\?\.\(\)/);
+  assert.match(ui, /files\.length > remaining/);
+  assert.match(ui, /Wallpapers\.updateWallpaper/);
+  assert.match(ui, /Wallpapers\.deleteWallpaper/);
+  assert.match(ui, /super-tab-out:background-error/);
+  assert.match(ui, /pointerdown/);
 }
 
 async function testBackgroundBookmarkCapture() {
   const source = readFileSync(resolve(root, 'extension/background.js'), 'utf8');
   const sessionStore = {};
   const createdTabs = [];
+  const updatedTabs = [];
+  let dashboardTabs = [];
   let actionListener = null;
   let commandListener = null;
   let messageListener = null;
@@ -346,9 +461,11 @@ async function testBackgroundBookmarkCapture() {
     tabs: {
       async query(query) {
         if (query?.active) return [{ id: 7, url: 'https://example.com/current', title: 'Current page', windowId: 1 }];
+        if (query?.windowId === 1) return dashboardTabs;
         return [];
       },
       async create(options) { createdTabs.push(options); return { id: createdTabs.length + 10, ...options }; },
+      async update(tabId, options) { updatedTabs.push({ tabId, options }); return { id: tabId, ...options }; },
       onCreated: event(() => {}),
       onRemoved: event(() => {}),
       onUpdated: event(() => {}),
@@ -357,7 +474,11 @@ async function testBackgroundBookmarkCapture() {
   const serviceSelf = {
     SuperTabOutUrls: {},
     SuperTabOutStorage: {},
-    SuperTabOutTabs: {},
+    SuperTabOutTabs: {
+      isDashboardTab(tab) {
+        return tab?.url === 'chrome://newtab/' || String(tab?.url || '').startsWith('chrome-extension://test-extension/index.html');
+      },
+    },
     SuperTabOutSearch: {},
   };
   runInNewContext(source, {
@@ -377,6 +498,17 @@ async function testBackgroundBookmarkCapture() {
   assert.equal(typeof commandListener, 'function');
   assert.equal(typeof messageListener, 'function');
   await actionListener({ id: 7, url: 'https://example.com/current', title: 'Current page', windowId: 1 });
+  assert.equal(createdTabs[0].url, 'chrome-extension://test-extension/index.html');
+  assert.equal(createdTabs[0].windowId, 1);
+  assert.equal(Object.keys(sessionStore).length, 0);
+
+  dashboardTabs = [{ id: 42, url: 'chrome-extension://test-extension/index.html', windowId: 1 }];
+  await actionListener({ id: 7, url: 'https://example.com/current', title: 'Current page', windowId: 1 });
+  assert.equal(createdTabs.length, 1);
+  assert.equal(updatedTabs[0].tabId, 42);
+  assert.equal(updatedTabs[0].options.active, true);
+
+  await commandListener('bookmark-current-page', { id: 7, url: 'https://example.com/current', title: 'Current page', windowId: 1 });
   const firstKey = Object.keys(sessionStore)[0];
   assert.match(firstKey, /^bookmarkCapture:/);
   assert.deepEqual({
@@ -384,8 +516,8 @@ async function testBackgroundBookmarkCapture() {
     title: sessionStore[firstKey].title,
     supported: sessionStore[firstKey].supported,
   }, { url: 'https://example.com/current', title: 'Current page', supported: true });
-  assert.match(createdTabs[0].url, /index\.html\?bookmarkCapture=/);
-  assert.equal(createdTabs[0].url.includes('example.com'), false);
+  assert.match(createdTabs[1].url, /index\.html\?bookmarkCapture=/);
+  assert.equal(createdTabs[1].url.includes('example.com'), false);
 
   const token = firstKey.slice('bookmarkCapture:'.length);
   const consumed = await new Promise(resolve => {
@@ -401,7 +533,7 @@ async function testBackgroundBookmarkCapture() {
   assert.equal(Object.keys(sessionStore).length, 0);
 
   await commandListener('bookmark-current-page', { id: 8, url: 'https://example.org/shortcut', title: 'Shortcut page', windowId: 1 });
-  assert.equal(createdTabs.length, 2);
+  assert.equal(createdTabs.length, 3);
   assert.equal(Object.values(sessionStore)[0].title, 'Shortcut page');
 }
 
@@ -1012,6 +1144,25 @@ async function testStorageService() {
     order: ['b.test', 'a.test'],
     pinned: ['a.test'],
   });
+  const defaultSearchSettings = await storage.getSearchSettings();
+  assert.equal(defaultSearchSettings.defaultEngineId, 'google');
+  assert.equal(defaultSearchSettings.version, 1);
+  const schemaBeforeSearchSettings = fakeStorage.store.storageSchemaVersion;
+  const savedSearchSettings = await storage.setSearchSettings({
+    ...defaultSearchSettings,
+    defaultEngineId: 'bing',
+    customEngines: [{
+      id: 'custom:12345678',
+      name: 'Docs',
+      searchUrlTemplate: 'https://docs.test/search?q=%s',
+      color: '#123456',
+    }],
+    enabledEngineIds: [...defaultSearchSettings.enabledEngineIds, 'custom:12345678'],
+    engineOrder: [...defaultSearchSettings.engineOrder, 'custom:12345678'],
+  });
+  assert.equal(savedSearchSettings.defaultEngineId, 'bing');
+  assert.equal(savedSearchSettings.customEngines.length, 1);
+  assert.equal(fakeStorage.store.storageSchemaVersion, schemaBeforeSearchSettings);
 
   const legacyBookmarkStorage = makeFakeStorage({
     storageSchemaVersion: 4,
@@ -1343,6 +1494,40 @@ function testSearchService() {
   assert.deepEqual(search.getHighlightSegments('GitHub Pull Request', 'git pull').filter(s => s.match).map(s => s.text), ['Git', 'Pull']);
 }
 
+function testSearchEngineService() {
+  const defaults = searchEngines.defaultSearchSettings();
+  assert.equal(defaults.defaultEngineId, 'google');
+  assert.deepEqual(defaults.enabledEngineIds, ['baidu', 'bing', 'google', 'duckduckgo']);
+  assert.equal(searchEngines.validateSearchUrlTemplate('https://example.com/?q=%s').valid, true);
+  assert.equal(searchEngines.validateSearchUrlTemplate('http://example.com/?q=%s').valid, false);
+  assert.equal(searchEngines.validateSearchUrlTemplate('https://example.com/?q=test').valid, false);
+  assert.equal(searchEngines.validateSearchUrlTemplate('https://example.com/?q=%s&other=%s').valid, false);
+  assert.equal(
+    searchEngines.buildSearchUrl(searchEngines.BUILTIN_ENGINES[0], '你好 world'),
+    'https://www.baidu.com/s?wd=%E4%BD%A0%E5%A5%BD%20world',
+  );
+  assert.deepEqual(
+    searchEngines.parseBaiduSuggestionPayload('({q:"你好",p:false,s:["你好星期六","你好李焕英"]});'),
+    ['你好星期六', '你好李焕英'],
+  );
+  assert.deepEqual(searchEngines.parseBaiduSuggestionPayload('not jsonp'), []);
+
+  const normalized = searchEngines.normalizeSearchSettings({
+    defaultEngineId: 'missing',
+    enabledEngineIds: [],
+    engineOrder: ['google', 'google'],
+    customEngines: [
+      { id: 'custom:12345678', name: 'Docs', searchUrlTemplate: 'https://docs.test/?q=%s', color: '#ABCDEF' },
+      { id: 'custom:87654321', name: 'Docs', searchUrlTemplate: 'https://duplicate.test/?q=%s' },
+      { id: 'custom:bad-http', name: 'Unsafe', searchUrlTemplate: 'http://unsafe.test/?q=%s' },
+    ],
+  });
+  assert.equal(normalized.defaultEngineId, 'google');
+  assert.deepEqual(normalized.enabledEngineIds, ['google']);
+  assert.equal(normalized.customEngines.length, 1);
+  assert.equal(normalized.customEngines[0].color, '#abcdef');
+}
+
 function testMetricsService() {
   const health = metrics.calculateTabHealth([
     { url: 'https://a.test', groupId: -1 },
@@ -1371,12 +1556,14 @@ function testHtmlService() {
 testUrlService();
 await testWorkspaceNavigationContract();
 await testBackgroundRegistryContract();
+testWallpaperServiceContract();
 await testBackgroundBookmarkCapture();
 await testTabsService();
 await testStorageService();
 await testBookmarksService();
 await testCrossContextBookmarkMutations();
 testSearchService();
+testSearchEngineService();
 testMetricsService();
 testHtmlService();
 

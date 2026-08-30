@@ -126,17 +126,23 @@ async function newTarget(port, url) {
 }
 
 async function findExtensionBase(port) {
-  await newTarget(port, 'chrome://newtab/');
+  const newTabTarget = await newTarget(port, 'chrome://newtab/');
+  const page = new CdpPage(newTabTarget.webSocketDebuggerUrl);
+  await page.send('Runtime.enable');
   const start = Date.now();
-  while (Date.now() - start < 10000) {
-    const targets = await fetchJson(`http://127.0.0.1:${port}/json/list`);
-    const worker = targets.find(item => item.type === 'service_worker' && /^chrome-extension:\/\/[^/]+\/background\.js/.test(item.url || ''));
-    if (worker) return worker.url.replace(/\/background\.js.*$/, '');
-    const target = targets.find(item => item.type === 'page' && /^chrome-extension:\/\/[^/]+\/index\.html/.test(item.url || ''));
-    if (target) return target.url.replace(/\/index\.html.*$/, '');
-    await sleep(150);
+  try {
+    while (Date.now() - start < 10000) {
+      try {
+        const base = await page.evaluate(`globalThis.chrome?.runtime?.getURL?.('') || ''`);
+        if (/^chrome-extension:\/\/[^/]+\/$/.test(base)) return base.replace(/\/$/, '');
+      } catch {}
+      await sleep(150);
+    }
+    const state = await page.evaluate(`({ title: document.title, url: location.href })`).catch(() => null);
+    throw new Error(`New Tab Override did not expose the BrowseLoom runtime: ${JSON.stringify(state)}`);
+  } finally {
+    page.close();
   }
-  throw new Error('Could not discover BrowseLoom extension URL from Chrome targets');
 }
 
 async function stopChrome(chrome) {
@@ -199,8 +205,17 @@ async function main() {
     const extensionBase = await findExtensionBase(port);
 
     page = await openExtensionPage(port, `${extensionBase}/index.html`);
-    await page.waitFor('document.querySelector("#themeCurrentBtn")');
-    await page.waitFor('document.querySelector("#backgroundStage canvas")');
+    try {
+      await page.waitFor('document.querySelector("#themeCurrentBtn")', 10000);
+    } catch (error) {
+      const pageState = await page.evaluate(`({
+        url: location.href,
+        title: document.title,
+        body: (document.body?.innerText || '').slice(0, 240),
+      })`).catch(() => null);
+      throw new Error(`${error.message}; page=${JSON.stringify(pageState)}; runtimeErrors=${JSON.stringify(page.errors)}`);
+    }
+    await page.waitFor('document.documentElement.dataset.background === "mountain"');
     await page.waitFor('window.SuperTabOutBookmarks && document.body.dataset.workspace === "tabs"');
     if (process.env.SETTINGS_IA_ONLY === '1') {
       await page.evaluate(`document.querySelector('#privacySettingsBtn').click()`);
@@ -217,16 +232,249 @@ async function main() {
           hasCloseControl: !!dialog.querySelector('[data-close-dialog], .settings-close, [aria-label="Close"]'),
         };
       })()`), {
-        triggerCount: 2,
-        tabLabels: ['Appearance', 'Privacy screen', 'Data & privacy', 'About'],
+        triggerCount: 1,
+        tabLabels: ['General', 'Search', 'Appearance', 'Privacy screen', 'Data & privacy', 'About'],
         leftMenuBeforeContent: true,
-        activeView: 'appearance',
+        activeView: 'general',
         hasCloseControl: false,
       });
+      assert.deepEqual(await page.evaluate(`(() => ({
+        rootDefault: document.documentElement.dataset.defaultWorkspace,
+        storedDefault: localStorage.getItem('tab-out-default-workspace'),
+        selected: document.querySelector('[data-default-workspace][aria-checked="true"]')?.dataset.defaultWorkspace || '',
+      }))()`), {
+        rootDefault: 'tabs',
+        storedDefault: null,
+        selected: 'tabs',
+      });
+      await page.evaluate(`document.querySelector('#settingsTabAppearance').click()`);
+      assert.deepEqual(await page.evaluate(`(() => ({
+        range: document.querySelector('#cardOpacityRange')?.value,
+        output: document.querySelector('#cardOpacityValue')?.value,
+        root: document.documentElement.style.getPropertyValue('--content-card-opacity').trim(),
+        stored: localStorage.getItem('tab-out-card-opacity'),
+      }))()`), {
+        range: '60',
+        output: '60%',
+        root: '60%',
+        stored: null,
+      });
+      await page.evaluate(`(() => {
+        const range = document.querySelector('#cardOpacityRange');
+        range.value = '40';
+        range.dispatchEvent(new Event('input', { bubbles: true }));
+        range.dispatchEvent(new Event('change', { bubbles: true }));
+      })()`);
+      assert.deepEqual(await page.evaluate(`(() => ({
+        range: document.querySelector('#cardOpacityRange')?.value,
+        output: document.querySelector('#cardOpacityValue')?.value,
+        root: document.documentElement.style.getPropertyValue('--content-card-opacity').trim(),
+        dataset: document.documentElement.dataset.cardOpacity,
+        stored: localStorage.getItem('tab-out-card-opacity'),
+      }))()`), {
+        range: '40',
+        output: '40%',
+        root: '40%',
+        dataset: '40',
+        stored: '40',
+      });
+      await page.evaluate(`document.querySelector('#settingsTabGeneral').click()`);
+      await page.evaluate(`document.querySelector('[data-default-workspace="bookmarks"]')?.click()`);
+      assert.deepEqual(await page.evaluate(`(() => ({
+        rootDefault: document.documentElement.dataset.defaultWorkspace,
+        storedDefault: localStorage.getItem('tab-out-default-workspace'),
+        selected: document.querySelector('[data-default-workspace][aria-checked="true"]')?.dataset.defaultWorkspace || '',
+      }))()`), {
+        rootDefault: 'bookmarks',
+        storedDefault: 'bookmarks',
+        selected: 'bookmarks',
+      });
+      await page.navigate(`${extensionBase}/index.html`);
+      await page.waitFor('window.SuperTabOutBookmarks && document.body.dataset.workspace === "bookmarks"');
+      const bookmarkOpacityState = await page.evaluate(`(() => ({
+        root: document.documentElement.style.getPropertyValue('--content-card-opacity').trim(),
+        dataset: document.documentElement.dataset.cardOpacity,
+        librarySurface: getComputedStyle(document.querySelector('.bookmark-library-panel')).backgroundColor,
+        activitySurface: getComputedStyle(document.querySelector('.bookmark-activity-panel')).backgroundColor,
+        searchSurface: getComputedStyle(document.querySelector('.app-search-slot .bookmark-search')).backgroundColor,
+        libraryBackdrop: getComputedStyle(document.querySelector('.bookmark-library-panel')).backdropFilter,
+        activityBackdrop: getComputedStyle(document.querySelector('.bookmark-activity-panel')).backdropFilter,
+        searchBackdrop: getComputedStyle(document.querySelector('.app-search-slot .bookmark-search')).backdropFilter,
+      }))()`);
+      assert.equal(bookmarkOpacityState.root, '40%');
+      assert.equal(bookmarkOpacityState.dataset, '40');
+      assert.notEqual(bookmarkOpacityState.librarySurface, 'rgba(0, 0, 0, 0)');
+      assert.equal(bookmarkOpacityState.librarySurface, bookmarkOpacityState.activitySurface);
+      assert.equal(bookmarkOpacityState.searchSurface, bookmarkOpacityState.activitySurface);
+      assert.equal(bookmarkOpacityState.libraryBackdrop, bookmarkOpacityState.activityBackdrop);
+      assert.equal(bookmarkOpacityState.searchBackdrop, bookmarkOpacityState.activityBackdrop);
+      await page.evaluate(`document.querySelector('#privacySettingsBtn').click()`);
+      await page.waitFor('document.querySelector("#privacySettings")?.open');
+      await page.evaluate(`document.querySelector('#settingsTabAppearance').click()`);
+      assert.deepEqual(await page.evaluate(`(() => ({
+        range: document.querySelector('#cardOpacityRange')?.value,
+        output: document.querySelector('#cardOpacityValue')?.value,
+      }))()`), { range: '40', output: '40%' });
+      await page.evaluate(`(() => {
+        const range = document.querySelector('#cardOpacityRange');
+        range.value = '60';
+        range.dispatchEvent(new Event('input', { bubbles: true }));
+        range.dispatchEvent(new Event('change', { bubbles: true }));
+        document.querySelector('#settingsTabGeneral').click();
+      })()`);
+      await page.evaluate(`document.querySelector('[data-default-workspace="tabs"]')?.click()`);
+      await page.navigate(`${extensionBase}/index.html`);
+      await page.waitFor('window.SuperTabOutBookmarks && document.body.dataset.workspace === "tabs"');
+      await page.evaluate(`document.querySelector('#privacySettingsBtn').click()`);
+      await page.waitFor('document.querySelector("#privacySettings")?.open');
       if (process.env.SETTINGS_IA_SCREENSHOT) {
         const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
         await writeFile(resolve(process.env.SETTINGS_IA_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
       }
+      await page.evaluate(`document.querySelector('#settingsTabSearch').click()`);
+      await page.waitFor('document.querySelector("#settingsPaneSearch")?.classList.contains("active") && document.querySelectorAll("#searchEngineSettingsList .search-engine-settings-row").length === 4');
+      assert.deepEqual(await page.evaluate(`(() => ({
+        defaultName: document.querySelector('#searchEngineSettingsList .search-default-badge')?.closest('.search-engine-default-button')?.querySelector('.search-engine-name')?.textContent || '',
+        enabledCount: document.querySelectorAll('#searchEngineSettingsList [data-search-enable-engine]:checked').length,
+        baiduSuggestions: document.querySelector('#baiduSuggestionsToggle')?.checked,
+      }))()`), {
+        defaultName: 'Google',
+        enabledCount: 4,
+        baiduSuggestions: false,
+      });
+      const permissionRequestStubbed = await page.evaluate(`(() => {
+        try {
+          chrome.permissions.request = async () => { throw new Error('Only permissions specified in the manifest may be requested.'); };
+          return true;
+        } catch { return false; }
+      })()`);
+      assert.equal(permissionRequestStubbed, true);
+      await page.evaluate(`(() => {
+        const toggle = document.querySelector('#baiduSuggestionsToggle');
+        toggle.checked = true;
+        toggle.dispatchEvent(new Event('change', { bubbles: true }));
+      })()`);
+      await page.waitFor('document.querySelector("#searchSettingsStatus") && !document.querySelector("#searchSettingsStatus").hidden');
+      assert.match(await page.evaluate(`document.querySelector('#searchSettingsStatus').textContent`), /reload|重新加载/i);
+      if (process.env.SEARCH_PERMISSION_SCREENSHOT) {
+        const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
+        await writeFile(resolve(process.env.SEARCH_PERMISSION_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
+      }
+      await page.evaluate(`(() => {
+        document.querySelector('#addCustomSearchEngine').click();
+        document.querySelector('#customSearchEngineName').value = 'Docs';
+        document.querySelector('#customSearchEngineUrl').value = 'https://docs.example.com/search?q=%s';
+        document.querySelector('#customSearchEngineColor').value = '#334455';
+        document.querySelector('#customSearchEngineForm').requestSubmit();
+      })()`);
+      await page.waitFor('document.querySelectorAll("#customSearchEngineList .search-custom-engine-row").length === 1');
+      const storedSearchSettings = await page.evaluate(`new Promise(resolve => chrome.storage.local.get('searchSettings', result => resolve(result.searchSettings)))`);
+      assert.equal(storedSearchSettings.defaultEngineId, 'google');
+      assert.equal(storedSearchSettings.customEngines.length, 1);
+      assert.equal(storedSearchSettings.customEngines[0].searchUrlTemplate, 'https://docs.example.com/search?q=%s');
+      if (process.env.SEARCH_SETTINGS_SCREENSHOT) {
+        const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
+        await writeFile(resolve(process.env.SEARCH_SETTINGS_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
+      }
+      assert.equal(await page.evaluate(`(() => {
+        const originalFetch = globalThis.fetch;
+        globalThis.__baiduSuggestionRequests = [];
+        globalThis.fetch = async (input, options) => {
+          const url = String(input);
+          if (url.startsWith('https://suggestion.baidu.com/su')) {
+            globalThis.__baiduSuggestionRequests.push(url);
+            return { ok: true, text: async () => '({q:"shared",p:false,s:["shared suggestion one","shared suggestion two"]});' };
+          }
+          return originalFetch(input, options);
+        };
+        chrome.permissions.contains = async () => true;
+        chrome.permissions.request = async () => true;
+        const toggle = document.querySelector('#baiduSuggestionsToggle');
+        toggle.checked = true;
+        toggle.dispatchEvent(new Event('change', { bubbles: true }));
+        return toggle.checked;
+      })()`), true);
+      assert.equal(await page.evaluate(`(() => {
+        document.querySelector('#privacySettings').click();
+        document.querySelector('[data-search-surface="tabs"] .search-source-button').click();
+        return document.querySelectorAll('[data-search-surface="tabs"] .search-source-option[data-search-source]:not([data-search-source="local"])').length;
+      })()`), 5);
+      if (process.env.SEARCH_SOURCE_MENU_SCREENSHOT) {
+        const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
+        await writeFile(resolve(process.env.SEARCH_SOURCE_MENU_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
+      }
+      assert.equal(await page.evaluate(`(() => {
+        const add = document.querySelector('[data-search-surface="tabs"] [data-search-action="add-custom-engine"]');
+        add?.click();
+        return Boolean(add);
+      })()`), true);
+      await page.waitFor('document.querySelector("#privacySettings")?.open && document.querySelector("#settingsPaneSearch")?.classList.contains("active") && !document.querySelector("#customSearchEngineForm")?.hidden');
+      assert.equal(await page.evaluate(`document.activeElement?.id`), 'customSearchEngineName');
+      await page.evaluate(`(() => {
+        document.querySelector('#cancelCustomSearchEngine')?.click();
+        document.querySelector('#privacySettings')?.click();
+        document.querySelector('[data-search-surface="tabs"] .search-source-button').click();
+      })()`);
+      await page.evaluate(`document.querySelector('[data-search-surface="tabs"] .search-source-option[data-search-source="google"]').click()`);
+      assert.deepEqual(await page.evaluate(`(() => ({
+        tabs: document.querySelector('#openTabsSearch')?.dataset.searchEngineId,
+        bookmarks: document.querySelector('#bookmarkSearch')?.dataset.searchEngineId,
+      }))()`), { tabs: 'google', bookmarks: 'google' });
+      await page.evaluate(`(() => {
+        const input = document.querySelector('#openTabsSearch');
+        input.value = 'shared';
+        input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'e' }));
+      })()`);
+      await page.waitFor('document.querySelector("#openTabsSearch")?.dataset.searchMode === "external" && document.querySelectorAll("[data-search-surface=\\"tabs\\"] [data-search-suggestion]").length === 3');
+      assert.deepEqual(await page.evaluate(`(() => ({
+        requestCount: globalThis.__baiduSuggestionRequests.length,
+        values: Array.from(document.querySelectorAll('[data-search-surface="tabs"] [data-search-suggestion]')).map(item => item.dataset.searchSuggestion),
+      }))()`), {
+        requestCount: 1,
+        values: ['shared suggestion one', 'shared suggestion two', 'shared'],
+      });
+      await page.evaluate(`document.querySelector('#openTabsSearch').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))`);
+      assert.deepEqual(await page.evaluate(`(() => ({
+        mode: document.querySelector('#openTabsSearch')?.dataset.searchMode,
+        engine: document.querySelector('#openTabsSearch')?.dataset.searchEngineId,
+        value: document.querySelector('#openTabsSearch')?.value,
+        suggestionsHidden: document.querySelector('[data-search-surface="tabs"] .search-suggestions')?.hidden,
+      }))()`), { mode: 'external', engine: 'google', value: 'shared', suggestionsHidden: true });
+      await page.evaluate(`document.querySelector('#openTabsSearch').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))`);
+      assert.deepEqual(await page.evaluate(`(() => ({
+        mode: document.querySelector('#openTabsSearch')?.dataset.searchMode,
+        engine: document.querySelector('#openTabsSearch')?.dataset.searchEngineId,
+        value: document.querySelector('#openTabsSearch')?.value,
+      }))()`), { mode: 'external', engine: 'google', value: 'shared' });
+      await page.evaluate(`document.querySelector('[data-search-surface="bookmarks"] .search-source-option[data-search-source="bing"]').click()`);
+      assert.deepEqual(await page.evaluate(`(() => ({
+        tabs: document.querySelector('#openTabsSearch')?.dataset.searchEngineId,
+        bookmarks: document.querySelector('#bookmarkSearch')?.dataset.searchEngineId,
+      }))()`), { tabs: 'bing', bookmarks: 'bing' });
+      await page.evaluate(`document.querySelector('#openTabsSearch').value = 'zzzz-no-local-result-97f2'`);
+      await page.evaluate(`(() => {
+        document.querySelector('[data-search-surface="tabs"] .search-source-button').click();
+        document.querySelector('[data-search-surface="tabs"] .search-source-option[data-search-source="local"]').click();
+      })()`);
+      await page.waitFor('document.querySelector("#openTabsSearch")?.dataset.searchMode === "local"');
+      assert.equal(await page.evaluate(`document.querySelector('#bookmarkSearch')?.dataset.searchMode`), 'local');
+      assert.deepEqual(await page.evaluate(`(() => {
+        const surface = document.querySelector('[data-search-surface="tabs"]');
+        const menu = surface.querySelector('.search-source-menu');
+        const input = document.querySelector('#openTabsSearch');
+        surface.querySelector('.search-source-button').click();
+        const openBeforeInput = !menu.hidden;
+        input.value = 'github';
+        input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'b' }));
+        return { openBeforeInput, hiddenAfterInput: menu.hidden, mode: input.dataset.searchMode };
+      })()`), { openBeforeInput: true, hiddenAfterInput: true, mode: 'local' });
+      await page.evaluate(`(() => {
+        const input = document.querySelector('#openTabsSearch');
+        input.value = 'zzzz-no-local-result-97f2';
+        input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'e' }));
+      })()`);
+      await page.waitFor('!document.querySelector("#dashboardSearchFallback")?.hidden');
+      assert.equal(await page.evaluate(`document.querySelectorAll('#dashboardSearchFallback [data-search-fallback-engine]').length`), 5);
       await page.evaluate(`document.querySelector('#settingsTabData').click()`);
       await page.waitFor('document.querySelector("#settingsPaneData")?.classList.contains("active")');
       assert.equal(await page.evaluate(`document.querySelector('#settingsPaneData #bookmarkImportButton') !== null`), true);
@@ -237,7 +485,7 @@ async function main() {
       await sleep(450);
       await page.evaluate(`document.querySelector('.bookmark-import-trigger').click()`);
       await page.waitFor('document.querySelector("#privacySettings")?.open && document.querySelector("#settingsPaneData")?.classList.contains("active")');
-      assert.equal(await page.evaluate(`document.querySelector('#bookmarkGlobalSettingsBtn')?.getAttribute('aria-expanded')`), 'true');
+      assert.equal(await page.evaluate(`document.querySelector('#privacySettingsBtn')?.getAttribute('aria-expanded')`), 'true');
       await page.evaluate(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))`);
       await page.waitFor('!document.querySelector("#privacySettings")?.open');
 
@@ -247,7 +495,7 @@ async function main() {
         deviceScaleFactor: 1,
         mobile: false,
       });
-      await page.evaluate(`document.querySelector('#bookmarkGlobalSettingsBtn').click()`);
+      await page.evaluate(`document.querySelector('#privacySettingsBtn').click()`);
       const mobileDialog = await page.evaluate(`(() => {
         const dialog = document.querySelector('#privacySettings');
         const rect = dialog.getBoundingClientRect();
@@ -302,9 +550,9 @@ async function main() {
         panelBackdrop: glassPanel ? getComputedStyle(glassPanel).backdropFilter : '',
       };
     })()`);
-    assert.equal(glassRuntime.canvasCount, 1);
-    assert.equal(glassRuntime.canvasWidth > 0, true);
-    assert.equal(glassRuntime.canvasHeight > 0, true);
+    assert.equal(glassRuntime.canvasCount, 0);
+    assert.equal(glassRuntime.canvasWidth, 0);
+    assert.equal(glassRuntime.canvasHeight, 0);
     assert.equal(glassRuntime.panelBackdrop, 'none');
     assert.deepEqual(
       await page.evaluate(`(() => ({
@@ -312,8 +560,12 @@ async function main() {
         selected: document.querySelector('.background-option[aria-checked="true"]')?.dataset.backgroundId || '',
         stored: localStorage.getItem('tab-out-background'),
       }))()`),
-      { active: 'liquid-ether', selected: 'liquid-ether', stored: null },
+      { active: 'mountain', selected: 'mountain', stored: null },
     );
+    if (process.env.DEFAULT_BACKGROUND_SCREENSHOT) {
+      const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
+      await writeFile(resolve(process.env.DEFAULT_BACKGROUND_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
+    }
     await page.evaluate(`document.querySelector('[data-background-id="light-rays"]')?.click()`);
     await page.waitFor('document.documentElement.dataset.background === "light-rays" && document.querySelector("#backgroundStage canvas")');
     assert.deepEqual(
@@ -339,6 +591,160 @@ async function main() {
     assert.equal(await page.evaluate(`document.querySelectorAll('#backgroundStage canvas').length`), 0);
     await page.evaluate(`document.querySelector('[data-background-id="liquid-ether"]')?.click()`);
     await page.waitFor('document.documentElement.dataset.background === "liquid-ether" && document.querySelector("#backgroundStage canvas")');
+
+    const wallpaperImport = await page.evaluate(`(async () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1600;
+      canvas.height = 1000;
+      const context = canvas.getContext('2d');
+      const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, '#284d66');
+      gradient.addColorStop(.52, '#d4a968');
+      gradient.addColorStop(1, '#6f4055');
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = 'rgba(255,255,255,.75)';
+      context.beginPath();
+      context.arc(1120, 420, 170, 0, Math.PI * 2);
+      context.fill();
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      const valid = new File([blob], 'browser-wallpaper.png', { type: 'image/png' });
+      const invalid = new File([new Uint8Array([1, 2, 3, 4])], 'broken-wallpaper.png', { type: 'image/png' });
+      const oversizedCanvas = document.createElement('canvas');
+      oversizedCanvas.width = 4001;
+      oversizedCanvas.height = 100;
+      const oversizedContext = oversizedCanvas.getContext('2d');
+      oversizedContext.fillStyle = 'rgba(61, 124, 188, .45)';
+      oversizedContext.fillRect(0, 0, oversizedCanvas.width, oversizedCanvas.height);
+      const oversizedBlob = await new Promise(resolve => oversizedCanvas.toBlob(resolve, 'image/png'));
+      const oversized = await SuperTabOutWallpapers.prepareWallpaper(
+        new File([oversizedBlob], 'oversized-wallpaper.png', { type: 'image/png' }),
+      );
+      const result = await SuperTabOutWallpapers.importFiles([valid, invalid]);
+      const records = await SuperTabOutWallpapers.listWallpapers();
+      return {
+        imported: result.imported.length,
+        failed: result.failed.map(item => item.code),
+        count: records.length,
+        optimized: records[0]?.optimized,
+        byteSize: records[0]?.byteSize,
+        id: records[0]?.id,
+        active: document.documentElement.dataset.background,
+        optimizedSample: {
+          optimized: oversized.optimized,
+          type: oversized.type,
+          width: oversized.width,
+          height: oversized.height,
+          byteSize: oversized.byteSize,
+        },
+      };
+    })()`);
+    assert.equal(wallpaperImport.imported, 1);
+    assert.deepEqual(wallpaperImport.failed, ['unsupported-type']);
+    assert.equal(wallpaperImport.count, 1);
+    assert.equal(wallpaperImport.optimized, false);
+    assert.ok(wallpaperImport.byteSize > 0 && wallpaperImport.byteSize <= 8 * 1024 * 1024);
+    assert.equal(wallpaperImport.active, 'liquid-ether');
+    assert.deepEqual({
+      optimized: wallpaperImport.optimizedSample.optimized,
+      type: wallpaperImport.optimizedSample.type,
+      width: wallpaperImport.optimizedSample.width,
+      height: wallpaperImport.optimizedSample.height,
+    }, { optimized: true, type: 'image/webp', width: 3840, height: 96 });
+    assert.ok(wallpaperImport.optimizedSample.byteSize > 0 && wallpaperImport.optimizedSample.byteSize <= 8 * 1024 * 1024);
+    await page.waitFor(`document.querySelector('[data-background-id="${wallpaperImport.id}"]')`);
+    await page.evaluate(`document.querySelector('[data-background-id="${wallpaperImport.id}"]')?.click()`);
+    await page.waitFor(`document.documentElement.dataset.background === "user-wallpaper"
+      && document.documentElement.dataset.backgroundId === "${wallpaperImport.id}"
+      && document.querySelector('#backgroundStage .user-wallpaper-layer.is-ready img')`);
+    assert.deepEqual(await page.evaluate(`(() => ({
+      stored: localStorage.getItem('tab-out-background'),
+      canvasCount: document.querySelectorAll('#backgroundStage canvas').length,
+      imageCount: document.querySelectorAll('#backgroundStage .user-wallpaper-layer img').length,
+      selected: document.querySelector('.user-wallpaper-card[aria-checked="true"]')?.dataset.backgroundId || '',
+    }))()`), {
+      stored: wallpaperImport.id,
+      canvasCount: 0,
+      imageCount: 1,
+      selected: wallpaperImport.id,
+    });
+
+    const syncPage = await openExtensionPage(port, `${extensionBase}/index.html`);
+    await syncPage.waitFor(`document.documentElement.dataset.background === "user-wallpaper"
+      && document.documentElement.dataset.backgroundId === "${wallpaperImport.id}"
+      && document.querySelector('#backgroundStage .user-wallpaper-layer.is-ready')`);
+    await page.send('Page.bringToFront');
+    const wallpaperSettingsState = await page.evaluate(`(() => {
+      const trigger = document.querySelector('#privacySettingsBtn');
+      const dialog = document.querySelector('#privacySettings');
+      trigger?.click();
+      return {
+        triggerConnected: Boolean(trigger?.isConnected),
+        action: trigger?.dataset.action || '',
+        dialogConnected: Boolean(dialog?.isConnected),
+        open: Boolean(dialog?.open),
+        workspace: document.body.dataset.workspace || '',
+      };
+    })()`);
+    if (!wallpaperSettingsState.open) {
+      throw new Error(`Wallpaper settings did not open: ${JSON.stringify(wallpaperSettingsState)}; runtimeErrors=${JSON.stringify(page.errors)}`);
+    }
+    await page.waitFor('document.querySelector("#privacySettings")?.open');
+    await page.evaluate(`document.querySelector('#settingsTabAppearance')?.click()`);
+    await page.waitFor('document.querySelector("#privacySettings")?.open && !document.querySelector("#userWallpaperGrid")?.hidden');
+    if (process.env.WALLPAPER_SCREENSHOT) {
+      const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
+      await writeFile(resolve(process.env.WALLPAPER_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
+    }
+    await page.evaluate(`document.querySelector('[data-wallpaper-action="adjust"][data-wallpaper-id="${wallpaperImport.id}"]')?.click()`);
+    await page.waitFor('document.querySelector("#wallpaperEditorDialog")?.open');
+    if (process.env.WALLPAPER_EDITOR_SCREENSHOT) {
+      const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
+      await writeFile(resolve(process.env.WALLPAPER_EDITOR_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
+    }
+    await page.evaluate(`(() => {
+      const x = document.querySelector('#wallpaperFocalX');
+      const y = document.querySelector('#wallpaperFocalY');
+      const overlay = document.querySelector('#wallpaperOverlay');
+      x.value = '68';
+      y.value = '42';
+      overlay.value = '35';
+      overlay.dispatchEvent(new Event('input', { bubbles: true }));
+      document.querySelector('#wallpaperEditorForm').requestSubmit();
+    })()`);
+    await page.waitFor('!document.querySelector("#wallpaperEditorDialog")?.open');
+    await page.waitFor('document.querySelector("#backgroundStage .user-wallpaper-overlay")?.style.opacity === "0.35"');
+    await syncPage.waitFor('document.querySelector("#backgroundStage .user-wallpaper-overlay")?.style.opacity === "0.35"');
+    assert.deepEqual(await page.evaluate(`(async () => {
+      const record = await SuperTabOutWallpapers.getWallpaper('${wallpaperImport.id}');
+      return { focalX: record.focalX, focalY: record.focalY, overlay: record.overlay };
+    })()`), { focalX: 68, focalY: 42, overlay: 35 });
+
+    await page.evaluate(`document.querySelector('[data-wallpaper-action="delete"][data-wallpaper-id="${wallpaperImport.id}"]')?.click()`);
+    await page.waitFor('document.querySelector("#wallpaperDeleteDialog")?.open');
+    const deleteDialogPosition = await page.evaluate(`(() => {
+      const rect = document.querySelector('#wallpaperDeleteDialog').getBoundingClientRect();
+      return {
+        horizontalOffset: Math.abs((rect.left + rect.right) / 2 - document.documentElement.clientWidth / 2),
+        verticalOffset: Math.abs((rect.top + rect.bottom) / 2 - document.documentElement.clientHeight / 2),
+      };
+    })()`);
+    assert.ok(deleteDialogPosition.horizontalOffset <= 1, `Wallpaper delete dialog is not horizontally centered: ${JSON.stringify(deleteDialogPosition)}`);
+    assert.ok(deleteDialogPosition.verticalOffset <= 1, `Wallpaper delete dialog is not vertically centered: ${JSON.stringify(deleteDialogPosition)}`);
+    if (process.env.WALLPAPER_DELETE_SCREENSHOT) {
+      const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
+      await writeFile(resolve(process.env.WALLPAPER_DELETE_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
+    }
+    await page.evaluate(`document.querySelector('#wallpaperDeleteForm').requestSubmit()`);
+    await page.waitFor('document.documentElement.dataset.background === "mountain" && localStorage.getItem("tab-out-background") === "mountain"');
+    await syncPage.waitFor('document.documentElement.dataset.background === "mountain" && localStorage.getItem("tab-out-background") === "mountain"');
+    assert.equal(await page.evaluate(`SuperTabOutWallpapers.countWallpapers()`), 0);
+    assert.deepEqual(syncPage.errors.filter(error => !error.includes('/config.local.js')), []);
+    syncPage.close();
+    await page.evaluate(`document.querySelector('#privacySettings')?.click()`);
+    await page.waitFor(`!document.querySelector('#privacySettings')?.open
+      && document.querySelector('#privacySettingsBtn')?.getAttribute('aria-expanded') === 'false'`);
+
     const cardParityFixtureIds = await page.evaluate(`(async () => {
       const tabs = await Promise.all([
         chrome.tabs.create({ url: 'https://example.com/style-parity-one', active: false }),
@@ -354,13 +760,33 @@ async function main() {
     await page.evaluate(`renderDashboard()`);
     await page.evaluate(`document.querySelector('[data-action="switch-view"][data-view="domain"]')?.click()`);
     await page.waitFor(`document.querySelectorAll('.mission-card.domain-card .page-chip[data-action="focus-tab"][data-tab-url^="https://example.com/style-parity-"]').length === 3`);
+    const tabSurfaceParity = await page.evaluate(`(() => {
+      const selectors = {
+        card: '.mission-card.domain-card',
+        search: '.app-search-slot .open-tabs-search-wrap',
+        deferred: '.deferred-column',
+        sessions: '.saved-sessions-card',
+      };
+      return Object.fromEntries(Object.entries(selectors).map(([name, selector]) => {
+        const style = getComputedStyle(document.querySelector(selector));
+        return [name, { background: style.backgroundColor, backdropFilter: style.backdropFilter }];
+      }));
+    })()`);
+    assert.equal(tabSurfaceParity.card.background, tabSurfaceParity.search.background);
+    assert.equal(tabSurfaceParity.deferred.background, tabSurfaceParity.search.background);
+    assert.equal(tabSurfaceParity.sessions.background, tabSurfaceParity.search.background);
+    assert.equal(tabSurfaceParity.card.backdropFilter, 'none');
+    assert.equal(tabSurfaceParity.search.backdropFilter, 'none');
+    assert.equal(tabSurfaceParity.deferred.backdropFilter, 'none');
+    assert.equal(tabSurfaceParity.sessions.backdropFilter, 'none');
     const toolbarLayout = await page.evaluate(`(() => {
+      const navigation = document.querySelector('.app-navigation');
       const toolbar = document.querySelector('.dashboard-toolbar');
-      const summary = document.querySelector('#openTabsSummary');
-      const search = document.querySelector('.dashboard-toolbar .open-tabs-search-wrap');
+      const search = document.querySelector('.app-search-slot .open-tabs-search-wrap');
       const view = document.querySelector('#openTabsViewToggle');
       const sort = document.querySelector('#domainSortButton');
       const privacy = document.querySelector('#privacyToggle');
+      const settings = document.querySelector('#privacySettingsBtn');
       const more = document.querySelector('#toolbarMoreBtn');
       const rect = element => {
         const value = element.getBoundingClientRect();
@@ -368,83 +794,66 @@ async function main() {
       };
       return {
         hasGreeting: !!toolbar.querySelector('h1, #greeting, #dateDisplay'),
-        summaryText: summary.textContent,
-        summary: rect(summary),
+        navigation: rect(navigation),
+        toolbar: rect(toolbar),
         search: rect(search),
         view: rect(view),
         sort: rect(sort),
         privacy: rect(privacy),
+        settings: rect(settings),
         more: rect(more),
       };
     })()`);
     assert.equal(toolbarLayout.hasGreeting, false);
-    assert.match(toolbarLayout.summaryText, /domain.*tab/i);
-    assert.ok(toolbarLayout.summary.right <= toolbarLayout.search.left, `Summary is not before search: ${JSON.stringify(toolbarLayout)}`);
-    assert.ok(toolbarLayout.search.right <= toolbarLayout.view.left, `Search is not before view toggle: ${JSON.stringify(toolbarLayout)}`);
+    assert.ok(toolbarLayout.search.right <= toolbarLayout.privacy.left, `Global search is not before privacy: ${JSON.stringify(toolbarLayout)}`);
+    assert.ok(toolbarLayout.privacy.right <= toolbarLayout.settings.left, `Privacy is not before settings: ${JSON.stringify(toolbarLayout)}`);
+    assert.ok(toolbarLayout.navigation.bottom <= toolbarLayout.toolbar.top, `Workspace toolbar is not below global navigation: ${JSON.stringify(toolbarLayout)}`);
     assert.ok(toolbarLayout.view.right <= toolbarLayout.sort.left, `View toggle is not before domain sorting: ${JSON.stringify(toolbarLayout)}`);
-    assert.ok(toolbarLayout.sort.right <= toolbarLayout.privacy.left, `Domain sorting is not before privacy: ${JSON.stringify(toolbarLayout)}`);
-    assert.ok(toolbarLayout.privacy.right <= toolbarLayout.more.left, `Privacy is not before more: ${JSON.stringify(toolbarLayout)}`);
+    assert.ok(toolbarLayout.sort.right <= toolbarLayout.more.left, `Domain sorting is not before more: ${JSON.stringify(toolbarLayout)}`);
+    await page.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 1, y: 1 });
+    await page.evaluate(`document.querySelector('#openTabsSearch')?.focus()`);
+    await sleep(220);
     const toolbarControlParity = await page.evaluate(`(() => {
-      const searchWrap = document.querySelector('.dashboard-toolbar .open-tabs-search-wrap');
+      const searchWrap = document.querySelector('.app-search-slot .open-tabs-search-wrap');
       const searchInput = document.querySelector('#openTabsSearch');
       const viewToggle = document.querySelector('#openTabsViewToggle .view-toggle');
       const sortButton = document.querySelector('#domainSortButton');
       const privacy = document.querySelector('#privacyToggle');
+      const settings = document.querySelector('#privacySettingsBtn');
       const more = document.querySelector('#toolbarMoreBtn');
-      const defaultWrapStyle = getComputedStyle(searchWrap);
-      const defaultViewStyle = getComputedStyle(viewToggle);
-      const defaultSortStyle = getComputedStyle(sortButton);
-      const defaultSurface = {
-        searchBorderColor: defaultWrapStyle.borderColor,
-        viewBorderColor: defaultViewStyle.borderColor,
-        sortBorderColor: defaultSortStyle.borderColor,
-        searchBackground: defaultWrapStyle.backgroundColor,
-        viewBackground: defaultViewStyle.backgroundColor,
-        sortBackground: defaultSortStyle.backgroundColor,
-        searchRadius: defaultWrapStyle.borderRadius,
-        viewRadius: defaultViewStyle.borderRadius,
-        sortRadius: defaultSortStyle.borderRadius,
-      };
-      searchInput.focus();
       const inputStyle = getComputedStyle(searchInput);
       const wrapStyle = getComputedStyle(searchWrap);
       const privacyStyle = getComputedStyle(privacy);
-      const moreStyle = getComputedStyle(more);
+      const settingsStyle = getComputedStyle(settings);
       const height = element => element.getBoundingClientRect().height;
       return {
         searchHeight: height(searchWrap),
         viewHeight: height(viewToggle),
         sortHeight: height(sortButton),
         privacyHeight: height(privacy),
+        settingsHeight: height(settings),
         moreHeight: height(more),
         inputOutlineStyle: inputStyle.outlineStyle,
         inputOutlineWidth: inputStyle.outlineWidth,
         inputBorderWidth: inputStyle.borderWidth,
         wrapperFocusShadow: wrapStyle.boxShadow,
-        ...defaultSurface,
         privacyBackground: privacyStyle.backgroundColor,
-        moreBackground: moreStyle.backgroundColor,
+        settingsBackground: settingsStyle.backgroundColor,
         privacyBorderColor: privacyStyle.borderColor,
-        moreBorderColor: moreStyle.borderColor,
+        settingsBorderColor: settingsStyle.borderColor,
       };
     })()`);
-    assert.equal(toolbarControlParity.searchHeight, 40, `Toolbar controls are not on the 40px size system: ${JSON.stringify(toolbarControlParity)}`);
-    assert.ok(Math.abs(toolbarControlParity.searchHeight - toolbarControlParity.viewHeight) <= 1, `Search and view toggle heights differ: ${JSON.stringify(toolbarControlParity)}`);
-    assert.ok(Math.abs(toolbarControlParity.searchHeight - toolbarControlParity.sortHeight) <= 1, `Search and domain sorting heights differ: ${JSON.stringify(toolbarControlParity)}`);
-    assert.ok(Math.abs(toolbarControlParity.searchHeight - toolbarControlParity.privacyHeight) <= 1, `Search and privacy heights differ: ${JSON.stringify(toolbarControlParity)}`);
-    assert.ok(Math.abs(toolbarControlParity.searchHeight - toolbarControlParity.moreHeight) <= 1, `Search and more heights differ: ${JSON.stringify(toolbarControlParity)}`);
+    assert.equal(toolbarControlParity.searchHeight, 52, `Global search does not use the 52px primary control height: ${JSON.stringify(toolbarControlParity)}`);
+    assert.equal(toolbarControlParity.viewHeight, 40, `Workspace controls are not on the 40px size system: ${JSON.stringify(toolbarControlParity)}`);
+    assert.ok(Math.abs(toolbarControlParity.viewHeight - toolbarControlParity.sortHeight) <= 1, `View and domain sorting heights differ: ${JSON.stringify(toolbarControlParity)}`);
+    assert.ok(Math.abs(toolbarControlParity.viewHeight - toolbarControlParity.moreHeight) <= 1, `View and more heights differ: ${JSON.stringify(toolbarControlParity)}`);
+    assert.ok(Math.abs(toolbarControlParity.privacyHeight - toolbarControlParity.settingsHeight) <= 1, `Privacy and settings heights differ: ${JSON.stringify(toolbarControlParity)}`);
     assert.equal(toolbarControlParity.inputOutlineStyle, 'none', `Search input still has a native focus outline: ${JSON.stringify(toolbarControlParity)}`);
     assert.equal(toolbarControlParity.inputOutlineWidth, '0px', `Search input outline width is not reset: ${JSON.stringify(toolbarControlParity)}`);
     assert.equal(toolbarControlParity.inputBorderWidth, '0px', `Search input still has a native border: ${JSON.stringify(toolbarControlParity)}`);
     assert.notEqual(toolbarControlParity.wrapperFocusShadow, 'none', `Search wrapper has no focus-visible feedback: ${JSON.stringify(toolbarControlParity)}`);
-    assert.equal(toolbarControlParity.searchBorderColor, toolbarControlParity.viewBorderColor, `Search and view toggle borders differ: ${JSON.stringify(toolbarControlParity)}`);
-    assert.equal(toolbarControlParity.searchBorderColor, toolbarControlParity.sortBorderColor, `Search and domain sorting borders differ: ${JSON.stringify(toolbarControlParity)}`);
-    assert.equal(toolbarControlParity.searchBackground, toolbarControlParity.viewBackground, `Search and view toggle surfaces differ: ${JSON.stringify(toolbarControlParity)}`);
-    assert.equal(toolbarControlParity.searchBackground, toolbarControlParity.sortBackground, `Search and domain sorting surfaces differ: ${JSON.stringify(toolbarControlParity)}`);
-    assert.equal(toolbarControlParity.searchRadius, toolbarControlParity.viewRadius, `Search and view toggle radii differ: ${JSON.stringify(toolbarControlParity)}`);
-    assert.equal(toolbarControlParity.searchRadius, toolbarControlParity.sortRadius, `Search and domain sorting radii differ: ${JSON.stringify(toolbarControlParity)}`);
-    assert.equal(toolbarControlParity.privacyBackground, toolbarControlParity.moreBackground, `Privacy and more surfaces differ: ${JSON.stringify(toolbarControlParity)}`);
-    assert.equal(toolbarControlParity.privacyBorderColor, toolbarControlParity.moreBorderColor, `Privacy and more borders differ: ${JSON.stringify(toolbarControlParity)}`);
+    assert.equal(toolbarControlParity.privacyBackground, toolbarControlParity.settingsBackground, `Privacy and settings surfaces differ: ${JSON.stringify(toolbarControlParity)}`);
+    assert.equal(toolbarControlParity.privacyBorderColor, toolbarControlParity.settingsBorderColor, `Privacy and settings borders differ: ${JSON.stringify(toolbarControlParity)}`);
     await page.evaluate(`document.querySelector('#openTabsSearch')?.blur()`);
     assert.deepEqual(
       await page.evaluate(`(() => {
@@ -514,6 +923,7 @@ async function main() {
     );
     await page.evaluate(`document.querySelector('.mission-card.domain-card-pinned [data-action="unpin-domain-card"]')?.click()`);
     await page.waitFor(`!document.querySelector('.mission-card.domain-card-pinned [data-tab-url^="https://example.com/style-parity-"]')`);
+    await page.waitFor(`document.querySelectorAll('.domain-card-sortable:not(.domain-card-pinned)').length >= 2`);
 
     const draggedDomainOrder = await page.evaluate(`(async () => {
       const cards = Array.from(document.querySelectorAll('.domain-card-sortable:not(.domain-card-pinned)'));
@@ -675,8 +1085,7 @@ async function main() {
     assert.equal(defaultTheme.firstTheme, 'system');
     assert.equal(defaultTheme.activeLabel, 'Adaptive Glow');
     assert.equal(defaultTheme.storedTheme, null);
-    await page.waitFor('/\\d/.test(document.querySelector("#openTabsSummary")?.textContent || "")');
-    assert.match(await page.evaluate(`document.querySelector('#openTabsSummary')?.textContent.trim() || ''`), /\d/);
+    assert.equal(await page.evaluate(`document.querySelector('#openTabsSummary, .app-brand, .bookmark-main-heading') === null`), true);
     assert.equal(await page.evaluate(`document.querySelectorAll('footer, #statTabs').length`), 0);
     await page.evaluate(`document.querySelector('#privacySettingsBtn')?.click()`);
     await page.evaluate(`document.querySelector('#settingsTabAbout')?.click()`);
@@ -712,6 +1121,72 @@ async function main() {
     await page.evaluate(`document.querySelector('[data-theme-name="system"]').click()`);
     await page.waitFor('document.querySelector("#activeThemeLabel")?.textContent.trim() === "随光"');
     assert.equal(await page.evaluate(`document.querySelector('#commandDockToolsBtn, #commandDrawer, #toolsView') === null`), true);
+
+    await page.evaluate(`document.querySelector('#privacySettings')?.close()`);
+    async function responsiveLayoutAt(width) {
+      await page.send('Emulation.setDeviceMetricsOverride', {
+        width,
+        height: 1000,
+        deviceScaleFactor: 1,
+        mobile: false,
+      });
+      await page.evaluate(`(() => {
+        const tabsButton = document.querySelector('[data-workspace-switch="tabs"]');
+        if (tabsButton && !tabsButton.hidden) tabsButton.click();
+        const side = document.querySelector('#dashboardSide');
+        if (side) side.style.display = 'none';
+      })()`);
+      await page.waitFor('document.body.dataset.workspace === "tabs" && !document.documentElement.dataset.workspaceTransition');
+      const tabsLayout = await page.evaluate(`(() => {
+        const frameElement = document.querySelector('body > .container');
+        const frame = frameElement.getBoundingClientRect();
+        const frameStyle = getComputedStyle(frameElement);
+        const navigation = document.querySelector('.app-navigation-inner').getBoundingClientRect();
+        const missions = document.querySelector('#openTabsMissions');
+        const style = getComputedStyle(missions);
+        const columnWidth = parseFloat(style.columnWidth);
+        const columnGap = parseFloat(style.columnGap);
+        const contentWidth = frame.width - parseFloat(frameStyle.paddingLeft) - parseFloat(frameStyle.paddingRight);
+        return {
+          frameWidth: Math.round(frame.width),
+          navigationWidth: Math.round(navigation.width),
+          columns: Math.floor((contentWidth + columnGap) / (columnWidth + columnGap)),
+          columnWidth,
+        };
+      })()`);
+
+      await page.evaluate(`document.querySelector('[data-workspace-switch="bookmarks"]:not([hidden])')?.click()`);
+      await page.waitFor('document.body.dataset.workspace === "bookmarks" && !document.documentElement.dataset.workspaceTransition');
+      const bookmarksLayout = await page.evaluate(`(() => {
+        const toolbar = document.querySelector('.bookmark-toolbar').getBoundingClientRect();
+        const shell = document.querySelector('.bookmark-shell').getBoundingClientRect();
+        const navigation = document.querySelector('.app-navigation-inner').getBoundingClientRect();
+        const tracks = getComputedStyle(document.querySelector('.bookmark-grid')).gridTemplateColumns
+          .split(/\\s+/)
+          .filter(Boolean);
+        return {
+          toolbarWidth: Math.round(toolbar.width),
+          shellWidth: Math.round(shell.width),
+          navigationWidth: Math.round(navigation.width),
+          columns: tracks.length,
+        };
+      })()`);
+      return { width, tabs: tabsLayout, bookmarks: bookmarksLayout };
+    }
+
+    const laptopLayout = await responsiveLayoutAt(1512);
+    assert.deepEqual(laptopLayout, {
+      width: 1512,
+      tabs: { frameWidth: 1420, navigationWidth: 1420, columns: 4, columnWidth: 300 },
+      bookmarks: { toolbarWidth: 1420, shellWidth: 1420, navigationWidth: 1420, columns: 4 },
+    });
+    const wideLayout = await responsiveLayoutAt(1920);
+    assert.deepEqual(wideLayout, {
+      width: 1920,
+      tabs: { frameWidth: 1680, navigationWidth: 1680, columns: 5, columnWidth: 300 },
+      bookmarks: { toolbarWidth: 1680, shellWidth: 1680, navigationWidth: 1680, columns: 6 },
+    });
+
     await page.send('Emulation.setDeviceMetricsOverride', {
       width: 390,
       height: 844,
@@ -719,23 +1194,35 @@ async function main() {
       mobile: false,
     });
     const mobileToolbar = await page.evaluate(`(() => {
+      const navigation = document.querySelector('.app-navigation');
       const toolbar = document.querySelector('.dashboard-toolbar');
-      const visibleControls = Array.from(toolbar.querySelectorAll('#openTabsSummary, .open-tabs-search-wrap, #openTabsViewToggle, #openTabsSortControl, #privacyToggle, #privacySettingsBtn, #toolbarMoreBtn'))
+      const visibleNavigationControls = Array.from(navigation.querySelectorAll('.app-search-slot > :not([style*="display: none"]), #privacyToggle, #privacySettingsBtn'))
+        .filter(element => element.getClientRects().length > 0)
+        .map(element => {
+          const rect = element.getBoundingClientRect();
+          return { id: element.id || element.className, left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+        });
+      const visibleControls = Array.from(toolbar.querySelectorAll('.open-tabs-search-wrap, #openTabsViewToggle, #openTabsSortControl, #privacyToggle, #privacySettingsBtn, #toolbarMoreBtn'))
         .filter(element => element.getClientRects().length > 0)
         .map(element => {
           const rect = element.getBoundingClientRect();
           return { id: element.id || element.className, left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
         });
       const rect = toolbar.getBoundingClientRect();
+      const navigationRect = navigation.getBoundingClientRect();
       return {
+        navigation: { left: navigationRect.left, right: navigationRect.right, top: navigationRect.top, bottom: navigationRect.bottom },
+        navigationControls: visibleNavigationControls,
         toolbar: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom },
         controls: visibleControls,
         scrollWidth: document.documentElement.scrollWidth,
         viewportWidth: window.innerWidth,
       };
     })()`);
+    assert.ok(mobileToolbar.navigation.left >= 0 && mobileToolbar.navigation.right <= mobileToolbar.viewportWidth, `Mobile global navigation overflow: ${JSON.stringify(mobileToolbar)}`);
+    assert.ok(mobileToolbar.navigationControls.every(control => control.left >= 0 && control.right <= mobileToolbar.viewportWidth), `Mobile global navigation control overflow: ${JSON.stringify(mobileToolbar)}`);
     assert.ok(mobileToolbar.toolbar.left >= 0 && mobileToolbar.toolbar.right <= mobileToolbar.viewportWidth, `Mobile toolbar overflow: ${JSON.stringify(mobileToolbar)}`);
-    assert.equal(mobileToolbar.scrollWidth, mobileToolbar.viewportWidth, `Mobile page has horizontal overflow: ${JSON.stringify(mobileToolbar)}`);
+    assert.ok(mobileToolbar.scrollWidth <= mobileToolbar.viewportWidth, `Mobile page has horizontal overflow: ${JSON.stringify(mobileToolbar)}`);
     assert.ok(mobileToolbar.controls.every(control => control.left >= 0 && control.right <= mobileToolbar.viewportWidth), `Mobile toolbar control overflow: ${JSON.stringify(mobileToolbar)}`);
     await page.evaluate(`(() => {
       window.scrollTo(0, 0);
@@ -775,12 +1262,11 @@ async function main() {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
       const panel = document.querySelector('#privacySettings');
       return {
-        activeId: document.activeElement?.id || '',
         panelOpen: panel.open,
       };
     })()`);
-    assert.notEqual(escapeState.activeId, 'psMottoInput');
     assert.equal(escapeState.panelOpen, false);
+    await page.waitFor(`document.activeElement?.id !== 'psMottoInput'`);
     assert.deepEqual(page.errors.filter(error => !error.includes('/config.local.js')), []);
     page.close();
     page = null;

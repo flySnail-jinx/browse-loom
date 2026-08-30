@@ -2,9 +2,16 @@ import { mountLiquidEther } from "./liquid-ether.mjs";
 import { mountLightRays } from "./light-rays.mjs";
 import { mountPrism } from "./prism.mjs";
 
-export const DEFAULT_BACKGROUND_ID = "liquid-ether";
+export const DEFAULT_BACKGROUND_ID = "mountain";
 
 export const BACKGROUND_REGISTRY = Object.freeze([
+  Object.freeze({
+    id: "mountain",
+    labelKey: "backgroundMountain",
+    mount() {
+      return { dispose() {} };
+    },
+  }),
   Object.freeze({
     id: "liquid-ether",
     labelKey: "backgroundLiquidEther",

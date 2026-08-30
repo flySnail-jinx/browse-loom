@@ -7,9 +7,16 @@ import {
 
 export const BACKGROUND_STORAGE_KEY = "tab-out-background";
 
+const WallpaperService = globalThis.SuperTabOutWallpapers;
+
+function normalizeRequestedBackground(id) {
+  if (WallpaperService?.isWallpaperId?.(id)) return id;
+  return normalizeBackgroundId(id);
+}
+
 function readSavedBackground() {
   try {
-    return normalizeBackgroundId(localStorage.getItem(BACKGROUND_STORAGE_KEY));
+    return normalizeRequestedBackground(localStorage.getItem(BACKGROUND_STORAGE_KEY));
   } catch {
     return DEFAULT_BACKGROUND_ID;
   }
@@ -29,12 +36,46 @@ function normalizeMountedBackground(value) {
   return { dispose() {} };
 }
 
+async function prepareUserWallpaper(record) {
+  const objectUrl = URL.createObjectURL(record.blob);
+  const layer = document.createElement("div");
+  layer.className = "user-wallpaper-layer";
+  const image = document.createElement("img");
+  image.alt = "";
+  image.draggable = false;
+  image.src = objectUrl;
+  image.style.objectPosition = `${record.focalX ?? 50}% ${record.focalY ?? 50}%`;
+  const overlay = document.createElement("span");
+  overlay.className = "user-wallpaper-overlay";
+  overlay.style.opacity = String(Math.max(0, Math.min(60, Number(record.overlay) || 0)) / 100);
+  layer.append(image, overlay);
+  try {
+    await image.decode();
+  } catch (error) {
+    URL.revokeObjectURL(objectUrl);
+    throw error;
+  }
+  return {
+    element: layer,
+    reveal() {
+      requestAnimationFrame(() => {
+        if (layer.isConnected) layer.classList.add("is-ready");
+      });
+    },
+    dispose() {
+      layer.remove();
+      URL.revokeObjectURL(objectUrl);
+    },
+  };
+}
+
 export function createBackgroundController({ container, root = document.documentElement } = {}) {
   if (!container) throw new Error("Background controller requires a container.");
 
   let activeId = null;
   let activeBackground = { dispose() {} };
   let disposed = false;
+  let mountSequence = 0;
 
   const syncControls = () => {
     document.querySelectorAll("[data-background-id]").forEach(control => {
@@ -45,38 +86,65 @@ export function createBackgroundController({ container, root = document.document
     });
   };
 
-  const mount = (requestedId, { persist = false } = {}) => {
+  const emitChange = id => {
+    document.dispatchEvent(new CustomEvent("super-tab-out:background-change", {
+      detail: { id },
+    }));
+  };
+
+  const mount = async (requestedId, { persist = false, force = false } = {}) => {
     if (disposed) return activeId;
-    const id = normalizeBackgroundId(requestedId);
-    if (id === activeId) {
+    const id = normalizeRequestedBackground(requestedId);
+    if (id === activeId && !force) {
       if (persist) saveBackground(id);
       syncControls();
       return activeId;
     }
 
-    const definition = getBackgroundDefinition(id);
+    const sequence = ++mountSequence;
     activeBackground.dispose();
     activeBackground = { dispose() {} };
     container.replaceChildren();
 
     let mountedId = id;
     try {
-      activeBackground = normalizeMountedBackground(definition.mount(container));
+      if (WallpaperService?.isWallpaperId?.(id)) {
+        root.dataset.background = "user-wallpaper-loading";
+        container.dataset.background = "user-wallpaper-loading";
+        const record = await WallpaperService.getWallpaper(id);
+        if (!record) throw new Error("Wallpaper record is missing.");
+        const mounted = await prepareUserWallpaper(record);
+        if (disposed || sequence !== mountSequence) {
+          mounted.dispose();
+          return activeId;
+        }
+        container.replaceChildren(mounted.element);
+        activeBackground = normalizeMountedBackground(mounted);
+        mounted.reveal();
+      } else {
+        const definition = getBackgroundDefinition(id);
+        activeBackground = normalizeMountedBackground(definition.mount(container));
+      }
     } catch (error) {
-      console.warn(`[super-tab-out] Could not mount background "${id}". Falling back to static.`, error);
-      mountedId = "static";
+      if (disposed || sequence !== mountSequence) return activeId;
+      console.warn(`[super-tab-out] Could not mount background "${id}". Falling back to mountain.`, error);
+      mountedId = DEFAULT_BACKGROUND_ID;
       container.replaceChildren();
-      activeBackground = normalizeMountedBackground(getBackgroundDefinition("static").mount(container));
+      activeBackground = normalizeMountedBackground(getBackgroundDefinition(DEFAULT_BACKGROUND_ID).mount(container));
+      saveBackground(mountedId);
+      document.dispatchEvent(new CustomEvent("super-tab-out:background-error", {
+        detail: { id, fallbackId: mountedId, error },
+      }));
     }
 
     activeId = mountedId;
-    root.dataset.background = mountedId;
-    container.dataset.background = mountedId;
+    const presentationId = WallpaperService?.isWallpaperId?.(mountedId) ? "user-wallpaper" : mountedId;
+    root.dataset.background = presentationId;
+    root.dataset.backgroundId = mountedId;
+    container.dataset.background = presentationId;
     if (persist) saveBackground(mountedId);
     syncControls();
-    document.dispatchEvent(new CustomEvent("super-tab-out:background-change", {
-      detail: { id: mountedId },
-    }));
+    emitChange(mountedId);
     return activeId;
   };
 
@@ -93,7 +161,8 @@ export function createBackgroundController({ container, root = document.document
       ? event.target.closest('[data-action="set-background"][data-background-id]')
       : null;
     if (!target) return;
-    const controls = [...document.querySelectorAll('[data-action="set-background"][data-background-id]')];
+    const group = target.closest('[role="radiogroup"]');
+    const controls = [...(group || document).querySelectorAll('[data-action="set-background"][data-background-id]')];
     const currentIndex = controls.indexOf(target);
     if (currentIndex === -1) return;
 
@@ -115,8 +184,28 @@ export function createBackgroundController({ container, root = document.document
     activeBackground.updateTheme?.();
   });
 
+  const onStorage = event => {
+    if (event.key === BACKGROUND_STORAGE_KEY) {
+      mount(event.newValue || DEFAULT_BACKGROUND_ID, { persist: false });
+      return;
+    }
+    if (event.key === WallpaperService?.REVISION_STORAGE_KEY && WallpaperService?.isWallpaperId?.(activeId)) {
+      mount(activeId, { persist: false, force: true });
+    }
+  };
+
+  const onLibraryChange = event => {
+    if (!WallpaperService?.isWallpaperId?.(activeId)) return;
+    const changed = Array.isArray(event.detail?.id)
+      ? event.detail.id.includes(activeId)
+      : event.detail?.id === activeId;
+    if (changed) mount(activeId, { persist: false, force: true });
+  };
+
   document.addEventListener("click", onClick);
   document.addEventListener("keydown", onKeyDown);
+  window.addEventListener("storage", onStorage);
+  window.addEventListener("super-tab-out:wallpaper-library-change", onLibraryChange);
   themeObserver.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
 
   return {
@@ -138,7 +227,10 @@ export function createBackgroundController({ container, root = document.document
       disposed = true;
       document.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("super-tab-out:wallpaper-library-change", onLibraryChange);
       themeObserver.disconnect();
+      mountSequence += 1;
       activeBackground.dispose();
       activeBackground = { dispose() {} };
       container.replaceChildren();

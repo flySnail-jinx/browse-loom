@@ -9,7 +9,11 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const extensionDir = join(root, 'extension');
-const outputDir = join(root, 'store-assets');
+const outputDir = process.env.SCREENSHOT_OUTPUT_DIR
+  ? resolve(process.env.SCREENSHOT_OUTPUT_DIR)
+  : join(root, 'store-assets');
+const captureBackground = process.env.CAPTURE_BACKGROUND || 'prism';
+const captureCardOpacity = String(Math.min(100, Math.max(40, Math.round(Number(process.env.CAPTURE_CARD_OPACITY) || 60))));
 const defaultChromeBin = join(root, 'tools/chrome-for-testing/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');
 const chromeBin = process.env.CHROME_BIN || defaultChromeBin;
 
@@ -194,11 +198,13 @@ async function main() {
       deviceScaleFactor: 1,
       mobile: false,
     });
+    await page.waitFor(`location.href.startsWith(${JSON.stringify(`${extensionBase}/index.html`)})`);
     await page.waitFor('document.readyState === "complete"');
     await page.evaluate(`(async () => {
       localStorage.setItem('tab-out-language', 'en');
       localStorage.setItem('tab-out-theme', 'cupertino');
-      localStorage.setItem('tab-out-background', 'prism');
+      localStorage.setItem('tab-out-background', ${JSON.stringify(captureBackground)});
+      localStorage.setItem('tab-out-card-opacity', ${JSON.stringify(captureCardOpacity)});
       const currentTab = await chrome.tabs.getCurrent();
       const dashboardUrl = chrome.runtime.getURL('index.html');
       const dashboardTabs = await chrome.tabs.query({});
@@ -225,7 +231,7 @@ async function main() {
     await page.waitFor('document.readyState === "complete"');
     await page.waitFor('window.SuperTabOutBookmarks && document.body.dataset.workspace === "tabs"');
     await page.waitFor('document.querySelectorAll("#openTabsMissions .domain-card, #openTabsMissions .group-card").length > 2');
-    await page.waitFor('document.querySelector("#backgroundStage canvas")');
+    await page.waitFor(`document.documentElement.dataset.background === ${JSON.stringify(captureBackground)}`);
     await capture(page, 'browseloom-1-tabs.jpg');
 
     await page.evaluate(`document.querySelector('[data-workspace-switch="bookmarks"]').click()`);
@@ -250,7 +256,7 @@ async function main() {
       document.querySelector('#privacySettingsBtn').click();
     })()`);
     await page.waitFor('getComputedStyle(document.querySelector("#privacySettings")).display !== "none"');
-    await page.waitFor('document.querySelector("#settingsPaneAppearance").classList.contains("active")');
+    await page.waitFor('document.querySelector("#settingsPaneGeneral").classList.contains("active")');
     await capture(page, 'browseloom-5-settings.jpg');
   } finally {
     page?.close();

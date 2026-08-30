@@ -355,15 +355,11 @@
     const grid = document.getElementById('bookmarkGrid');
     const list = document.getElementById('bookmarkList');
     const empty = document.getElementById('bookmarkEmpty');
-    const title = document.getElementById('bookmarkSectionTitle');
-    const count = document.getElementById('bookmarkSectionCount');
-    if (!grid || !list || !empty || !title || !count) return;
+    if (!grid || !list || !empty) return;
 
     const currentCategory = categoryById(state.activeCategoryId) || categoryById(HOME_CATEGORY_ID);
     const searchResults = state.query ? Bookmarks.searchLibrary(state.library, state.query) : [];
     const rootItems = state.query ? searchResults.map(bookmark => ({ kind: 'bookmark', key: '', value: bookmark })) : categoryItems(currentCategory?.id);
-    title.textContent = state.query ? t('searchResults') : categoryLabel(currentCategory);
-    count.textContent = t('itemCount', { count: rootItems.length });
     const isGrid = state.library.viewMode !== 'list';
     grid.hidden = !isGrid;
     list.hidden = isGrid;
@@ -395,7 +391,17 @@
       button.dataset.categoryId = currentCategory?.id || HOME_CATEGORY_ID;
       delete button.dataset.folderId;
     }
+    document.dispatchEvent(new CustomEvent('browseloom-local-search-results', {
+      detail: { surface: 'bookmarks', query: state.query, count: rootItems.length },
+    }));
   }
+
+  window.SuperTabOutBookmarkSearch = {
+    setQuery(query) {
+      state.query = String(query || '').trim();
+      renderMain();
+    },
+  };
 
   function activityRowMarkup(bookmark, index, type) {
     return `<button class="bookmark-activity-row" type="button" data-bookmark-action="open" data-bookmark-id="${escapeHtml(bookmark.id)}">
@@ -595,6 +601,7 @@
     root.dataset.workspaceTransition = next === 'bookmarks' ? 'to-bookmarks' : 'to-tabs';
     if (typeof document.startViewTransition === 'function') {
       const transition = document.startViewTransition(() => applyWorkspaceShell(next));
+      transition.ready.catch(() => {});
       return transition.finished
         .catch(() => {})
         .finally(() => { delete root.dataset.workspaceTransition; });
@@ -1481,7 +1488,10 @@
   }
 
   async function init() {
-    document.body.dataset.workspace = 'tabs';
+    const defaultWorkspace = document.documentElement.dataset.defaultWorkspace === 'bookmarks'
+      ? 'bookmarks'
+      : 'tabs';
+    applyWorkspaceShell(defaultWorkspace);
     try {
       await Storage?.migrateStorage?.();
       const privacy = await Storage?.getPrivacySettings?.();
@@ -1510,6 +1520,7 @@
     });
     document.addEventListener('input', event => {
       if (event.target.id === 'bookmarkSearch') {
+        if (event.target.dataset.searchMode === 'external') return;
         state.query = event.target.value.trim();
         renderMain();
       }

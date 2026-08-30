@@ -31,8 +31,8 @@
     "message": "Bookmark the current page",
     "description": "Keyboard shortcut description for opening a prefilled bookmark draft."
   },
-  "actionBookmarkCurrentPage": {
-    "message": "Bookmark current page",
-    "description": "Toolbar action tooltip for opening a prefilled bookmark draft."
+  "actionOpenBrowseLoom": {
+    "message": "Open BrowseLoom",
+    "description": "Toolbar action tooltip for opening the configured BrowseLoom workspace."
   }
 }

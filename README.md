@@ -9,7 +9,7 @@
 <h3>The Local-First New Tab Dashboard for Chrome</h3>
 
 <p>
-  <img alt="version v1.1.1" src="https://img.shields.io/badge/version-v1.1.1-2388d9?labelColor=555555">
+  <img alt="version v1.1.2" src="https://img.shields.io/badge/version-v1.1.2-2388d9?labelColor=555555">
   <img alt="platform Chrome" src="https://img.shields.io/badge/platform-Chrome-9a9a9a?labelColor=555555">
   <img alt="built with MV3 and Vanilla JS" src="https://img.shields.io/badge/built%20with-MV3%20%2B%20Vanilla%20JS-ff7a3d?labelColor=555555">
   <img alt="license Apache 2.0" src="https://img.shields.io/badge/license-Apache--2.0-35c52a?labelColor=555555">
@@ -44,7 +44,9 @@ Release notes are tracked in [`CHANGELOG.md`](./CHANGELOG.md).
 - **Search operators**: narrow results with `domain:`, `group:`, `url:`, and `saved:`; fuzzy matches are highlighted.
 - **Side Panel tab center**: search, jump, save, close, dedupe, restore recently closed tabs, and save the current or all windows without leaving the current page.
 - **Keyboard and omnibox entry points**: use `loom` in the address bar for search/actions, or commands for panel/session/privacy workflows.
+- **Contextual local and web search**: keep filtering the active tabs or bookmarks workspace, or explicitly switch the same field to Google, Baidu, Bing, DuckDuckGo, or a local custom HTTPS search template.
 - **Accessibility and motion controls**: icon buttons have accessible labels, chips support keyboard activation, and system reduced-motion preferences are respected.
+- **Personal wallpapers**: import up to 10 local JPEG, PNG, or WebP images, adjust each image's focal point and overlay, and keep the library inside the browser profile.
 - **Privacy mode for screen sharing**: click the lock or press `Esc` to hide the tab dashboard behind a clean clock screen.
 - **Pinned tabs are protected**: pinned tabs are excluded from cards, counts, duplicate cleanup, and bulk-close actions.
 - **One-click duplicate cleanup**: repeated URLs are marked and can be cleaned while keeping one copy.
@@ -265,16 +267,21 @@ Stored locally:
 - language choice
 - theme choice
 - favicon cache
+- search engine settings and custom HTTPS search templates
+- personal wallpaper images, thumbnails, focal points, and overlay settings
 
 External favicon requests are disabled by default. The privacy settings explain that enabling site icons sends website domain names to DuckDuckGo; requests begin only after the user turns this option on. When disabled, cached favicons can still render, but new domains will not call the icon service.
 
-The only routine external request, after the user enables it, is:
+Baidu search suggestions are also optional and disabled by default. Enabling them requests runtime access to `suggestion.baidu.com`; only text typed while the search box is using a web search engine is sent, with credentials omitted. Local tab and bookmark filtering remains on-device.
+
+Optional external requests, after the user enables the corresponding feature, are:
 
 - `icons.duckduckgo.com` for favicons, cached locally for 7 days
+- `suggestion.baidu.com` for text suggestions while any web search engine is selected
 
 No Google Fonts are used. Fonts come from system font stacks.
 
-Privacy mode does not provide a web search box or change the browser search provider.
+Privacy mode hides the dashboard and does not change the selected search source.
 
 Store upload packages are generated locally into `dist/` with `npm run package`. The Chrome package is the supported release artifact; the Edge package is a capability-compatible convenience artifact. ZIP files are ignored by Git and must not be committed.
 
@@ -292,6 +299,7 @@ The extension currently requests:
 | `sidePanel` | Show the Side Panel tab center |
 | `sessions` | Show and restore recently closed browser tabs/windows |
 | `bookmarks` (optional) | Read the current browser bookmark tree only after the user starts an import; BrowseLoom never changes the browser copy |
+| `suggestion.baidu.com` (optional host) | Fetch suggestions only after the user enables Baidu online suggestions |
 
 ---
 
