@@ -1178,13 +1178,13 @@ async function main() {
     assert.deepEqual(laptopLayout, {
       width: 1512,
       tabs: { frameWidth: 1420, navigationWidth: 1420, columns: 4, columnWidth: 300 },
-      bookmarks: { toolbarWidth: 1420, shellWidth: 1420, navigationWidth: 1420, columns: 4 },
+      bookmarks: { toolbarWidth: 1420, shellWidth: 1420, navigationWidth: 1420, columns: 6 },
     });
     const wideLayout = await responsiveLayoutAt(1920);
     assert.deepEqual(wideLayout, {
       width: 1920,
       tabs: { frameWidth: 1680, navigationWidth: 1680, columns: 5, columnWidth: 300 },
-      bookmarks: { toolbarWidth: 1680, shellWidth: 1680, navigationWidth: 1680, columns: 6 },
+      bookmarks: { toolbarWidth: 1680, shellWidth: 1680, navigationWidth: 1680, columns: 8 },
     });
 
     await page.send('Emulation.setDeviceMetricsOverride', {

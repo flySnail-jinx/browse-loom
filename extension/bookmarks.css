@@ -392,9 +392,9 @@ body[data-workspace="bookmarks"] .bookmark-workspace {
 .bookmark-grid {
   display: grid;
   grid-auto-flow: row dense;
-  grid-auto-rows: 118px;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 24px 18px;
+  grid-auto-rows: 106px;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 14px 12px;
   align-items: start;
 }
 
@@ -593,7 +593,7 @@ body[data-workspace="bookmarks"] .bookmark-workspace {
 .bookmark-folder-board {
   position: relative;
   min-width: 0;
-  padding: 12px 14px;
+  padding: 10px 12px;
   align-self: stretch;
   background: var(--content-card-surface);
   border-radius: 16px;
@@ -621,7 +621,7 @@ body[data-workspace="bookmarks"] .bookmark-workspace {
 
 .bookmark-folder-board-head {
   display: flex;
-  height: 23px;
+  height: 21px;
   align-items: center;
   gap: 8px;
 }
@@ -652,15 +652,15 @@ body[data-workspace="bookmarks"] .bookmark-workspace {
 .bookmark-folder-board-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 .bookmark-folder-link {
   display: flex;
   min-width: 0;
-  height: 63px;
-  padding: 4px 2px;
+  height: 57px;
+  padding: 2px;
   align-items: center;
   flex-direction: column;
   border: 0;
@@ -670,9 +670,9 @@ body[data-workspace="bookmarks"] .bookmark-workspace {
 }
 
 .bookmark-folder-link .bookmark-app-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
 }
 
 .bookmark-folder-link .bookmark-app-icon span {
@@ -680,7 +680,7 @@ body[data-workspace="bookmarks"] .bookmark-workspace {
 }
 
 .bookmark-folder-link .bookmark-tile-title {
-  margin-top: 4px;
+  margin-top: 3px;
   font-size: 10px;
 }
 
@@ -800,7 +800,7 @@ body[data-workspace="bookmarks"] .bookmark-workspace {
 .bookmark-add-tile {
   display: flex;
   min-width: 0;
-  height: 118px;
+  height: 106px;
   padding: 0;
   align-items: center;
   flex-direction: column;
@@ -1965,18 +1965,6 @@ html[data-workspace-transition="to-tabs"]::view-transition-new(root) {
   .bookmark-toolbar,
   .bookmark-shell {
     width: min(var(--workspace-max-width), calc(100vw - var(--command-dock-safe-area, 92px)));
-  }
-}
-
-@media (max-width: 1799px) {
-  .bookmark-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 1599px) {
-  .bookmark-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

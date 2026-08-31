@@ -243,9 +243,11 @@ async function testWorkspaceNavigationContract() {
   assert.match(searchEngineCss, /@media \(min-width:\s*1180px\)[\s\S]*?\.app-navigation-inner\s*\{[\s\S]*?width:\s*min\(var\(--workspace-max-width\), calc\(100vw - var\(--command-dock-safe-area, 92px\)\)\)/);
   assert.match(css, /\.bookmark-toolbar\s*\{[\s\S]*?max-width:\s*var\(--workspace-max-width\);/);
   assert.match(css, /\.bookmark-shell\s*\{[\s\S]*?max-width:\s*var\(--workspace-max-width\);/);
-  assert.match(css, /\.bookmark-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(6, minmax\(0, 1fr\)\);/);
-  assert.match(css, /@media \(max-width:\s*1799px\)[\s\S]*?\.bookmark-grid\s*\{[\s\S]*?repeat\(5, minmax\(0, 1fr\)\)/);
-  assert.match(css, /@media \(max-width:\s*1599px\)[\s\S]*?\.bookmark-grid\s*\{[\s\S]*?repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(css, /\.bookmark-grid\s*\{[\s\S]*?grid-auto-rows:\s*106px;[\s\S]*?grid-template-columns:\s*repeat\(auto-fill, minmax\(96px, 1fr\)\);[\s\S]*?gap:\s*14px 12px;/);
+  assert.match(css, /\.bookmark-add-tile\s*\{[\s\S]*?height:\s*106px;/);
+  assert.match(css, /\.bookmark-folder-board\s*\{[\s\S]*?padding:\s*10px 12px;/);
+  assert.match(css, /\.bookmark-folder-board-head\s*\{[\s\S]*?height:\s*21px;/);
+  assert.match(css, /\.bookmark-folder-link\s*\{[\s\S]*?height:\s*57px;[\s\S]*?padding:\s*2px;/);
   assert.match(css, /@media \(min-width:\s*1180px\)[\s\S]*?\.bookmark-toolbar,[\s\S]*?\.bookmark-shell\s*\{[\s\S]*?width:\s*min\(var\(--workspace-max-width\), calc\(100vw - var\(--command-dock-safe-area, 92px\)\)\)/);
   assert.match(css, /@media \(max-width:\s*1333px\)[\s\S]*?grid-template-areas:[\s\S]*?"library main recent"[\s\S]*?"library main popular"/);
   assert.match(index, /class="bookmark-activity-panel bookmark-activity-recent"/);
