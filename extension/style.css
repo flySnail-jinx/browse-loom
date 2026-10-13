@@ -1708,6 +1708,7 @@ header {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: max-content;
   max-width: min(560px, calc(100vw - 32px));
 }
 
@@ -1726,9 +1727,8 @@ header {
 
 #toastText {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .toast-action {
@@ -5605,4 +5605,22 @@ body[data-storage-blocked="forward-version"] {
   margin: 0;
   color: var(--muted);
   line-height: 1.65;
+}
+
+/* Preserve sentence breaks in localized descriptions and confirmations. */
+.settings-field-description,
+.privacy-setting-disclosure,
+.search-settings-status,
+.bookmark-import-note p,
+.bookmark-import-status,
+.bookmark-form-error,
+.bookmark-empty p,
+.bookmark-confirm-dialog p,
+.user-wallpaper-empty span,
+#userWallpaperPersistence,
+#userWallpaperProgressCopy,
+#wallpaperDeleteText,
+.local-search-fallback p {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }

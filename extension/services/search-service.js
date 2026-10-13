@@ -102,7 +102,7 @@
     return {
       id: `session:${session.id}`,
       type: 'session',
-      title: session.title || session.name || 'Saved session',
+      title: session.title || session.name || global.chrome?.i18n?.getMessage('omniboxCollection') || 'Page collection',
       url: urls.join(' '),
       domain: domains.join(' '),
       group,

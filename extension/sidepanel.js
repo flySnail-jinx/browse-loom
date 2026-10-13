@@ -6,29 +6,39 @@
   const $ = selector => document.querySelector(selector);
   const LANGUAGE_KEY = 'tab-out-language';
   const COPY = {
-    en: {
-      commandCenter: 'Tab Center', refresh: 'Refresh', searchPlaceholder: 'Search tabs, saved items, sessions',
-      searchLabel: 'Search tabs saved items and sessions', saveWindow: 'Save window', saveAllWindows: 'Save all windows',
-      cleanDuplicates: 'Clean duplicates', newTabDashboard: 'New tab dashboard', noResults: 'No results',
-      recentlyClosed: 'Recently closed', restore: 'Restore here', restoreWindows: 'Restore windows',
-      nothingRecentlyClosed: 'Nothing recently closed.', jump: 'Jump', saveAction: 'Save', closeAction: 'Close',
-      open: 'Open', saved: 'Saved', savedSession: 'Saved session', tabPlural: 'tabs',
-      tabWindow: ({ count }) => `${count} tab window`, sessionSaved: 'Session saved', noDuplicates: 'No duplicates',
-      duplicatesCleaned: 'Duplicates cleaned', savedForLater: 'Saved for later', tabClosed: 'Tab closed',
-      storageForward: 'Update BrowseLoom before continuing. This version stopped to protect newer local data.',
-      operationFailed: 'Could not complete that action.',
+      en: {
+      restoreRecent: "Reopen",
+      untitled: "Untitled",
+      saveWindowHint: "Save pages in this window. The window stays open.",
+      saveAllWindowsHint: "Save pages in all windows. The windows stay open.",
+      saveForLaterHint: "Save the address to Read later, then close this tab.",
+      commandCenter: "Tabs", refresh: 'Refresh', searchPlaceholder: "Search tabs, Read later, and collections",
+      searchLabel: "Search tabs, Read later, and collections", saveWindow: "Save this window", saveAllWindows: "Save all windows",
+      cleanDuplicates: "Close duplicates", newTabDashboard: "Open home", noResults: "No results found",
+      recentlyClosed: 'Recently closed', restore: "Open in this window", restoreWindows: "Open in separate windows",
+      nothingRecentlyClosed: "No recently closed pages.", jump: "Switch", saveAction: "Save and close", closeAction: 'Close',
+      open: "Open page", saved: 'Saved', savedSession: "Page collection", tabPlural: 'tabs',
+      tabWindow: ({ count }) => `Window with ${count} tab${count === 1 ? '' : 's'}`, sessionSaved: "Page collection saved.", noDuplicates: "No duplicate tabs.",
+      duplicatesCleaned: "Duplicate tabs closed.", savedForLater: "Added to Read later.", tabClosed: "Tab closed.",
+      storageForward: "Update BrowseLoom first.\nThis data comes from a newer version.\nThis version has stopped to protect your data.",
+      operationFailed: "Action could not be completed. Try again.",
     },
-    zh: {
-      commandCenter: '标签中心', refresh: '刷新', searchPlaceholder: '搜索标签页、稍后再看和会话',
-      searchLabel: '搜索标签页、稍后再看和会话', saveWindow: '保存当前窗口', saveAllWindows: '保存全部窗口',
-      cleanDuplicates: '清理重复项', newTabDashboard: '新标签页仪表盘', noResults: '没有结果',
-      recentlyClosed: '最近关闭', restore: '恢复到当前窗口', restoreWindows: '按窗口恢复',
-      nothingRecentlyClosed: '没有最近关闭的内容。', jump: '跳转', saveAction: '保存', closeAction: '关闭',
-      open: '打开', saved: '已保存', savedSession: '已保存会话', tabPlural: '个标签页',
-      tabWindow: ({ count }) => `${count} 个标签页窗口`, sessionSaved: '会话已保存', noDuplicates: '没有重复项',
-      duplicatesCleaned: '重复项已清理', savedForLater: '已加入稍后再看', tabClosed: '标签页已关闭',
-      storageForward: '请先更新 BrowseLoom。当前版本已停止运行，以保护更新版本的本地数据。',
-      operationFailed: '无法完成该操作。',
+      zh: {
+      restoreRecent: "重新打开",
+      untitled: "未命名",
+      saveWindowHint: "保存此窗口内的网页，不关闭窗口。",
+      saveAllWindowsHint: "保存所有窗口内的网页，不关闭窗口。",
+      saveForLaterHint: "保存网址，并关闭此标签页。",
+      commandCenter: "标签页", refresh: '刷新', searchPlaceholder: "搜索标签页、稍后再看和网页合集",
+      searchLabel: "搜索标签页、稍后再看和网页合集", saveWindow: "保存此窗口", saveAllWindows: "保存所有窗口",
+      cleanDuplicates: "关闭重复页", newTabDashboard: "打开主页", noResults: "没找到结果",
+      recentlyClosed: '最近关闭', restore: "在此窗口打开", restoreWindows: "分窗口打开",
+      nothingRecentlyClosed: "暂无最近关闭的页面。", jump: "切换", saveAction: "保存并关闭", closeAction: '关闭',
+      open: "打开网页", saved: '已保存', savedSession: "网页合集", tabPlural: '个标签页',
+      tabWindow: ({ count }) => `窗口内有 ${count} 个标签页`, sessionSaved: "已保存网页合集。", noDuplicates: "没有重复的标签页。",
+      duplicatesCleaned: "已关闭重复标签页。", savedForLater: "已加入稍后再看。", tabClosed: "已关闭标签页。",
+      storageForward: "请先更新 BrowseLoom。\n数据来自更新版本。\n为保护数据，当前版本已停止运行。",
+      operationFailed: "操作未完成，请重试。",
     },
   };
 
@@ -78,6 +88,9 @@
     setAttr('#panelSearch', 'aria-label', 'searchLabel');
     setText('#saveSessionBtn', 'saveWindow');
     setText('#saveAllWindowsBtn', 'saveAllWindows');
+    setAttr('#saveSessionBtn', 'title', 'saveWindowHint');
+    setAttr('#saveAllWindowsBtn', 'title', 'saveAllWindowsHint');
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
     setText('#dedupeBtn', 'cleanDuplicates');
     setText('#newTabBtn', 'newTabDashboard');
     setText('#recentTitle', 'recentlyClosed');
@@ -128,7 +141,13 @@
   }
 
   function renderResultCard(record) {
-    const title = record.title || record.url || 'Untitled';
+    const title = record.type === 'session' && !record.source.title && !record.source.name
+      ? tr('savedSession')
+      : record.title || record.url || tr('untitled');
+    const numericTabId = Number(record.tabId);
+    const tabId = record.tabId !== null && record.tabId !== '' && Number.isSafeInteger(numericTabId) && numericTabId >= 0
+      ? String(numericTabId)
+      : '';
     const meta = record.type === 'tab'
       ? `${record.domain || domainFor(record.url)}${record.group ? ` · ${record.group}` : ''}`
       : record.type === 'saved'
@@ -136,9 +155,9 @@
         : `${tr('savedSession')} · ${sessionTabs(record.source).length} ${tr('tabPlural')}`;
     let actions = '';
     if (record.type === 'tab') {
-      actions = `<button data-action="focus" data-url="${escapeHtml(record.url)}">${escapeHtml(tr('jump'))}</button>
-        <button data-action="save-tab" data-url="${escapeHtml(record.url)}" data-title="${escapeHtml(title)}">${escapeHtml(tr('saveAction'))}</button>
-        <button data-action="close-url" data-url="${escapeHtml(record.url)}">${escapeHtml(tr('closeAction'))}</button>`;
+      actions = `<button data-action="focus" data-tab-id="${escapeHtml(tabId)}" data-url="${escapeHtml(record.url)}">${escapeHtml(tr('jump'))}</button>
+        <button data-action="save-tab" data-tab-id="${escapeHtml(tabId)}" title="${escapeHtml(tr('saveForLaterHint'))}" data-url="${escapeHtml(record.url)}" data-title="${escapeHtml(title)}">${escapeHtml(tr('saveAction'))}</button>
+        <button data-action="close-tab" data-tab-id="${escapeHtml(tabId)}" data-url="${escapeHtml(record.url)}">${escapeHtml(tr('closeAction'))}</button>`;
     } else if (record.type === 'saved') {
       actions = `<button data-action="open-url" data-url="${escapeHtml(record.url)}">${escapeHtml(tr('open'))}</button>`;
     } else {
@@ -169,7 +188,7 @@
       const title = entry.tab?.title || tr('tabWindow', { count: entry.window?.tabs?.length || 0 });
       const sessionId = entry.tab?.sessionId || entry.window?.sessionId;
       const meta = entry.tab?.url || (entry.window?.tabs || []).map(tab => tab.url).filter(Boolean).slice(0, 2).join(' · ');
-      return `<div class="recent-card"><div class="result-title">${escapeHtml(title)}</div><div class="recent-meta">${escapeHtml(meta || '')}</div><div class="result-actions"><button data-action="restore-recent" data-session-id="${escapeHtml(sessionId || '')}">${escapeHtml(tr('restore'))}</button></div></div>`;
+      return `<div class="recent-card"><div class="result-title">${escapeHtml(title)}</div><div class="recent-meta">${escapeHtml(meta || '')}</div><div class="result-actions"><button data-action="restore-recent" data-session-id="${escapeHtml(sessionId || '')}">${escapeHtml(tr('restoreRecent'))}</button></div></div>`;
     }).join('') || `<div class="recent-card"><div class="recent-meta">${escapeHtml(tr('nothingRecentlyClosed'))}</div></div>`;
   }
 
@@ -226,18 +245,24 @@
     if (!actionElement) return;
     const action = actionElement.dataset.action;
     const url = actionElement.dataset.url;
-    if (action === 'focus') await self.SuperTabOutTabs.focusTab(url);
+    const tabId = actionElement.dataset.tabId && Number.isSafeInteger(Number(actionElement.dataset.tabId)) && Number(actionElement.dataset.tabId) >= 0
+      ? Number(actionElement.dataset.tabId)
+      : null;
+    if (action === 'focus') {
+      if (tabId !== null) await self.SuperTabOutTabs.focusTabById(tabId);
+      else await self.SuperTabOutTabs.focusTab(url);
+    }
     if (action === 'save-tab') {
       const restorableUrl = normalizeRestorableUrl(url);
       if (!restorableUrl) return;
       await self.SuperTabOutStorage.addDeferredTab({ url: restorableUrl, title: actionElement.dataset.title || restorableUrl });
-      await self.SuperTabOutTabs.closeTabsByUrls([url]);
+      if (tabId !== null) await self.SuperTabOutTabs.closeTabsByIds([tabId]);
       await self.SuperTabOutStorage.recordActivity({ type: 'saved', count: 1, domain: domainFor(restorableUrl) });
       toast(tr('savedForLater'));
       await refreshData();
     }
-    if (action === 'close-url') {
-      const closed = await self.SuperTabOutTabs.closeTabsByUrls([url]);
+    if (action === 'close-tab' && tabId !== null) {
+      const closed = await self.SuperTabOutTabs.closeTabsByIds([tabId]);
       await self.SuperTabOutStorage.recordActivity({ type: 'closed', count: closed.length || 1, domain: domainFor(url) });
       toast(tr('tabClosed'));
       await refreshData();

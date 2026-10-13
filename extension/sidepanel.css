@@ -452,3 +452,13 @@ textarea:focus-visible {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Long translated actions and notices remain readable in narrow panels. */
+.search-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.result-meta,
+.panel-toast {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}

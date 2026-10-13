@@ -98,7 +98,10 @@ async function testWorkspaceNavigationContract() {
   assert.match(searchEngineUi, /permissionReloadRequired/);
   assert.equal((index.match(/data-search-surface=/g) || []).length, 2);
   assert.match(index, /id="baiduSuggestionsToggle"/);
-  assert.match(index, /id="customSearchEngineForm"/);
+  assert.doesNotMatch(index, /id="customSearchEngineForm"/);
+  assert.equal(manifest.permissions.includes("search"), true);
+  assert.match(searchEngineUi, /chrome\.search\.query/);
+  assert.doesNotMatch(searchEngineUi, /buildSearchUrl|chrome\.tabs\.create|window\.open/);
   assert.match(searchEngineUi, /credentials:\s*'omit'/);
   assert.match(searchEngineUi, /chrome\.permissions\.request\(\{ origins: \[Engines\.BAIDU_SUGGESTION_ORIGIN\] \}\)/);
   assert.equal(manifest.optional_host_permissions?.includes('https://suggestion.baidu.com/*'), true);
@@ -298,8 +301,8 @@ async function testWorkspaceNavigationContract() {
   });
   assert.equal(manifest.commands?.['bookmark-current-page']?.description, '__MSG_commandBookmarkCurrentPage__');
   assert.equal(manifest.action?.default_title, '__MSG_actionOpenBrowseLoom__');
-  assert.equal(enLocale.commandBookmarkCurrentPage.message, 'Bookmark the current page');
-  assert.equal(zhLocale.commandBookmarkCurrentPage.message, '收藏当前网页');
+  assert.equal(enLocale.commandBookmarkCurrentPage.message, 'Bookmark this page');
+  assert.equal(zhLocale.commandBookmarkCurrentPage.message, '收藏此页');
   assert.equal(enLocale.actionOpenBrowseLoom.message, 'Open BrowseLoom');
   assert.equal(zhLocale.actionOpenBrowseLoom.message, '打开 BrowseLoom');
   assert.match(background, /chrome\.action\.onClicked\.addListener\(openBrowseLoom\)/);
@@ -313,6 +316,19 @@ async function testWorkspaceNavigationContract() {
   assert.match(ui, /categoryId:\s*UNFILED_CATEGORY_ID/);
   assert.match(ui, /focusField:\s*response\.draft\.supported \? 'bookmarkNote' : 'bookmarkUrl'/);
   assert.match(ui, /openBookmarkEditor\(null, \{[\s\S]*?prefill:\s*response\.draft/);
+}
+
+function testSidePanelTabActionScopeContract() {
+  const panel = readFileSync(resolve(root, 'extension/sidepanel.js'), 'utf8');
+  const resultCard = panel.match(/function renderResultCard[\s\S]*?\n  }/)?.[0] || '';
+  const clickHandler = panel.match(/document\.addEventListener\('click',[\s\S]*?\n  }\);/)?.[0] || '';
+
+  assert.match(resultCard, /data-action="focus" data-tab-id=/);
+  assert.match(resultCard, /data-action="save-tab" data-tab-id=/);
+  assert.match(resultCard, /data-action="close-tab" data-tab-id=/);
+  assert.match(clickHandler, /focusTabById\(tabId\)/);
+  assert.match(clickHandler, /closeTabsByIds\(\[tabId\]\)/);
+  assert.doesNotMatch(clickHandler, /closeTabsByUrls\(\[url\]\)/);
 }
 
 async function testBackgroundRegistryContract() {
@@ -623,6 +639,10 @@ async function testTabsService() {
 
   await tabs.closeDuplicateTabs(['https://a.test'], true);
   assert.deepEqual(removed, [1]);
+
+  removed.length = 0;
+  await tabs.closeTabsByIds([2, 3]);
+  assert.deepEqual(removed, [2]);
 
   removed.length = 0;
   global.chrome = {
@@ -1198,6 +1218,34 @@ async function testStorageService() {
   await assert.rejects(() => storage.getSavedTabs(), /storage-schema-forward/);
   await assert.rejects(() => storage.set({ shouldNotWrite: true }), /storage-schema-forward/);
   assert.equal(futureStorage.store.shouldNotWrite, undefined);
+
+  let releaseMigrationRead;
+  let signalMigrationRead;
+  const migrationReadStarted = new Promise(resolve => { signalMigrationRead = resolve; });
+  const releaseMigration = new Promise(resolve => { releaseMigrationRead = resolve; });
+  const concurrentStorage = makeFakeStorage({
+    storageSchemaVersion: storage.CURRENT_SCHEMA_VERSION - 1,
+    deferred: [{ id: 'existing', url: 'https://existing.test/', title: 'Existing', savedAt: '2026-08-31T00:00:00.000Z', completed: false }],
+  });
+  const originalGet = concurrentStorage.get.bind(concurrentStorage);
+  concurrentStorage.get = async keys => {
+    if (keys !== null) return originalGet(keys);
+    const snapshot = await originalGet(keys);
+    signalMigrationRead();
+    await releaseMigration;
+    return snapshot;
+  };
+  global.chrome = { storage: { local: concurrentStorage } };
+  const migrating = storage.migrateStorage();
+  await migrationReadStarted;
+  const addingDuringMigration = storage.addDeferredTab({ url: 'https://concurrent.test/', title: 'Concurrent' });
+  releaseMigrationRead();
+  await Promise.all([migrating, addingDuringMigration]);
+  assert.equal(
+    concurrentStorage.store.deferred.some(item => item.url === 'https://concurrent.test/'),
+    true,
+    'storage migration must not overwrite a concurrent mutation',
+  );
 }
 
 async function testBookmarksService() {
@@ -1557,6 +1605,7 @@ function testHtmlService() {
 
 testUrlService();
 await testWorkspaceNavigationContract();
+testSidePanelTabActionScopeContract();
 await testBackgroundRegistryContract();
 testWallpaperServiceContract();
 await testBackgroundBookmarkCapture();

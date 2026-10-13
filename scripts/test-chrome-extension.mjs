@@ -233,7 +233,7 @@ async function main() {
         };
       })()`), {
         triggerCount: 1,
-        tabLabels: ['General', 'Search', 'Appearance', 'Privacy screen', 'Data & privacy', 'About'],
+        tabLabels: ['General', 'Search', 'Appearance', 'Screen cover', 'Data & privacy', 'About'],
         leftMenuBeforeContent: true,
         activeView: 'general',
         hasCloseControl: false,
@@ -332,16 +332,9 @@ async function main() {
         await writeFile(resolve(process.env.SETTINGS_IA_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
       }
       await page.evaluate(`document.querySelector('#settingsTabSearch').click()`);
-      await page.waitFor('document.querySelector("#settingsPaneSearch")?.classList.contains("active") && document.querySelectorAll("#searchEngineSettingsList .search-engine-settings-row").length === 4');
-      assert.deepEqual(await page.evaluate(`(() => ({
-        defaultName: document.querySelector('#searchEngineSettingsList .search-default-badge')?.closest('.search-engine-default-button')?.querySelector('.search-engine-name')?.textContent || '',
-        enabledCount: document.querySelectorAll('#searchEngineSettingsList [data-search-enable-engine]:checked').length,
-        baiduSuggestions: document.querySelector('#baiduSuggestionsToggle')?.checked,
-      }))()`), {
-        defaultName: 'Google',
-        enabledCount: 4,
-        baiduSuggestions: false,
-      });
+      await page.waitFor('document.querySelector("#settingsPaneSearch")?.classList.contains("active")');
+      assert.equal(await page.evaluate(`document.querySelector('#baiduSuggestionsToggle').checked`), false);
+      assert.equal(await page.evaluate(`document.querySelector('#customSearchEngineForm, #searchEngineSettingsList')`), null);
       const permissionRequestStubbed = await page.evaluate(`(() => {
         try {
           chrome.permissions.request = async () => { throw new Error('Only permissions specified in the manifest may be requested.'); };
@@ -360,18 +353,6 @@ async function main() {
         const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
         await writeFile(resolve(process.env.SEARCH_PERMISSION_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
       }
-      await page.evaluate(`(() => {
-        document.querySelector('#addCustomSearchEngine').click();
-        document.querySelector('#customSearchEngineName').value = 'Docs';
-        document.querySelector('#customSearchEngineUrl').value = 'https://docs.example.com/search?q=%s';
-        document.querySelector('#customSearchEngineColor').value = '#334455';
-        document.querySelector('#customSearchEngineForm').requestSubmit();
-      })()`);
-      await page.waitFor('document.querySelectorAll("#customSearchEngineList .search-custom-engine-row").length === 1');
-      const storedSearchSettings = await page.evaluate(`new Promise(resolve => chrome.storage.local.get('searchSettings', result => resolve(result.searchSettings)))`);
-      assert.equal(storedSearchSettings.defaultEngineId, 'google');
-      assert.equal(storedSearchSettings.customEngines.length, 1);
-      assert.equal(storedSearchSettings.customEngines[0].searchUrlTemplate, 'https://docs.example.com/search?q=%s');
       if (process.env.SEARCH_SETTINGS_SCREENSHOT) {
         const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
         await writeFile(resolve(process.env.SEARCH_SETTINGS_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
@@ -398,28 +379,16 @@ async function main() {
         document.querySelector('#privacySettings').click();
         document.querySelector('[data-search-surface="tabs"] .search-source-button').click();
         return document.querySelectorAll('[data-search-surface="tabs"] .search-source-option[data-search-source]:not([data-search-source="local"])').length;
-      })()`), 5);
+      })()`), 1);
       if (process.env.SEARCH_SOURCE_MENU_SCREENSHOT) {
         const screenshot = await page.send('Page.captureScreenshot', { format: 'png', fromSurface: true }, 30000);
         await writeFile(resolve(process.env.SEARCH_SOURCE_MENU_SCREENSHOT), Buffer.from(screenshot.data, 'base64'));
       }
-      assert.equal(await page.evaluate(`(() => {
-        const add = document.querySelector('[data-search-surface="tabs"] [data-search-action="add-custom-engine"]');
-        add?.click();
-        return Boolean(add);
-      })()`), true);
-      await page.waitFor('document.querySelector("#privacySettings")?.open && document.querySelector("#settingsPaneSearch")?.classList.contains("active") && !document.querySelector("#customSearchEngineForm")?.hidden');
-      assert.equal(await page.evaluate(`document.activeElement?.id`), 'customSearchEngineName');
-      await page.evaluate(`(() => {
-        document.querySelector('#cancelCustomSearchEngine')?.click();
-        document.querySelector('#privacySettings')?.click();
-        document.querySelector('[data-search-surface="tabs"] .search-source-button').click();
-      })()`);
-      await page.evaluate(`document.querySelector('[data-search-surface="tabs"] .search-source-option[data-search-source="google"]').click()`);
+      await page.evaluate(`document.querySelector('[data-search-surface="tabs"] .search-source-option[data-search-source="browser"]').click()`);
       assert.deepEqual(await page.evaluate(`(() => ({
         tabs: document.querySelector('#openTabsSearch')?.dataset.searchEngineId,
         bookmarks: document.querySelector('#bookmarkSearch')?.dataset.searchEngineId,
-      }))()`), { tabs: 'google', bookmarks: 'google' });
+      }))()`), { tabs: 'browser', bookmarks: 'browser' });
       await page.evaluate(`(() => {
         const input = document.querySelector('#openTabsSearch');
         input.value = 'shared';
@@ -433,24 +402,34 @@ async function main() {
         requestCount: 1,
         values: ['shared suggestion one', 'shared suggestion two', 'shared'],
       });
+      await page.evaluate(`(() => {
+        globalThis.__webSearchCalls = [];
+        chrome.search.query = async info => { globalThis.__webSearchCalls.push(info); };
+        document.querySelector('[data-search-surface="tabs"] [data-search-suggestion]').click();
+        document.querySelector('#openTabsSearch').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      })()`);
+      assert.deepEqual(await page.evaluate(`globalThis.__webSearchCalls`), [
+        { text: 'shared suggestion one', disposition: 'NEW_TAB' },
+        { text: 'shared', disposition: 'NEW_TAB' },
+      ]);
       await page.evaluate(`document.querySelector('#openTabsSearch').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))`);
       assert.deepEqual(await page.evaluate(`(() => ({
         mode: document.querySelector('#openTabsSearch')?.dataset.searchMode,
         engine: document.querySelector('#openTabsSearch')?.dataset.searchEngineId,
         value: document.querySelector('#openTabsSearch')?.value,
         suggestionsHidden: document.querySelector('[data-search-surface="tabs"] .search-suggestions')?.hidden,
-      }))()`), { mode: 'external', engine: 'google', value: 'shared', suggestionsHidden: true });
+      }))()`), { mode: 'external', engine: 'browser', value: 'shared', suggestionsHidden: true });
       await page.evaluate(`document.querySelector('#openTabsSearch').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))`);
       assert.deepEqual(await page.evaluate(`(() => ({
         mode: document.querySelector('#openTabsSearch')?.dataset.searchMode,
         engine: document.querySelector('#openTabsSearch')?.dataset.searchEngineId,
         value: document.querySelector('#openTabsSearch')?.value,
-      }))()`), { mode: 'external', engine: 'google', value: 'shared' });
-      await page.evaluate(`document.querySelector('[data-search-surface="bookmarks"] .search-source-option[data-search-source="bing"]').click()`);
+      }))()`), { mode: 'external', engine: 'browser', value: 'shared' });
+      await page.evaluate(`document.querySelector('[data-search-surface="bookmarks"] .search-source-option[data-search-source="browser"]').click()`);
       assert.deepEqual(await page.evaluate(`(() => ({
         tabs: document.querySelector('#openTabsSearch')?.dataset.searchEngineId,
         bookmarks: document.querySelector('#bookmarkSearch')?.dataset.searchEngineId,
-      }))()`), { tabs: 'bing', bookmarks: 'bing' });
+      }))()`), { tabs: 'browser', bookmarks: 'browser' });
       await page.evaluate(`document.querySelector('#openTabsSearch').value = 'zzzz-no-local-result-97f2'`);
       await page.evaluate(`(() => {
         document.querySelector('[data-search-surface="tabs"] .search-source-button').click();
@@ -474,7 +453,16 @@ async function main() {
         input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'e' }));
       })()`);
       await page.waitFor('!document.querySelector("#dashboardSearchFallback")?.hidden');
-      assert.equal(await page.evaluate(`document.querySelectorAll('#dashboardSearchFallback [data-search-fallback-engine]').length`), 5);
+      assert.equal(await page.evaluate(`document.querySelectorAll('#dashboardSearchFallback [data-search-fallback-engine]').length`), 1);
+      await page.evaluate(`document.querySelector('#dashboardSearchFallback [data-search-fallback-engine]').click()`);
+      assert.deepEqual(await page.evaluate(`globalThis.__webSearchCalls.at(-1)`), { text: 'zzzz-no-local-result-97f2', disposition: 'NEW_TAB' });
+      // Legacy provider choices must never override browser search after a reload.
+      await page.evaluate(`chrome.storage.local.set({ searchSettings: { defaultEngineId: 'bing', enabledEngineIds: ['bing'], baiduSuggestionsEnabled: false } })`);
+      await page.navigate(`${extensionBase}/index.html`);
+      await page.waitFor('document.querySelector("#openTabsSearch")?.dataset.searchMode === "local"');
+      assert.equal(await page.evaluate(`document.querySelectorAll('[data-search-surface="tabs"] [data-search-source="browser"]').length`), 1);
+      assert.equal(await page.evaluate(`document.querySelector('[data-search-source="bing"]')`), null);
+      await page.evaluate(`document.querySelector('#privacySettingsBtn').click()`);
       await page.evaluate(`document.querySelector('#settingsTabData').click()`);
       await page.waitFor('document.querySelector("#settingsPaneData")?.classList.contains("active")');
       assert.equal(await page.evaluate(`document.querySelector('#settingsPaneData #bookmarkImportButton') !== null`), true);
@@ -1099,7 +1087,7 @@ async function main() {
       {
         versionMatchesManifest: true,
         aboutTabCurrent: 'page',
-        links: ['Project source', 'Open-source license', 'Attribution notices', 'Third-party notices'],
+        links: ['View code', 'Open-source license', 'Attribution notices', 'Third-party notices'],
       },
     );
     assert.deepEqual(

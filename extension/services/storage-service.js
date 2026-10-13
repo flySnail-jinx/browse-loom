@@ -595,65 +595,67 @@
   }
 
   async function migrateStorage() {
-    const area = getStorageArea();
-    if (!area) return { from: 0, to: CURRENT_SCHEMA_VERSION, changed: false };
+    return await withMutationLock(async () => {
+      const area = getStorageArea();
+      if (!area) return { from: 0, to: CURRENT_SCHEMA_VERSION, changed: false };
 
-    const data = await getRaw(null);
-    const rawVersion = Number(data[STORAGE_SCHEMA_KEY] || 0);
-    const from = Number.isFinite(rawVersion) ? rawVersion : 0;
-    if (from > CURRENT_SCHEMA_VERSION) {
-      return { from, to: CURRENT_SCHEMA_VERSION, changed: false, forwardVersion: true };
-    }
+      const data = await getRaw(null);
+      const rawVersion = Number(data[STORAGE_SCHEMA_KEY] || 0);
+      const from = Number.isFinite(rawVersion) ? rawVersion : 0;
+      if (from > CURRENT_SCHEMA_VERSION) {
+        return { from, to: CURRENT_SCHEMA_VERSION, changed: false, forwardVersion: true };
+      }
 
-    const updates = {};
+      const updates = {};
 
-    if (from < 1) {
-      updates[DEFERRED_KEY] = normalizeDeferred(data[DEFERRED_KEY]);
-      updates[VIEW_MODE_KEY] = normalizeViewMode(data[VIEW_MODE_KEY]);
-      updates[PRIVACY_MODE_KEY] = data[PRIVACY_MODE_KEY] === true;
-      updates[PRIVACY_SETTINGS_KEY] = normalizePrivacySettings(data[PRIVACY_SETTINGS_KEY]);
-    }
+      if (from < 1) {
+        updates[DEFERRED_KEY] = normalizeDeferred(data[DEFERRED_KEY]);
+        updates[VIEW_MODE_KEY] = normalizeViewMode(data[VIEW_MODE_KEY]);
+        updates[PRIVACY_MODE_KEY] = data[PRIVACY_MODE_KEY] === true;
+        updates[PRIVACY_SETTINGS_KEY] = normalizePrivacySettings(data[PRIVACY_SETTINGS_KEY]);
+      }
 
-    if (from < 2) {
-      updates[SAVED_SESSIONS_KEY] = normalizeSavedSessions(data[SAVED_SESSIONS_KEY]);
-      updates[ACTIVITY_STATS_KEY] = normalizeActivityStats(data[ACTIVITY_STATS_KEY]);
-      updates[ACHIEVEMENTS_KEY] = normalizeAchievements(data[ACHIEVEMENTS_KEY]);
-    }
+      if (from < 2) {
+        updates[SAVED_SESSIONS_KEY] = normalizeSavedSessions(data[SAVED_SESSIONS_KEY]);
+        updates[ACTIVITY_STATS_KEY] = normalizeActivityStats(data[ACTIVITY_STATS_KEY]);
+        updates[ACHIEVEMENTS_KEY] = normalizeAchievements(data[ACHIEVEMENTS_KEY]);
+      }
 
-    if (from < 3) {
-      updates[DOMAIN_CARD_PREFERENCES_KEY] = normalizeDomainCardPreferences(data[DOMAIN_CARD_PREFERENCES_KEY]);
-    }
+      if (from < 3) {
+        updates[DOMAIN_CARD_PREFERENCES_KEY] = normalizeDomainCardPreferences(data[DOMAIN_CARD_PREFERENCES_KEY]);
+      }
 
-    if (from < 6) {
-      updates[BOOKMARK_LIBRARY_KEY] = normalizeBookmarkLibrary(data[BOOKMARK_LIBRARY_KEY]);
-    }
+      if (from < 6) {
+        updates[BOOKMARK_LIBRARY_KEY] = normalizeBookmarkLibrary(data[BOOKMARK_LIBRARY_KEY]);
+      }
 
-    if (from < 7) {
-      const legacyDeferred = Array.isArray(data[DEFERRED_KEY])
-        ? data[DEFERRED_KEY].filter(item => !isPlainObject(item) || item.dismissed !== true)
-        : [];
-      updates[DEFERRED_KEY] = normalizeDeferred(legacyDeferred);
-      updates[SAVED_SESSIONS_KEY] = normalizeSavedSessions(data[SAVED_SESSIONS_KEY]);
-    }
+      if (from < 7) {
+        const legacyDeferred = Array.isArray(data[DEFERRED_KEY])
+          ? data[DEFERRED_KEY].filter(item => !isPlainObject(item) || item.dismissed !== true)
+          : [];
+        updates[DEFERRED_KEY] = normalizeDeferred(legacyDeferred);
+        updates[SAVED_SESSIONS_KEY] = normalizeSavedSessions(data[SAVED_SESSIONS_KEY]);
+      }
 
-    if (from < 8) {
-      updates[PRIVACY_SETTINGS_KEY] = {
-        ...normalizePrivacySettings(data[PRIVACY_SETTINGS_KEY]),
-        externalFavicons: false,
-      };
-    }
+      if (from < 8) {
+        updates[PRIVACY_SETTINGS_KEY] = {
+          ...normalizePrivacySettings(data[PRIVACY_SETTINGS_KEY]),
+          externalFavicons: false,
+        };
+      }
 
-    if (from !== CURRENT_SCHEMA_VERSION) {
-      updates[STORAGE_SCHEMA_KEY] = CURRENT_SCHEMA_VERSION;
-      updates[STORAGE_LAST_MIGRATED_KEY] = nowIso();
-    }
+      if (from !== CURRENT_SCHEMA_VERSION) {
+        updates[STORAGE_SCHEMA_KEY] = CURRENT_SCHEMA_VERSION;
+        updates[STORAGE_LAST_MIGRATED_KEY] = nowIso();
+      }
 
-    if (Object.keys(updates).length > 0) {
-      await setRaw(updates);
-      return { from, to: CURRENT_SCHEMA_VERSION, changed: true };
-    }
+      if (Object.keys(updates).length > 0) {
+        await setRaw(updates);
+        return { from, to: CURRENT_SCHEMA_VERSION, changed: true };
+      }
 
-    return { from, to: CURRENT_SCHEMA_VERSION, changed: false };
+      return { from, to: CURRENT_SCHEMA_VERSION, changed: false };
+    });
   }
 
   async function getDeferred() {

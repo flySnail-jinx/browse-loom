@@ -38,14 +38,14 @@
           <span class="search-source-mark" aria-hidden="true">⌕</span>
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m4 6 4 4 4-4"></path></svg>
         </button>
-        <input type="text" class="open-tabs-search" id="openTabsSearch" placeholder="Filter tabs" autocomplete="off" spellcheck="false" data-i18n-placeholder="search" aria-label="Filter tabs">
+        <input type="text" class="open-tabs-search" id="openTabsSearch" placeholder="Search tabs" autocomplete="off" spellcheck="false" data-i18n-placeholder="search" data-i18n-aria-label="search" aria-label="Search tabs">
         <span class="open-tabs-search-hint">/</span>
       </div>
       <div class="open-tabs-view-toggle" id="openTabsViewToggle"></div>
       <div class="open-tabs-sort-control" id="openTabsSortControl"></div>
       <span class="toolbar-divider" aria-hidden="true"></span>
       <!-- Privacy mode toggle — lock icon. Esc is the keyboard shortcut. -->
-      <button class="privacy-toggle" id="privacyToggle" title="Toggle privacy mode (Esc)" aria-label="Toggle privacy mode">
+      <button class="privacy-toggle" id="privacyToggle" title="Toggle screen cover (Esc)" aria-label="Toggle screen cover">
         <svg class="privacy-icon privacy-icon-off" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
           <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
         </svg>
@@ -80,7 +80,7 @@
         </div>
       </div>
 
-      <div class="appearance-group" aria-label="Appearance">
+      <div class="appearance-group" data-i18n-aria-label="appearanceSettings" aria-label="Appearance">
         <!-- Theme picker — compact current theme button opens a larger palette grid. -->
         <div class="theme-picker" id="themePicker">
           <button class="theme-current-btn" id="themeCurrentBtn" data-action="toggle-theme-menu"
@@ -139,14 +139,14 @@
         <!-- Font picker — system-font-only presets for readability and density. -->
         <div class="font-picker" id="fontPicker">
           <button class="font-current-btn" id="fontCurrentBtn" data-action="toggle-font-menu"
-                  aria-haspopup="true" aria-expanded="false" title="Typography">
+                  aria-haspopup="true" aria-expanded="false" title="Font">
             <span class="font-current-mark" aria-hidden="true">Aa</span>
             <span class="font-current-label" id="activeFontLabel">Type</span>
             <svg class="font-current-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
             </svg>
           </button>
-          <div class="font-menu" id="fontMenu" role="group" aria-label="Typography">
+          <div class="font-menu" id="fontMenu" role="group" data-i18n-aria-label="fontLabel" aria-label="Font">
             <button class="font-option" data-action="set-font-preset" data-font-preset="system" role="radio" aria-checked="false" aria-pressed="false">
               <span class="font-sample" aria-hidden="true">Aa</span>
               <span class="font-option-copy">
@@ -175,29 +175,29 @@
                 <span class="font-option-desc">Serif-led headings</span>
               </span>
             </button>
-            <div class="font-size-controls" role="group" aria-label="Size by area">
+            <div class="font-size-controls" role="group" data-i18n-aria-label="fontSizeByArea" aria-label="Text size by area">
               <div class="font-size-title" data-font-copy="fontSizeByArea">Size by area</div>
               <div class="font-size-row">
                 <span class="font-size-area" data-font-copy="fontSizeHeader">Header</span>
-                <div class="font-size-segment" role="group" aria-label="Header size">
+                <div class="font-size-segment" role="group" data-i18n-aria-label="fontSizeHeader" aria-label="Header size">
                   <button class="font-size-option" data-action="set-font-size" data-font-size-area="header" data-font-size-value="small" aria-pressed="false" title="Small">S</button>
-                  <button class="font-size-option" data-action="set-font-size" data-font-size-area="header" data-font-size-value="default" aria-pressed="true" title="Default">M</button>
+                  <button class="font-size-option" data-action="set-font-size" data-font-size-area="header" data-font-size-value="default" aria-pressed="true" title="Standard">M</button>
                   <button class="font-size-option" data-action="set-font-size" data-font-size-area="header" data-font-size-value="large" aria-pressed="false" title="Large">L</button>
                 </div>
               </div>
               <div class="font-size-row">
                 <span class="font-size-area" data-font-copy="fontSizeCards">Cards</span>
-                <div class="font-size-segment" role="group" aria-label="Card title size">
+                <div class="font-size-segment" role="group" data-i18n-aria-label="fontSizeCards" aria-label="Card title size">
                   <button class="font-size-option" data-action="set-font-size" data-font-size-area="cards" data-font-size-value="small" aria-pressed="false" title="Small">S</button>
-                  <button class="font-size-option" data-action="set-font-size" data-font-size-area="cards" data-font-size-value="default" aria-pressed="true" title="Default">M</button>
+                  <button class="font-size-option" data-action="set-font-size" data-font-size-area="cards" data-font-size-value="default" aria-pressed="true" title="Standard">M</button>
                   <button class="font-size-option" data-action="set-font-size" data-font-size-area="cards" data-font-size-value="large" aria-pressed="false" title="Large">L</button>
                 </div>
               </div>
               <div class="font-size-row">
                 <span class="font-size-area" data-font-copy="fontSizeTabs">Tab rows</span>
-                <div class="font-size-segment" role="group" aria-label="Tab row size">
+                <div class="font-size-segment" role="group" data-i18n-aria-label="fontSizeTabs" aria-label="Tab size">
                   <button class="font-size-option" data-action="set-font-size" data-font-size-area="tabs" data-font-size-value="small" aria-pressed="false" title="Small">S</button>
-                  <button class="font-size-option" data-action="set-font-size" data-font-size-area="tabs" data-font-size-value="default" aria-pressed="true" title="Default">M</button>
+                  <button class="font-size-option" data-action="set-font-size" data-font-size-area="tabs" data-font-size-value="default" aria-pressed="true" title="Standard">M</button>
                   <button class="font-size-option" data-action="set-font-size" data-font-size-area="tabs" data-font-size-value="large" aria-pressed="false" title="Large">L</button>
                 </div>
               </div>
@@ -234,7 +234,7 @@
               </button>
               <button class="settings-tab" id="settingsTabPrivacy" data-action="set-settings-view" data-settings-view="privacy" type="button" aria-current="false" aria-controls="settingsPanePrivacy">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
-                <span data-i18n="privacyScreenSettings">Privacy screen</span>
+                <span data-i18n="privacyScreenSettings">Screen cover</span>
               </button>
               <button class="settings-tab" id="settingsTabData" data-action="set-settings-view" data-settings-view="data" type="button" aria-current="false" aria-controls="settingsPaneData">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><ellipse cx="12" cy="5" rx="7" ry="3"></ellipse><path d="M5 5v7c0 1.66 3.13 3 7 3s7-1.34 7-3V5M5 12v7c0 1.66 3.13 3 7 3s7-1.34 7-3v-7"></path></svg>
@@ -258,18 +258,18 @@
           <div class="settings-section">
             <div class="settings-field">
               <div class="settings-field-label" id="defaultWorkspaceLabel" data-i18n="defaultWorkspaceLabel">Default page</div>
-              <p class="settings-field-description" data-i18n="defaultWorkspaceDescription">Used for new tabs and the extension toolbar button.</p>
+              <p class="settings-field-description" data-i18n="defaultWorkspaceDescription">Opens when you create a new tab or click the extension icon.</p>
               <div class="default-workspace-options" role="radiogroup" aria-labelledby="defaultWorkspaceLabel">
                 <button class="default-workspace-option" type="button" role="radio" aria-checked="true"
                         data-action="set-default-workspace" data-default-workspace="tabs">
                   <span class="default-workspace-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18M8 4v5"></path></svg></span>
-                  <span data-i18n="workspaceTabs">Tab management</span>
+                  <span data-i18n="workspaceTabs">Tabs</span>
                   <span class="default-workspace-option-check" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 10 3 3 7-7"></path></svg></span>
                 </button>
                 <button class="default-workspace-option" type="button" role="radio" aria-checked="false"
                         data-action="set-default-workspace" data-default-workspace="bookmarks" tabindex="-1">
                   <span class="default-workspace-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V21l-5-3-5 3V4.75Z"></path></svg></span>
-                  <span data-i18n="workspaceBookmarks">Bookmark management</span>
+                  <span data-i18n="workspaceBookmarks">Bookmarks</span>
                   <span class="default-workspace-option-check" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 10 3 3 7-7"></path></svg></span>
                 </button>
               </div>
@@ -281,55 +281,29 @@
           <header class="settings-pane-header"><h2 data-search-copy="searchSettings">Search</h2></header>
 
           <div class="settings-section search-settings-section">
-            <div class="settings-section-title" data-search-copy="builtInEngines">Built-in engines</div>
-            <p class="settings-field-description" data-search-copy="builtInDescription">Choose the default web search and which engines appear in the search source menu.</p>
-            <div class="search-engine-settings-list" id="searchEngineSettingsList"></div>
+            <div class="settings-section-title" data-search-copy="builtInEngines">Search the web</div>
+            <p class="settings-field-description" data-search-copy="builtInDescription">Web searches use your browser's default search.
+You can change it in browser settings.
+The search box starts by finding open or saved content.</p>
           </div>
 
           <div class="settings-section search-settings-section">
-            <div class="settings-section-title" data-search-copy="onlineSuggestions">Online suggestions</div>
+            <div class="settings-section-title" data-search-copy="onlineSuggestions">Search suggestions</div>
             <label class="privacy-setting-row">
-              <span data-search-copy="baiduSuggestions">Baidu search suggestions</span>
+              <span data-search-copy="baiduSuggestions">Baidu suggestions</span>
               <span class="privacy-setting-switch">
                 <input type="checkbox" id="baiduSuggestionsToggle">
                 <span class="privacy-setting-switch-track" aria-hidden="true"></span>
               </span>
             </label>
-            <p class="privacy-setting-disclosure" id="baiduSuggestionsDisclosure" data-search-copy="baiduSuggestionsDisclosure">Off by default. When enabled, text typed in Baidu mode is sent to suggestion.baidu.com.</p>
+            <p class="privacy-setting-disclosure" id="baiduSuggestionsDisclosure" data-search-copy="baiduSuggestionsDisclosure">Optional and off by default.
+When enabled, text entered in web search is sent to Baidu.
+Recipient: suggestion.baidu.com
+Suggestions come from Baidu.
+Results still use your browser's default search.</p>
             <p class="search-settings-status" id="searchSettingsStatus" role="status" aria-live="polite" hidden></p>
           </div>
 
-          <div class="settings-section search-settings-section">
-            <div class="search-custom-heading">
-              <div>
-                <div class="settings-section-title" data-search-copy="customEngines">Custom engines</div>
-                <p class="settings-field-description" data-search-copy="customDescription">Add an HTTPS search URL containing exactly one %s placeholder.</p>
-              </div>
-              <button class="search-settings-add" id="addCustomSearchEngine" type="button" data-search-copy="addEngine">Add engine</button>
-            </div>
-            <div class="search-custom-engine-list" id="customSearchEngineList"></div>
-
-            <form class="search-custom-form" id="customSearchEngineForm" hidden novalidate>
-              <input id="customSearchEngineId" type="hidden">
-              <label class="search-custom-field">
-                <span data-search-copy="engineName">Name</span>
-                <input id="customSearchEngineName" type="text" maxlength="40" autocomplete="off" required>
-              </label>
-              <label class="search-custom-field">
-                <span data-search-copy="engineUrl">Search URL</span>
-                <input id="customSearchEngineUrl" type="url" maxlength="2048" autocomplete="off" placeholder="https://example.com/search?q=%s" required>
-              </label>
-              <label class="search-custom-color-field">
-                <span data-search-copy="engineColor">Icon color</span>
-                <input id="customSearchEngineColor" type="color" value="#64748b">
-              </label>
-              <p class="search-custom-error" id="customSearchEngineError" role="alert"></p>
-              <div class="search-custom-actions">
-                <button type="button" id="cancelCustomSearchEngine" data-search-copy="cancel">Cancel</button>
-                <button type="submit" class="search-custom-save" data-search-copy="saveEngine">Save engine</button>
-              </div>
-            </form>
-          </div>
         </section>
 
         <section class="settings-pane" id="settingsPaneAppearance" data-settings-pane="appearance" aria-labelledby="settingsTabAppearance" hidden>
@@ -344,7 +318,7 @@
               <div class="settings-field-control" id="settingsThemeSlot"></div>
             </div>
             <div class="settings-field">
-              <div class="settings-field-label" id="backgroundPickerLabel" data-wallpaper-copy="systemBackgrounds">System backgrounds</div>
+              <div class="settings-field-label" id="backgroundPickerLabel" data-wallpaper-copy="systemBackgrounds">Built-in backgrounds</div>
               <div class="background-options" role="radiogroup" aria-labelledby="backgroundPickerLabel">
                 <button class="background-option" type="button" role="radio" aria-checked="false"
                         data-action="set-background" data-background-id="mountain">
@@ -369,7 +343,7 @@
                 <button class="background-option" type="button" role="radio" aria-checked="false"
                         data-action="set-background" data-background-id="static">
                   <span class="background-option-preview background-option-preview-static" aria-hidden="true"><i></i></span>
-                  <span class="background-option-label" data-i18n="backgroundStatic">Static</span>
+                  <span class="background-option-label" data-i18n="backgroundStatic">Static background</span>
                 </button>
               </div>
             </div>
@@ -377,11 +351,11 @@
               <div class="user-wallpaper-heading">
                 <div>
                   <div class="settings-field-label" id="userWallpaperLabel" data-wallpaper-copy="myWallpapers">My wallpapers</div>
-                  <p class="settings-field-description" data-wallpaper-copy="wallpaperDescription">Images stay in this browser profile.</p>
+                  <p class="settings-field-description" data-wallpaper-copy="wallpaperDescription">Images stay in this browser's current profile.</p>
                 </div>
                 <div class="user-wallpaper-heading-actions">
                   <span class="user-wallpaper-count" id="userWallpaperCount" aria-live="polite">0 / 10</span>
-                  <button class="user-wallpaper-upload" id="userWallpaperUpload" type="button" data-wallpaper-copy="uploadWallpapers">Upload wallpapers</button>
+                  <button class="user-wallpaper-upload" id="userWallpaperUpload" type="button" data-wallpaper-copy="uploadWallpapers">Add wallpapers</button>
                   <input id="userWallpaperInput" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple hidden>
                 </div>
               </div>
@@ -389,32 +363,34 @@
               <div class="user-wallpaper-progress" id="userWallpaperProgress" role="status" aria-live="polite" hidden>
                 <div class="user-wallpaper-progress-track" aria-hidden="true"><span id="userWallpaperProgressBar"></span></div>
                 <div class="user-wallpaper-progress-copy" id="userWallpaperProgressCopy"></div>
-                <button id="userWallpaperCancelImport" type="button" data-wallpaper-copy="cancelPending">Cancel pending</button>
+                <button id="userWallpaperCancelImport" type="button" data-wallpaper-copy="cancelPending">Stop adding</button>
               </div>
               <div class="user-wallpaper-empty" id="userWallpaperEmpty">
-                <strong data-wallpaper-copy="emptyTitle">Use a photo from this device</strong>
-                <span data-wallpaper-copy="emptyBody">Upload up to 10 JPEG, PNG, or WebP images.</span>
+                <strong data-wallpaper-copy="emptyTitle">Choose a local image</strong>
+                <span data-wallpaper-copy="emptyBody">Save up to 10 images.
+Supports JPEG, PNG, and WebP.</span>
               </div>
               <div class="user-wallpaper-grid" id="userWallpaperGrid" role="radiogroup" aria-labelledby="userWallpaperLabel" hidden></div>
             </div>
             <div class="settings-field">
-              <label class="settings-field-label" for="cardOpacityRange" data-i18n="cardOpacityLabel">Card opacity</label>
+              <label class="settings-field-label" for="cardOpacityRange" data-i18n="cardOpacityLabel">Transparency</label>
               <div class="card-opacity-control">
                 <input id="cardOpacityRange" type="range" min="40" max="100" step="1" value="60"
                        aria-describedby="cardOpacityDescription">
                 <output id="cardOpacityValue" for="cardOpacityRange">60%</output>
               </div>
-              <p class="settings-field-description" id="cardOpacityDescription" data-i18n="cardOpacityDescription">Applies to cards in tabs and bookmarks.</p>
+              <p class="settings-field-description" id="cardOpacityDescription" data-i18n="cardOpacityDescription">Higher values make cards less transparent.
+Applies to cards on both the tabs and bookmarks pages.</p>
             </div>
             <div class="settings-field">
-              <div class="settings-field-label" data-i18n="fontLabel">Typography</div>
+              <div class="settings-field-label" data-i18n="fontLabel">Font</div>
               <div class="settings-field-control" id="settingsFontSlot"></div>
             </div>
           </div>
         </section>
 
         <section class="settings-pane" id="settingsPanePrivacy" data-settings-pane="privacy" aria-labelledby="settingsTabPrivacy" hidden>
-          <header class="settings-pane-header"><h2 data-i18n="privacyScreenSettings">Privacy screen</h2></header>
+          <header class="settings-pane-header"><h2 data-i18n="privacyScreenSettings">Screen cover</h2></header>
           <label class="privacy-setting-row">
             <span data-i18n="clock">Clock</span>
             <span class="privacy-setting-switch">
@@ -430,7 +406,7 @@
             </span>
           </label>
           <label class="privacy-setting-row">
-            <span data-i18n="customText">Custom text</span>
+            <span data-i18n="customText">Display text</span>
             <span class="privacy-setting-switch">
               <input type="checkbox" id="psMotto" checked>
               <span class="privacy-setting-switch-track" aria-hidden="true"></span>
@@ -444,36 +420,40 @@
         <section class="settings-pane" id="settingsPaneData" data-settings-pane="data" aria-labelledby="settingsTabData" hidden>
           <header class="settings-pane-header"><h2 data-i18n="dataPrivacySettings">Data &amp; privacy</h2></header>
           <div class="settings-section settings-data-section">
-            <div class="settings-section-title" data-i18n="networkPrivacySettings">Network privacy</div>
+            <div class="settings-section-title" data-i18n="networkPrivacySettings">Network access</div>
             <label class="privacy-setting-row">
-              <span data-i18n="externalFavicons">Load site icons via DuckDuckGo</span>
+              <span data-i18n="externalFavicons">Fetch website icons</span>
               <span class="privacy-setting-switch">
                 <input type="checkbox" id="psFavicons">
                 <span class="privacy-setting-switch-track" aria-hidden="true"></span>
               </span>
             </label>
-            <p class="privacy-setting-disclosure" data-i18n="externalFaviconsDisclosure">Optional and off by default. When enabled, BrowseLoom sends each website domain to icons.duckduckgo.com to retrieve its icon.</p>
+            <p class="privacy-setting-disclosure" data-i18n="externalFaviconsDisclosure">Optional and off by default.
+When enabled, website domains are sent to DuckDuckGo to fetch icons.
+Recipient: icons.duckduckgo.com</p>
           </div>
           <div class="settings-section settings-data-section">
-            <div class="settings-section-title" data-bookmark-copy="importBrowserBookmarks">Import browser bookmarks</div>
+            <div class="settings-section-title" data-bookmark-copy="importBrowserBookmarks">Import bookmarks</div>
             <div class="bookmark-settings-section-heading">
               <span class="bookmark-settings-section-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V21l-5-3-5 3V4.75Z"></path></svg>
               </span>
               <div>
-                <h3 data-bookmark-copy="importBrowserBookmarks">Import browser bookmarks</h3>
-                <p data-bookmark-copy="importBrowserBookmarksBody">Copy bookmarks from this browser into BrowseLoom.</p>
+                <h3 data-bookmark-copy="importBrowserBookmarks">Import bookmarks</h3>
+                <p data-bookmark-copy="importBrowserBookmarksBody">Copy this browser's bookmarks here.</p>
               </div>
             </div>
             <div class="bookmark-import-note">
-              <strong data-bookmark-copy="importPrivacyTitle">Read only during import</strong>
-              <p data-bookmark-copy="importPrivacyBody">The browser permission says “read and change bookmarks”, but BrowseLoom only reads the bookmark tree and never changes the browser copy.</p>
+              <strong data-bookmark-copy="importPrivacyTitle">Read during import</strong>
+              <p data-bookmark-copy="importPrivacyBody">The permission prompt says “read and change bookmarks”.
+Bookmarks are only read during import.
+The browser's original bookmarks stay unchanged.</p>
             </div>
             <button class="bookmark-import-button" id="bookmarkImportButton" type="button" data-bookmark-action="import-browser-bookmarks">
-              <span data-bookmark-copy="importNow">Import current browser bookmarks</span>
+              <span data-bookmark-copy="importNow">Start import</span>
             </button>
             <p class="bookmark-import-status" id="bookmarkImportStatus" role="status" aria-live="polite"></p>
-            <button class="bookmark-permission-remove" id="bookmarkPermissionRemove" type="button" data-bookmark-action="remove-bookmark-permission" data-bookmark-copy="removeBookmarkAccess" hidden>Remove browser bookmark access</button>
+            <button class="bookmark-permission-remove" id="bookmarkPermissionRemove" type="button" data-bookmark-action="remove-bookmark-permission" data-bookmark-copy="removeBookmarkAccess" hidden>Remove access</button>
           </div>
         </section>
 
@@ -483,10 +463,10 @@
             <div class="about-product-title">
               <strong>BrowseLoom</strong>
             </div>
-            <p data-i18n="aboutDescription">A local-first dashboard for organizing open browser tabs.</p>
+            <p data-i18n="aboutDescription">Organize tabs and bookmark your favorite pages.</p>
           </div>
           <div class="about-links" aria-label="Project information" data-i18n-aria-label="projectInformation">
-            <a href="https://github.com/flySnail-jinx/browse-loom" target="_blank" rel="noopener noreferrer" data-i18n="projectSource">Project source</a>
+            <a href="https://github.com/flySnail-jinx/browse-loom" target="_blank" rel="noopener noreferrer" data-i18n="projectSource">View code</a>
             <a href="https://github.com/flySnail-jinx/browse-loom/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" data-i18n="openSourceLicense">Open-source license</a>
             <a href="https://github.com/flySnail-jinx/browse-loom/blob/main/NOTICE" target="_blank" rel="noopener noreferrer" data-i18n="attributionNotices">Attribution notices</a>
             <a href="https://github.com/flySnail-jinx/browse-loom/blob/main/extension/THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener noreferrer" data-i18n="thirdPartyNotices">Third-party notices</a>
@@ -533,7 +513,7 @@
         You have <strong id="tabOutDupeCount"></strong> BrowseLoom tabs open. Keep just this one?
       </div>
     </div>
-    <button class="tab-cleanup-btn" data-action="close-tabout-dupes" data-i18n="closeExtras">Close extras</button>
+    <button class="tab-cleanup-btn" data-action="close-tabout-dupes" data-i18n="closeExtras">Close extra pages</button>
   </div>
 
   <!-- ================================================================
@@ -543,7 +523,7 @@
        The right column only renders when it has items (JS controls this)
        ================================================================ -->
   <section class="local-search-fallback" id="dashboardSearchFallback" hidden>
-    <h2 data-search-copy="noLocalResults">No local results</h2>
+    <h2 data-search-copy="noLocalResults">No content found</h2>
     <p id="dashboardSearchFallbackText"></p>
     <div class="local-search-fallback-actions" data-search-fallback-actions="tabs"></div>
   </section>
@@ -559,7 +539,7 @@
     <aside class="dashboard-side" id="dashboardSide" style="display:none">
       <div class="deferred-column" id="deferredColumn" style="display:none">
         <div class="section-header">
-          <h2 data-i18n="savedForLater">Saved for later</h2>
+          <h2 data-i18n="savedForLater">Read later</h2>
           <div class="section-line"></div>
           <div class="section-count" id="deferredCount"></div>
         </div>
@@ -569,7 +549,7 @@
 
         <!-- Empty state — shown when no active deferred tabs -->
         <div class="deferred-empty" id="deferredEmpty" style="display:none">
-          <span data-i18n="deferredEmpty">Nothing saved. Living in the moment.</span>
+          <span data-i18n="deferredEmpty">No pages waiting to be read.</span>
         </div>
 
         <!-- Archive section — collapsed by default -->
@@ -577,10 +557,10 @@
           <div class="archive-header">
             <button class="archive-toggle" id="archiveToggle" aria-expanded="false">
               <svg class="archive-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
-              <span data-i18n="archive">Archive</span>
+              <span data-i18n="archive">Finished reading</span>
               <span class="archive-count" id="archiveCount"></span>
             </button>
-            <button class="archive-clear" id="clearArchiveBtn" data-action="clear-archive" type="button" data-i18n="clearArchive" data-i18n-title="clearArchive">Clear</button>
+            <button class="archive-clear" id="clearArchiveBtn" data-action="clear-archive" type="button" data-i18n="clearArchive" data-i18n-title="clearArchive">Clear records</button>
           </div>
           <div class="archive-body" id="archiveBody" style="display:none">
             <input type="text" class="archive-search" id="archiveSearch" placeholder="Filter archived tabs..." data-i18n-placeholder="archiveSearchPlaceholder">
@@ -591,13 +571,13 @@
 
       <section class="saved-sessions-card" id="savedSessionsCard" style="display:none">
         <div class="section-header saved-sessions-header">
-          <h2 data-i18n="savedSessionsTitle">Saved sessions</h2>
+          <h2 data-i18n="savedSessionsTitle">Page collections</h2>
           <div class="section-line"></div>
           <div class="section-count" id="savedSessionsCount"></div>
         </div>
         <div class="saved-sessions-list" id="savedSessionsList"></div>
         <div class="deferred-empty" id="savedSessionsEmpty" style="display:none">
-          <span data-i18n="savedSessionsEmpty">No saved sessions yet.</span>
+          <span data-i18n="savedSessionsEmpty">No page collections saved yet.</span>
         </div>
       </section>
     </aside>
@@ -606,7 +586,7 @@
 
 </div><!-- end .container -->
 
-<section class="bookmark-workspace" id="bookmarkWorkspace" aria-label="Bookmarks" hidden>
+<section class="bookmark-workspace" id="bookmarkWorkspace" data-bookmark-copy-aria-label="bookmarks" aria-label="Bookmarks" hidden>
   <header class="bookmark-toolbar">
     <div class="bookmark-search" data-search-surface="bookmarks">
       <button class="search-source-button" type="button" data-search-action="toggle-source-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Search source">
@@ -617,7 +597,7 @@
       <kbd>/</kbd>
     </div>
     <div class="bookmark-toolbar-actions">
-      <div class="bookmark-view-toggle" id="bookmarkViewToggle" role="tablist" aria-label="Bookmark view">
+      <div class="bookmark-view-toggle" id="bookmarkViewToggle" role="tablist" data-bookmark-copy-aria-label="bookmarkView" aria-label="Bookmark layout">
         <button type="button" data-bookmark-view="grid" aria-label="Icon view" title="Icon view">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg>
         </button>
@@ -634,11 +614,11 @@
       <nav class="bookmark-library-nav" id="bookmarkLibraryNav" aria-label="Bookmark folders"></nav>
       <button class="bookmark-add-trigger" type="button" data-bookmark-action="add-category" data-bookmark-copy-aria-label="addCategory" aria-label="Add category" title="Add category">
         <span aria-hidden="true">＋</span>
-        <span class="bookmark-add-label" data-bookmark-copy="addCategory">Add category</span>
+        <span class="bookmark-add-label" data-bookmark-copy="addCategory">New category</span>
       </button>
       <button class="bookmark-import-trigger" type="button" data-action="open-settings" data-settings-view="data">
         <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5"></path><path d="M5 19h14"></path></svg></span>
-        <span class="bookmark-import-trigger-label" data-bookmark-copy="importBrowserBookmarks">Import browser bookmarks</span>
+        <span class="bookmark-import-trigger-label" data-bookmark-copy="importBrowserBookmarks">Import bookmarks</span>
       </button>
     </aside>
 
@@ -647,9 +627,10 @@
       <div class="bookmark-list" id="bookmarkList" hidden></div>
       <div class="bookmark-empty" id="bookmarkEmpty" hidden>
         <button class="bookmark-empty-icon" type="button" data-bookmark-action="open-add-menu" aria-haspopup="menu" aria-controls="bookmarkAddMenu" aria-expanded="false" data-bookmark-copy-aria-label="add" aria-label="Add">＋</button>
-        <h2 data-bookmark-copy="emptyTitle">Build your bookmark desk</h2>
-        <p data-bookmark-copy="emptyBody">Add a bookmark or folder. Everything stays in this extension.</p>
-        <button class="bookmark-empty-import" type="button" data-action="open-settings" data-settings-view="data" data-bookmark-copy="importBrowserBookmarks">Import browser bookmarks</button>
+        <h2 data-bookmark-copy="emptyTitle">Add your first bookmark</h2>
+        <p data-bookmark-copy="emptyBody">Add a bookmark or folder.
+Content stays in this extension in your current browser.</p>
+        <button class="bookmark-empty-import" type="button" data-action="open-settings" data-settings-view="data" data-bookmark-copy="importBrowserBookmarks">Import bookmarks</button>
         <div class="local-search-fallback bookmark-search-fallback" id="bookmarkSearchFallback" hidden>
           <div class="local-search-fallback-actions" data-search-fallback-actions="bookmarks"></div>
         </div>
@@ -662,7 +643,7 @@
     </aside>
 
     <aside class="bookmark-activity-panel bookmark-activity-popular" aria-labelledby="popularBookmarksTitle">
-      <h2 id="popularBookmarksTitle" data-bookmark-copy="popular">Most opened</h2>
+      <h2 id="popularBookmarksTitle" data-bookmark-copy="popular">Frequently opened</h2>
       <div class="bookmark-activity-list" id="popularBookmarks"></div>
     </aside>
   </div>
@@ -687,7 +668,7 @@
 
 <div class="bookmark-add-menu" id="bookmarkAddMenu" role="menu" hidden>
   <button type="button" role="menuitem" data-bookmark-action="add-bookmark"><span class="bookmark-add-menu-icon" aria-hidden="true">＋</span><span data-bookmark-copy="addBookmark">Add bookmark</span></button>
-  <button type="button" role="menuitem" data-bookmark-action="add-folder"><span class="bookmark-add-menu-icon" aria-hidden="true">▦</span><span data-bookmark-copy="addFolder">Create folder</span></button>
+  <button type="button" role="menuitem" data-bookmark-action="add-folder"><span class="bookmark-add-menu-icon" aria-hidden="true">▦</span><span data-bookmark-copy="addFolder">New folder</span></button>
 </div>
 
 <div class="bookmark-context-menu" id="bookmarkContextMenu" role="menu" hidden></div>
@@ -700,7 +681,7 @@
       <button class="bookmark-dialog-save" type="submit" data-bookmark-copy="save">Save</button>
     </header>
     <input id="bookmarkEditorId" type="hidden">
-    <label class="bookmark-field bookmark-field-url"><span data-bookmark-copy="url">URL</span><input id="bookmarkUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com" required></label>
+    <label class="bookmark-field bookmark-field-url"><span data-bookmark-copy="url">Web address</span><input id="bookmarkUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com" required></label>
     <label class="bookmark-field"><span data-bookmark-copy="name">Name</span><input id="bookmarkName" type="text" maxlength="160" autocomplete="off" required></label>
     <label class="bookmark-field"><span data-bookmark-copy="note">Note</span><textarea id="bookmarkNote" maxlength="500" rows="3" placeholder="Optional"></textarea></label>
     <div class="bookmark-editor-row">
@@ -709,14 +690,14 @@
     </div>
     <fieldset class="bookmark-icon-fieldset">
       <legend data-bookmark-copy="icon">Icon</legend>
-      <div class="bookmark-icon-mode" role="tablist" aria-label="Icon source">
-        <button type="button" data-icon-mode="online" data-bookmark-copy="onlineIcon">Online icon</button>
+      <div class="bookmark-icon-mode" role="tablist" data-bookmark-copy-aria-label="iconSource" aria-label="Icon source">
+        <button type="button" data-icon-mode="online" data-bookmark-copy="onlineIcon">Website icon</button>
         <button type="button" data-icon-mode="color" data-bookmark-copy="colorIcon">Solid color</button>
       </div>
       <div class="bookmark-icon-preview" id="bookmarkIconPreview" aria-live="polite"></div>
       <div class="bookmark-color-controls" id="bookmarkColorControls" hidden>
-        <div class="bookmark-color-palette" id="bookmarkColorPalette" aria-label="Icon color"></div>
-        <label class="bookmark-field"><span data-bookmark-copy="iconText">Icon text, 1–2 characters</span><input id="bookmarkIconText" type="text" maxlength="2" autocomplete="off"></label>
+        <div class="bookmark-color-palette" id="bookmarkColorPalette" data-bookmark-copy-aria-label="iconColor" aria-label="Icon color"></div>
+        <label class="bookmark-field"><span data-bookmark-copy="iconText">Icon text</span><input id="bookmarkIconText" placeholder="Enter 1–2 characters." type="text" maxlength="2" autocomplete="off"></label>
       </div>
     </fieldset>
     <p class="bookmark-form-error" id="bookmarkFormError" role="alert"></p>
@@ -727,7 +708,7 @@
   <form class="bookmark-editor" id="folderEditorForm">
     <header>
       <button class="bookmark-dialog-back" type="button" data-close-dialog="folderEditorDialog" aria-label="Close">←</button>
-      <h2 id="folderEditorTitle">Create folder</h2>
+      <h2 id="folderEditorTitle">New folder</h2>
       <button class="bookmark-dialog-save" type="submit" data-bookmark-copy="save">Save</button>
     </header>
     <input id="folderEditorId" type="hidden">
@@ -735,10 +716,10 @@
     <label class="bookmark-field" id="folderCategoryField"><span data-bookmark-copy="category">Category</span><select id="folderCategory"></select></label>
     <fieldset class="bookmark-category-icon-fieldset" id="categoryIconFieldset" hidden>
       <legend data-bookmark-copy="categoryIcon">Category icon</legend>
-      <div class="bookmark-category-icon-options" id="categoryIconOptions" role="radiogroup" aria-label="Category icon"></div>
+      <div class="bookmark-category-icon-options" id="categoryIconOptions" role="radiogroup" data-bookmark-copy-aria-label="categoryIcon" aria-label="Category icon"></div>
     </fieldset>
     <fieldset class="bookmark-layout-fieldset" id="folderLayoutFieldset">
-      <legend data-bookmark-copy="folderSize">Folder size</legend>
+      <legend data-bookmark-copy="folderSize">Display size</legend>
       <div class="bookmark-layout-options" id="folderLayoutOptions">
         <button type="button" data-folder-layout="1x1"><i class="layout-swatch layout-swatch-1x1"></i><span>1 × 1</span></button>
         <button type="button" data-folder-layout="2x1"><i class="layout-swatch layout-swatch-2x1"></i><span>2 × 1</span></button>
@@ -750,7 +731,7 @@
 </dialog>
 
 <dialog class="bookmark-folder-dialog" id="bookmarkFolderDialog" aria-labelledby="bookmarkFolderDialogTitle" data-folder-exit-drop>
-  <div class="bookmark-folder-exit-hint" data-bookmark-copy="dropToCategory">Drop here to move out of folder</div>
+  <div class="bookmark-folder-exit-hint" data-bookmark-copy="dropToCategory">Drop here to move out of the folder.</div>
   <section>
     <header>
       <form class="bookmark-folder-title-form" id="bookmarkFolderRenameForm">
@@ -774,7 +755,7 @@
 
 <dialog class="bookmark-confirm-dialog" id="bookmarkConfirmDialog" aria-labelledby="bookmarkConfirmTitle">
   <form id="bookmarkConfirmForm">
-    <h2 id="bookmarkConfirmTitle">Delete item?</h2>
+    <h2 id="bookmarkConfirmTitle">Delete bookmark?</h2>
     <p id="bookmarkConfirmText"></p>
     <div><button type="button" data-close-dialog="bookmarkConfirmDialog" data-bookmark-copy="cancel">Cancel</button><button id="bookmarkConfirmMoveToUnfiled" type="submit" data-category-delete-mode="move-to-unfiled" data-bookmark-copy="moveToUnfiled" hidden>Move to Unfiled</button><button class="danger" id="bookmarkConfirmDelete" type="submit" data-category-delete-mode="delete-all" data-bookmark-copy="delete">Delete</button></div>
   </form>
@@ -784,7 +765,7 @@
   <form id="bulkTabConfirmForm">
     <h2 id="bulkTabConfirmTitle">Close tabs?</h2>
     <p id="bulkTabConfirmText"></p>
-    <div><button id="bulkTabConfirmCancel" type="button">Cancel</button><button class="danger" id="bulkTabConfirmSubmit" type="submit">Close tabs</button></div>
+    <div><button id="bulkTabConfirmCancel" type="button" data-i18n="cancel">Cancel</button><button class="danger" id="bulkTabConfirmSubmit" type="submit">Confirm close</button></div>
   </form>
 </dialog>
 
@@ -800,19 +781,19 @@
     <div class="wallpaper-editor-preview" id="wallpaperEditorPreview" tabindex="0" data-wallpaper-copy-aria-label="dragToPosition">
       <img id="wallpaperEditorImage" alt="" draggable="false">
       <span id="wallpaperEditorOverlay" aria-hidden="true"></span>
-      <span class="wallpaper-editor-drag-hint" data-wallpaper-copy="dragToPosition">Drag to position</span>
+      <span class="wallpaper-editor-drag-hint" data-wallpaper-copy="dragToPosition">Drag the image to position it.</span>
     </div>
     <div class="wallpaper-editor-controls">
       <label>
-        <span data-wallpaper-copy="horizontalPosition">Horizontal position</span>
+        <span data-wallpaper-copy="horizontalPosition">Left / right</span>
         <input id="wallpaperFocalX" type="range" min="0" max="100" step="1" value="50">
       </label>
       <label>
-        <span data-wallpaper-copy="verticalPosition">Vertical position</span>
+        <span data-wallpaper-copy="verticalPosition">Up / down</span>
         <input id="wallpaperFocalY" type="range" min="0" max="100" step="1" value="50">
       </label>
       <label>
-        <span data-wallpaper-copy="overlayStrength">Overlay strength</span>
+        <span data-wallpaper-copy="overlayStrength">Dimming</span>
         <span class="wallpaper-overlay-control"><input id="wallpaperOverlay" type="range" min="0" max="60" step="1" value="20"><output id="wallpaperOverlayValue">20%</output></span>
       </label>
     </div>
@@ -849,7 +830,7 @@
     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
   </svg>
   <span id="toastText"></span>
-  <button class="toast-dismiss" id="toastDismiss" type="button" aria-label="Dismiss">×</button>
+  <button class="toast-dismiss" id="toastDismiss" type="button" data-i18n-aria-label="dismissToast" aria-label="Dismiss message">×</button>
 </div>
 
 <!-- Personal config (gitignored) — defines LOCAL_LANDING_PAGE_PATTERNS etc. -->

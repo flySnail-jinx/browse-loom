@@ -4,35 +4,53 @@
     "description": "Extension name displayed in the browser and store listing."
   },
   "extensionDescription": {
-    "message": "A local-first workspace for organizing tabs, browser groups, bookmarks, and sessions, with privacy mode and themes.",
+    "message": "Organize tabs, bookmark pages, and save page collections locally. Includes screen cover and themes.",
     "description": "Short extension description displayed in the browser and store listing."
   },
   "commandOpenSidePanel": {
-    "message": "Open BrowseLoom side panel",
+    "message": "Open side panel",
     "description": "Keyboard shortcut description for opening the side panel."
   },
   "commandSaveCurrentSession": {
-    "message": "Save current BrowseLoom session",
-    "description": "Keyboard shortcut description for saving the current session."
+    "message": "Save this window",
+    "description": "Keyboard shortcut description for saving pages in the current window."
   },
   "commandTogglePrivacyMode": {
-    "message": "Toggle BrowseLoom privacy mode",
-    "description": "Keyboard shortcut description for toggling privacy mode."
+    "message": "Toggle screen cover",
+    "description": "Keyboard shortcut description for toggling the screen cover."
   },
   "commandToggleQuickReturn": {
-    "message": "Switch between BrowseLoom and the viewed tab",
+    "message": "Switch back and forth",
     "description": "Keyboard shortcut description for quick return navigation."
   },
   "commandToggleWorkspace": {
-    "message": "Switch between tab management and bookmarks",
+    "message": "Switch pages",
     "description": "Keyboard shortcut description for switching BrowseLoom workspaces."
   },
   "commandBookmarkCurrentPage": {
-    "message": "Bookmark the current page",
+    "message": "Bookmark this page",
     "description": "Keyboard shortcut description for opening a prefilled bookmark draft."
   },
   "actionOpenBrowseLoom": {
     "message": "Open BrowseLoom",
     "description": "Toolbar action tooltip for opening the configured BrowseLoom workspace."
+  },
+  "savedCollectionName": {
+    "message": "Page collection $1"
+  },
+  "omniboxSearch": {
+    "message": "Search tabs, Read later, and page collections. Type panel to open the side panel or save to save this window."
+  },
+  "omniboxTabs": {
+    "message": "Tabs"
+  },
+  "omniboxSaved": {
+    "message": "Read later"
+  },
+  "omniboxCollection": {
+    "message": "Page collection"
+  },
+  "omniboxCloseDuplicates": {
+    "message": "Close duplicate tabs"
   }
 }

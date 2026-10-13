@@ -4,35 +4,53 @@
     "description": "浏览器和商店列表中显示的扩展名称。"
   },
   "extensionDescription": {
-    "message": "一个本地优先的浏览工作台，用于整理标签页、标签组、书签和会话，并提供隐私模式与主题。",
+    "message": "整理标签页，收藏网页，保存网页合集。支持遮屏和主题切换，内容保存在本机。",
     "description": "浏览器和商店列表中显示的扩展简短描述。"
   },
   "commandOpenSidePanel": {
-    "message": "打开 BrowseLoom 侧边栏",
+    "message": "打开侧边栏",
     "description": "打开侧边栏的快捷键说明。"
   },
   "commandSaveCurrentSession": {
-    "message": "保存当前 BrowseLoom 会话",
-    "description": "保存当前会话的快捷键说明。"
+    "message": "保存此窗口",
+    "description": "保存当前窗口内网页的快捷键说明。"
   },
   "commandTogglePrivacyMode": {
-    "message": "切换 BrowseLoom 隐私模式",
-    "description": "切换隐私模式的快捷键说明。"
+    "message": "切换遮屏",
+    "description": "切换遮屏的快捷键说明。"
   },
   "commandToggleQuickReturn": {
-    "message": "在 BrowseLoom 与查看的标签页之间往返",
+    "message": "来回切换",
     "description": "快速返回导航的快捷键说明。"
   },
   "commandToggleWorkspace": {
-    "message": "在标签管理与书签之间切换",
+    "message": "切换页面",
     "description": "切换 BrowseLoom 工作区的快捷键说明。"
   },
   "commandBookmarkCurrentPage": {
-    "message": "收藏当前网页",
+    "message": "收藏此页",
     "description": "打开已预填书签草稿的快捷键说明。"
   },
   "actionOpenBrowseLoom": {
     "message": "打开 BrowseLoom",
     "description": "打开已配置 BrowseLoom 工作区的工具栏按钮说明。"
+  },
+  "savedCollectionName": {
+    "message": "网页合集 $1"
+  },
+  "omniboxSearch": {
+    "message": "搜索标签页、稍后再看和网页合集。输入 panel 打开侧栏，save 保存窗口。"
+  },
+  "omniboxTabs": {
+    "message": "标签页"
+  },
+  "omniboxSaved": {
+    "message": "稍后再看"
+  },
+  "omniboxCollection": {
+    "message": "网页合集"
+  },
+  "omniboxCloseDuplicates": {
+    "message": "关闭重复页"
   }
 }

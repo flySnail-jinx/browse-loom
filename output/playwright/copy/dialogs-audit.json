@@ -1,0 +1,108 @@
+[
+  {
+    "label": "en-dashboard",
+    "overflow": false,
+    "clipped": [
+      {
+        "text": "Bookmarks",
+        "class": "",
+        "w": 40,
+        "sw": 131,
+        "h": 40,
+        "sh": 40
+      }
+    ]
+  },
+  {
+    "label": "en-768-close",
+    "overflow": false,
+    "clipped": [
+      {
+        "text": "Bookmarks",
+        "class": "",
+        "w": 40,
+        "sw": 131,
+        "h": 40,
+        "sh": 40
+      }
+    ]
+  },
+  {
+    "label": "en-390-close",
+    "overflow": false,
+    "clipped": []
+  },
+  {
+    "label": "en-390-bookmark-editor",
+    "overflow": false,
+    "clipped": []
+  },
+  {
+    "label": "en-390-folder-editor",
+    "overflow": false,
+    "clipped": []
+  },
+  {
+    "label": "en-390-toast",
+    "overflow": false,
+    "clipped": []
+  },
+  {
+    "label": "zh-dashboard",
+    "overflow": false,
+    "clipped": [
+      {
+        "text": "书签",
+        "class": "",
+        "w": 40,
+        "sw": 88,
+        "h": 40,
+        "sh": 40
+      }
+    ]
+  },
+  {
+    "label": "zh-768-close",
+    "overflow": false,
+    "clipped": [
+      {
+        "text": "书签",
+        "class": "",
+        "w": 40,
+        "sw": 88,
+        "h": 40,
+        "sh": 40
+      }
+    ]
+  },
+  {
+    "label": "zh-390-close",
+    "overflow": false,
+    "clipped": []
+  },
+  {
+    "label": "zh-390-bookmark-editor",
+    "overflow": false,
+    "clipped": []
+  },
+  {
+    "label": "zh-390-folder-editor",
+    "overflow": false,
+    "clipped": []
+  },
+  {
+    "label": "zh-390-toast",
+    "overflow": false,
+    "clipped": []
+  },
+  {
+    "label": "en-320-sidepanel",
+    "overflow": false,
+    "clipped": []
+  },
+  {
+    "label": "zh-320-sidepanel",
+    "overflow": false,
+    "clipped": []
+  }
+]

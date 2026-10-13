@@ -156,7 +156,7 @@ async function saveCurrentSession(scope = 'currentWindow') {
 
   const session = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    name: `Session ${new Date().toLocaleString()}`,
+    name: chrome.i18n?.getMessage('savedCollectionName', new Date().toLocaleString()) || `Page collection ${new Date().toLocaleString()}`,
     savedAt: new Date().toISOString(),
     windows: buildSessionWindows(realTabs, groupInfo),
   };
@@ -190,7 +190,7 @@ async function buildOmniboxSuggestions(query) {
     .slice(0, 5)
     .map(record => ({
       content: record.type === 'tab' ? `tab:${record.url}` : record.type === 'saved' ? `url:${record.url}` : `session:${record.source.id}`,
-      description: `${record.type.toUpperCase()} ${escapeOmnibox(record.title)} <dim>${escapeOmnibox(record.domain || record.url || '')}</dim>`,
+      description: `${escapeOmnibox(chrome.i18n?.getMessage(record.type === 'tab' ? 'omniboxTabs' : record.type === 'saved' ? 'omniboxSaved' : 'omniboxCollection') || (record.type === 'tab' ? 'Tabs' : record.type === 'saved' ? 'Read later' : 'Page collection'))} ${escapeOmnibox(record.title)} <dim>${escapeOmnibox(record.domain || record.url || '')}</dim>`,
     }));
   return searchSuggestions.slice(0, 6);
 }
@@ -254,7 +254,7 @@ chrome.runtime.onInstalled.addListener(() => {
   updateBadge();
   configureActionClickBehavior();
   chrome.omnibox.setDefaultSuggestion({
-    description: 'Search BrowseLoom tabs, saved items, and sessions. Try "panel" or "save".',
+    description: chrome.i18n?.getMessage('omniboxSearch') || 'Search tabs, Read later, and page collections. Type panel or save.',
   });
 });
 
@@ -293,14 +293,14 @@ chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
   try {
     const suggestions = await buildOmniboxSuggestions(text);
     suggest([
-      { content: 'sidepanel', description: 'Open <match>BrowseLoom</match> side panel' },
-      { content: 'save-session', description: 'Save current browsing session' },
-      { content: 'dedupe', description: 'Clean duplicate open tabs' },
-      { content: 'privacy', description: 'Toggle privacy mode on BrowseLoom pages' },
+      { content: 'sidepanel', description: chrome.i18n?.getMessage('commandOpenSidePanel') || 'Open side panel' },
+      { content: 'save-session', description: chrome.i18n?.getMessage('commandSaveCurrentSession') || 'Save this window' },
+      { content: 'dedupe', description: chrome.i18n?.getMessage('omniboxCloseDuplicates') || 'Close duplicate tabs' },
+      { content: 'privacy', description: chrome.i18n?.getMessage('commandTogglePrivacyMode') || 'Toggle screen cover' },
       ...suggestions,
     ]);
   } catch {
-    suggest([{ content: 'sidepanel', description: 'Open BrowseLoom side panel' }]);
+    suggest([{ content: 'sidepanel', description: chrome.i18n?.getMessage('commandOpenSidePanel') || 'Open side panel' }]);
   }
 });
 

@@ -44,7 +44,7 @@ Release notes are tracked in [`CHANGELOG.md`](./CHANGELOG.md).
 - **Search operators**: narrow results with `domain:`, `group:`, `url:`, and `saved:`; fuzzy matches are highlighted.
 - **Side Panel tab center**: search, jump, save, close, dedupe, restore recently closed tabs, and save the current or all windows without leaving the current page.
 - **Keyboard and omnibox entry points**: use `loom` in the address bar for search/actions, or commands for panel/session/privacy workflows.
-- **Contextual local and web search**: keep filtering the active tabs or bookmarks workspace, or explicitly switch the same field to Google, Baidu, Bing, DuckDuckGo, or a local custom HTTPS search template.
+- **Contextual local and web search**: keep filtering the active tabs or bookmarks workspace, or explicitly switch the same field to web search using your browser’s default search engine.
 - **Accessibility and motion controls**: icon buttons have accessible labels, chips support keyboard activation, and system reduced-motion preferences are respected.
 - **Personal wallpapers**: import up to 10 local JPEG, PNG, or WebP images, adjust each image's focal point and overlay, and keep the library inside the browser profile.
 - **Privacy mode for screen sharing**: click the lock or press `Esc` to hide the tab dashboard behind a clean clock screen.
@@ -267,7 +267,7 @@ Stored locally:
 - language choice
 - theme choice
 - favicon cache
-- search engine settings and custom HTTPS search templates
+- search suggestion preferences (legacy search engine settings remain stored but are not used to route searches)
 - personal wallpaper images, thumbnails, focal points, and overlay settings
 
 External favicon requests are disabled by default. The privacy settings explain that enabling site icons sends website domain names to DuckDuckGo; requests begin only after the user turns this option on. When disabled, cached favicons can still render, but new domains will not call the icon service.
