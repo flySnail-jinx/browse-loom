@@ -23,11 +23,13 @@
 
 **A calm, local-first browser workspace for Chrome.**
 
-BrowseLoom brings open tabs, Chrome Tab Groups, local bookmarks, saved sessions, and later-reading items into one visual workspace. It replaces the default new tab page, adds an optional side panel, protects pinned tabs, and keeps browsing data on your device.
+BrowseLoom brings open tabs, Chrome Tab Groups, native browser bookmarks, saved sessions, and later-reading items into one visual workspace. It replaces the default new tab page, adds an optional side panel, protects pinned tabs, and stores extension settings locally. Native bookmarks follow the browser’s own storage and sync settings.
 
 No server. No account. No telemetry. No build step. Load the `extension/` folder and use it.
 
 Chrome 116 or newer is required. Edge and Brave may work when they provide the same Manifest V3 capabilities, but they are not release commitments.
+
+**Development status:** this worktree contains native bookmark browsing and direct legacy import, not a store release. Basic native bookmark management is available. Promotional screenshots below still show the previous version.
 
 Release notes are tracked in [`CHANGELOG.md`](./CHANGELOG.md).
 
@@ -36,9 +38,9 @@ Release notes are tracked in [`CHANGELOG.md`](./CHANGELOG.md).
 ## Highlights
 
 - **Text-first command desk**: a quieter new-tab layout with clear hierarchy, compact controls, and no decorative brand icon in the page header.
-- **Independent bookmark desk**: press the left arrow to open a plugin-local bookmark workspace. Home is the built-in default category, with custom icon categories, notes, search, icon/list views, and usage-based recent/popular columns.
-- **One-click browser bookmark import**: open the gear in the bookmark desk to copy bookmarks from the current Chrome or Edge profile. Permission is requested only when import starts, deep folders are flattened without renaming, and repeated imports add only new browser bookmarks.
-- **Flexible folder boards**: every category supports 1×1, 2×1, and 2×2 folders. Bookmarks can move in, out, or across categories by drag-and-drop or the Move menu, while deleting a folder or category preserves its bookmarks.
+- **Native bookmark browsing (phase A)**: connect browser bookmarks to browse their actual folder hierarchy, breadcrumbs, title/URL search, grid/list views and a preferred start folder.
+- **Live browser changes**: edits made in the browser bookmark manager appear here. Use the item’s “…” button or context menu to move or delete bookmarks and folders. Create bookmarks and folders from the toolbar; edit or rename from the item menu. Drag edges in Browser order to reorder, or drop onto folders to move.
+- **Legacy data preserved**: “Old extension bookmarks → Import into Chrome” shows the destination and totals, then imports all supported entries into a dedicated native folder with one confirmation. Categories, folders and source duplicates are preserved without per-item selection. Progress is retained for continuation and retry. Old data and notes are kept; JSON backup is optional. Back up extension-only fields before uninstalling; native bookmark synchronization depends on browser account settings and storage location.
 - **Two ways to organize tabs**: switch between domain grouping and Chrome's native Tab Groups.
 - **Fast tab filtering**: press `/` and filter cards, chips, URLs, and group names in real time.
 - **Search operators**: narrow results with `domain:`, `group:`, `url:`, and `saved:`; fuzzy matches are highlighted.
@@ -179,7 +181,7 @@ npm run validate
 | `Esc` elsewhere | Toggle privacy mode |
 | `Ctrl/Cmd + Shift + G` | Toggle Groups / Domains view |
 | `Ctrl/Cmd + Shift + Y` | Open the Side Panel |
-| `Ctrl + Shift + D` | Bookmark the current page in a prefilled editor |
+| `Ctrl + Shift + D` | Open bookmarks with guidance to use the browser bookmark star (in-page capture is pending) |
 | `Ctrl + Shift + Z` | Switch between BrowseLoom and the tab you opened from it |
 
 Omnibox keyword: type `loom` then a query or action such as `panel`, `save-session`, `dedupe`, or `privacy`.
@@ -234,7 +236,7 @@ Pinned tabs are skipped by every bulk-close and duplicate-cleanup action.
 
 ### Save for Later
 
-The bookmark button saves a tab into `chrome.storage.local` before closing it. Saved items stay local and can be checked off into the archive.
+The Save for later button saves a tab into `chrome.storage.local` before closing it. Saved items stay local and can be checked off into the archive.
 
 ### Privacy Mode
 
@@ -270,6 +272,8 @@ Stored locally:
 - search suggestion preferences (legacy search engine settings remain stored but are not used to route searches)
 - personal wallpaper images, thumbnails, focal points, and overlay settings
 
+Native bookmarks use the browser’s internal favicon endpoint first (`favicon` permission). If that endpoint fails, existing cached icons or the explicitly enabled external icon service can be used; otherwise a generic website icon remains.
+
 External favicon requests are disabled by default. The privacy settings explain that enabling site icons sends website domain names to DuckDuckGo; requests begin only after the user turns this option on. When disabled, cached favicons can still render, but new domains will not call the icon service.
 
 Baidu search suggestions are also optional and disabled by default. Enabling them requests runtime access to `suggestion.baidu.com`; only text typed while the search box is using a web search engine is sent, with credentials omitted. Local tab and bookmark filtering remains on-device.
@@ -298,7 +302,7 @@ The extension currently requests:
 | `tabGroups` | Read, render, create, update, collapse, and ungroup Chrome Tab Groups |
 | `sidePanel` | Show the Side Panel tab center |
 | `sessions` | Show and restore recently closed browser tabs/windows |
-| `bookmarks` (optional) | Read the current browser bookmark tree only after the user starts an import; BrowseLoom never changes the browser copy |
+| `bookmarks` (optional) | Read the native bookmark tree and observe changes after the user connects; confirmed moves, deletions and imports modify native bookmarks |
 | `suggestion.baidu.com` (optional host) | Fetch suggestions only after the user enables Baidu online suggestions |
 
 ---

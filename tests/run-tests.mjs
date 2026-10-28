@@ -5,6 +5,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
+import { testNativeBookmarks } from './native-bookmarks.mjs';
+import { testLegacyBookmarkImport } from './legacy-bookmark-import.mjs';
 
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -61,7 +63,7 @@ async function testWorkspaceNavigationContract() {
   assert.match(css, /\.workspace-switcher\s*\{[\s\S]*?left:\s*0;/);
   assert.match(css, /body\[data-workspace="bookmarks"\] \.workspace-switcher\s*\{[\s\S]*?right:\s*0;[\s\S]*?left:\s*auto;/);
   assert.match(css, /data-workspace-transition="to-bookmarks"/);
-  assert.ok(ui.indexOf("document.addEventListener('click', handleWorkspaceSwitchClick)") < ui.indexOf('if (!Bookmarks) return;'));
+  assert.match(ui, /document.addEventListener\('click', handleWorkspaceSwitchClick\)/);
   assert.equal(ui.includes('document.startViewTransition'), true);
   assert.equal(ui.includes('transition.finished.finally'), false);
   assert.match(ui, /transition\.finished[\s\S]{0,120}\.catch\(\(\) => \{\}\)[\s\S]{0,120}\.finally\(/);
@@ -72,15 +74,11 @@ async function testWorkspaceNavigationContract() {
   assert.equal(ui.includes("event.key === 'ArrowRight' && bookmarkOpen"), true);
   assert.equal(ui.includes("document.addEventListener('wheel', handleWorkspaceWheel, { passive: false })"), true);
   assert.equal(ui.includes("workspaceSwitcher?.addEventListener('wheel', handleWorkspaceWheel"), false);
-  assert.match(ui, /Math\.abs\(event\.deltaY\) <= Math\.abs\(event\.deltaX\)/);
+  assert.match(ui, /Math\.abs\(event\.deltaX\) <= Math\.abs\(event\.deltaY\)/);
   assert.match(ui, /const next = workspaceSwipeDelta > 0 \? 'bookmarks' : 'tabs';/);
   assert.match(ui, /dialog\[open\], input, textarea, select, \[contenteditable="true"\], \[role="textbox"\]/);
   assert.equal(ui.includes("getElementById('bookmarkSearch')?.focus({ preventScroll: true })"), false);
   assert.match(css, /\.bookmark-grid\[hidden\],[\s\S]*?\.bookmark-list\[hidden\],[\s\S]*?\.bookmark-empty\[hidden\],[\s\S]*?\.bookmark-empty-icon\[hidden\]\s*\{\s*display:\s*none;/);
-  const emptyState = index.match(/<div class="bookmark-empty" id="bookmarkEmpty"[\s\S]*?<\/div>/)?.[0] || '';
-  assert.match(emptyState, /<button class="bookmark-empty-icon"[^>]+data-bookmark-action="open-add-menu"/);
-  assert.match(emptyState, /class="bookmark-empty-import"[^>]+data-action="open-settings"[^>]+data-settings-view="data"/);
-  assert.match(index, /<button class="bookmark-add-trigger"[^>]+data-bookmark-action="add-category"/);
   assert.equal((index.match(/class="[^"]*global-settings-trigger/g) || []).length, 1);
   assert.match(index, /id="privacySettings"[^>]+class="[^"]*settings-dialog|class="[^"]*settings-dialog[^"]*"[^>]+id="privacySettings"/);
   const settingsDialogMarkup = index.match(/<dialog[^>]+id="privacySettings"[\s\S]*?<\/dialog>/)?.[0] || '';
@@ -130,12 +128,12 @@ async function testWorkspaceNavigationContract() {
   assert.match(app, /window\.SuperTabOutToast = \{ show: showToast, dismiss: hideToast \}/);
   assert.match(app, /actionLabel: tr\('undo'\)[\s\S]*?TabsService\.restoreClosedTabs\(result\.snapshot\)/);
   assert.match(ui, /window\.SuperTabOutToast\?\.show\?/);
-  assert.match(ui, /showToast\(message, \{ undo: \(\) => undoDelete\(result\.previous\) \}\)/);
+  assert.doesNotMatch(ui, /restoreLibrary|importBrowserTree|createBookmark/);
   assert.equal(ui.includes('undoSnapshot'), false);
   assert.equal(index.includes('bookmark-settings-trigger'), false);
   assert.equal(index.includes('id="bookmarkSettingsDialog"'), false);
-  assert.match(index, /class="bookmark-import-trigger"[^>]+data-action="open-settings"[^>]+data-settings-view="data"/);
-  assert.match(index, /id="bookmarkImportButton"[^>]+data-bookmark-action="import-browser-bookmarks"/);
+
+  assert.match(index, /id="bookmarkImportButton"[^>]+data-native-action="connect"/);
   assert.match(app, /panel\.showModal\(\)/);
   assert.match(app, /settingsDialog\?\.addEventListener\('cancel'/);
   assert.match(app, /event\.target === settingsDialog/);
@@ -143,102 +141,18 @@ async function testWorkspaceNavigationContract() {
   assert.match(dashboardCss, /\.settings-dialog-shell\s*\{[\s\S]*?grid-template-columns:\s*224px minmax\(0, 1fr\)/);
   assert.match(dashboardCss, /\.settings-dialog::backdrop\s*\{/);
   assert.deepEqual(manifest.optional_permissions, ['bookmarks']);
+  assert.equal(manifest.permissions.includes('favicon'), true);
   const faviconSetting = index.match(/<label class="privacy-setting-row">\s*<span data-i18n="externalFavicons"[\s\S]*?<\/label>/)?.[0] || '';
   assert.equal(faviconSetting.includes('checked'), false);
   assert.match(index, /data-i18n="externalFaviconsDisclosure"[^>]*>[^<]*icons\.duckduckgo\.com/);
   assert.equal(ui.includes("chrome.permissions.request({ permissions: ['bookmarks'] })"), true);
-  assert.equal(ui.includes('Bookmarks.importBrowserTree(tree)'), true);
-  const openBookmarkSource = ui.match(/async function openBookmark[\s\S]*?\n  }/)?.[0] || '';
-  assert.match(openBookmarkSource, /chrome\.tabs\.create\(\{ url: bookmark\.url, active: true \}\)/);
-  assert.equal(openBookmarkSource.includes('chrome.tabs.update'), false);
-  assert.match(openBookmarkSource, /window\.open\(bookmark\.url, '_blank', 'noopener'\)/);
-  const copyBookmarkLinkSource = ui.match(/async function copyBookmarkLink[\s\S]*?\n  }/)?.[0] || '';
-  assert.match(ui, /data-context-action="copy-link" data-kind="bookmark"/);
-  assert.match(copyBookmarkLinkSource, /navigator\.clipboard\.writeText\(bookmark\.url\)/);
-  assert.match(copyBookmarkLinkSource, /showToast\(t\('linkCopied'\)\)/);
-  assert.match(copyBookmarkLinkSource, /showToast\(t\('copyLinkFailed'\)\)/);
-  assert.match(ui, /contextAction === 'copy-link' && kind === 'bookmark'/);
-  const copiedLinks = [];
-  const copyMessages = [];
-  await runInNewContext(`${copyBookmarkLinkSource}\ncopyBookmarkLink('bookmark-1');`, {
-    bookmarkById: () => ({ url: 'https://example.com/path?source=bookmark' }),
-    navigator: { clipboard: { writeText: async value => copiedLinks.push(value) } },
-    showToast: message => copyMessages.push(message),
-    t: key => key,
-    Error,
-  });
-  assert.deepEqual(copiedLinks, ['https://example.com/path?source=bookmark']);
-  assert.deepEqual(copyMessages, ['linkCopied']);
-  const failedCopyMessages = [];
-  await runInNewContext(`${copyBookmarkLinkSource}\ncopyBookmarkLink('bookmark-1');`, {
-    bookmarkById: () => ({ url: 'https://example.com/' }),
-    navigator: { clipboard: { writeText: async () => { throw new Error('denied'); } } },
-    showToast: message => failedCopyMessages.push(message),
-    t: key => key,
-    Error,
-  });
-  assert.deepEqual(failedCopyMessages, ['copyLinkFailed']);
-  assert.equal(ui.includes("{ newTab: event.ctrlKey || event.metaKey }"), false);
-  assert.equal(index.includes('id="bookmarkAddTrigger"'), false);
-  assert.equal(index.includes('id="bookmarkAddMenu"'), true);
-  assert.equal(ui.includes('function openAddMenu(anchor)'), true);
-  const positionFloatingMenuSource = ui.match(/function positionFloatingMenu[\s\S]*?\n  }/)?.[0] || '';
-  const bodyHost = { append(menu) { menu.parentElement = this; } };
-  const dialogHost = { append(menu) { menu.parentElement = this; } };
-  const floatingMenu = {
-    hidden: true,
-    parentElement: bodyHost,
-    style: {},
-    getBoundingClientRect() { return { width: 160, height: 120 }; },
-  };
-  const dialogAnchor = {
-    closest(selector) { return selector === 'dialog[open]' ? dialogHost : null; },
-    getBoundingClientRect() { return { left: 240, bottom: 220 }; },
-  };
-  runInNewContext(`${positionFloatingMenuSource}\npositionFloatingMenu(menu, anchor);`, {
-    menu: floatingMenu,
-    anchor: dialogAnchor,
-    document: { body: bodyHost },
-    window: { innerWidth: 1280, innerHeight: 800 },
-  });
-  assert.equal(floatingMenu.parentElement, dialogHost);
-  assert.equal(floatingMenu.hidden, false);
-  assert.equal(ui.includes("event.target.closest?.('dialog[open]')"), true);
-  assert.equal(ui.includes("event.target.closest('#bookmarkAddMenu, #bookmarkContextMenu')"), true);
-  assert.equal(ui.includes('class="bookmark-add-tile"'), true);
-  assert.equal(ui.includes('class="bookmark-list-add"'), true);
-  assert.equal(ui.includes("openFolderEditor(null, { category: true })"), true);
-  assert.equal(ui.includes('pinnedToHome'), false);
-  assert.equal(ui.includes('homeOrder'), false);
-  assert.match(index, /id="bookmarkCategory"/);
-  assert.match(index, /id="bookmarkMoveDialog"/);
-  assert.match(index, /data-folder-exit-drop/);
-  const folderViewer = index.match(/<dialog class="bookmark-folder-dialog"[\s\S]*?<\/dialog>/)?.[0] || '';
-  assert.match(folderViewer, /id="bookmarkFolderRenameForm"/);
-  assert.match(folderViewer, /id="bookmarkFolderDialogTitle"[^>]+type="button"[^>]+data-bookmark-action="edit-folder-name"/);
-  assert.match(folderViewer, /id="bookmarkFolderDialogTitleInput"[^>]+type="text"[^>]+hidden/);
-  assert.equal(folderViewer.includes('data-close-dialog="bookmarkFolderDialog"'), false);
-  assert.equal(ui.includes('bookmark-folder-board-expand'), false);
-  const folderTileSource = ui.match(/function folderTileMarkup[\s\S]*?\n  }/)?.[0] || '';
-  const folderBoardSource = ui.match(/function folderBoardMarkup[\s\S]*?\n  }/)?.[0] || '';
-  assert.equal(folderTileSource.includes('bookmark-more-button'), false);
-  assert.equal(folderBoardSource.includes('bookmark-more-button'), false);
-  assert.equal(index.includes('bookmarkPinned'), false);
-  assert.equal(index.includes('folderPinned'), false);
-  assert.equal(ui.includes('Bookmarks.moveBookmark'), true);
-  assert.equal(ui.includes('Bookmarks.moveFolder'), true);
-  assert.equal(ui.includes('Bookmarks.reorderFolderBookmarks'), true);
-  const categoryIcons = ui.match(/const CATEGORY_ICONS = \[([\s\S]*?)\n  \];/)?.[1] || '';
-  assert.equal((categoryIcons.match(/\{ id: '/g) || []).length, 24);
-  assert.match(index, /id="categoryIconFieldset"[^>]+hidden/);
-  assert.equal(ui.includes('function renderCategoryIconOptions()'), true);
-  assert.equal(ui.includes("document.getElementById('categoryIconFieldset').hidden = !categoryMode"), true);
-  assert.equal(ui.includes('async function saveFolderViewerName(event)'), true);
-  assert.equal(ui.includes('function beginFolderViewerRename()'), true);
-  assert.equal(ui.includes("getElementById('bookmarkFolderDialogTitleInput')?.addEventListener('change', saveFolderViewerName)"), true);
-  assert.equal(ui.includes("categoryIconMarkup(normalizedCategoryIcon(category))"), true);
-  assert.match(css, /\.bookmark-category-icon-options\s*\{[\s\S]*?grid-template-columns:\s*repeat\(6,/);
-  assert.match(css, /\.bookmark-shell\s*\{[\s\S]*?grid-template-columns:\s*216px minmax\(420px, 1fr\)/);
+  assert.match(index, /services\/native-bookmarks-service\.js/);
+  assert.match(index, /id="nativeBreadcrumbs"/);
+  assert.match(index, /id="nativeLegacy"/);
+  assert.doesNotMatch(index, /id="bookmarkEditorDialog"|id="bookmarkConfirmDialog"|id="recentBookmarks"|id="popularBookmarks"/);
+  assert.match(ui, /Native\.canOpen\(node.url\)/);
+  assert.match(ui, /navigator\.clipboard\.writeText\(node.url\)/);
+  assert.match(ui, /target="_blank" rel="noopener noreferrer"/);
   assert.match(dashboardCss, /:root\s*\{[\s\S]*?--workspace-max-width:\s*1680px;/);
   assert.match(dashboardCss, /\.missions\s*\{[\s\S]*?columns:\s*300px;/);
   assert.match(dashboardCss, /@media \(min-width:\s*1180px\)[\s\S]*?max-width:\s*min\(var\(--workspace-max-width\), calc\(100vw - var\(--command-dock-safe-area, 92px\)\)\)/);
@@ -246,54 +160,9 @@ async function testWorkspaceNavigationContract() {
   assert.match(searchEngineCss, /@media \(min-width:\s*1180px\)[\s\S]*?\.app-navigation-inner\s*\{[\s\S]*?width:\s*min\(var\(--workspace-max-width\), calc\(100vw - var\(--command-dock-safe-area, 92px\)\)\)/);
   assert.match(css, /\.bookmark-toolbar\s*\{[\s\S]*?max-width:\s*var\(--workspace-max-width\);/);
   assert.match(css, /\.bookmark-shell\s*\{[\s\S]*?max-width:\s*var\(--workspace-max-width\);/);
-  assert.match(css, /\.bookmark-grid\s*\{[\s\S]*?grid-auto-rows:\s*106px;[\s\S]*?grid-template-columns:\s*repeat\(auto-fill, minmax\(96px, 1fr\)\);[\s\S]*?gap:\s*14px 12px;/);
-  assert.match(css, /\.bookmark-add-tile\s*\{[\s\S]*?height:\s*106px;/);
-  assert.match(css, /\.bookmark-folder-board\s*\{[\s\S]*?padding:\s*10px 12px;/);
-  assert.match(css, /\.bookmark-folder-board-head\s*\{[\s\S]*?height:\s*21px;/);
-  assert.match(css, /\.bookmark-folder-link\s*\{[\s\S]*?height:\s*57px;[\s\S]*?padding:\s*2px;/);
-  assert.match(css, /@media \(min-width:\s*1180px\)[\s\S]*?\.bookmark-toolbar,[\s\S]*?\.bookmark-shell\s*\{[\s\S]*?width:\s*min\(var\(--workspace-max-width\), calc\(100vw - var\(--command-dock-safe-area, 92px\)\)\)/);
-  assert.match(css, /@media \(max-width:\s*1333px\)[\s\S]*?grid-template-areas:[\s\S]*?"library main recent"[\s\S]*?"library main popular"/);
-  assert.match(index, /class="bookmark-activity-panel bookmark-activity-recent"/);
-  assert.match(index, /class="bookmark-activity-panel bookmark-activity-popular"/);
-  const bookmarkLibraryPanelCss = css.match(/\.bookmark-library-panel\s*\{([\s\S]*?)\n\}/)?.[1] || '';
-  assert.match(bookmarkLibraryPanelCss, /background:\s*var\(--bookmark-readable-surface\);/);
-  assert.equal(bookmarkLibraryPanelCss.includes('backdrop-filter'), false);
-  assert.match(css, /\.bookmark-library-panel::before\s*\{\s*display:\s*none;/);
-  assert.match(css, /\.bookmark-workspace\s*\{[\s\S]*?--bookmark-readable-surface:\s*var\(--content-card-surface\);/);
-  assert.match(css, /\.bookmark-library-panel,[\s\S]*?background:\s*var\(--content-card-surface\);/);
-  assert.match(css, /\.bookmark-folder-board\s*\{[\s\S]*?background:\s*var\(--content-card-surface\);/);
-  assert.match(css, /\.bookmark-nav-select,[\s\S]*?background:\s*transparent;/);
-  assert.match(css, /\.bookmark-nav-select\.active\s*\{[\s\S]*?background:\s*var\(--bookmark-readable-surface-strong\);/);
-  assert.match(css, /\.bookmark-nav-count\s*\{[\s\S]*?display:\s*block;/);
-  assert.match(index, /class="bookmark-add-label"[^>]+data-bookmark-copy="addCategory"/);
-  assert.match(css, /\.bookmark-list-row\s*\{[\s\S]*?background:\s*var\(--bookmark-readable-surface\);/);
-  assert.match(css, /\.bookmark-tile-open > \.bookmark-tile-title,[\s\S]*?background:\s*var\(--bookmark-readable-surface\);/);
-  assert.match(css, /\.bookmark-library-nav\s*\{[\s\S]*?overflow-x:\s*hidden;[\s\S]*?overflow-y:\s*auto;/);
-  assert.match(css, /\.bookmark-library-nav\s*\{[\s\S]*?scrollbar-width:\s*none;/);
-  assert.match(css, /\.bookmark-library-nav::\-webkit-scrollbar\s*\{[\s\S]*?display:\s*none;/);
-  assert.match(css, /@media \(max-width:\s*720px\)[\s\S]*?\.bookmark-library-nav\s*\{[\s\S]*?overflow-x:\s*auto;[\s\S]*?overflow-y:\s*hidden;/);
-  assert.match(css, /\.bookmark-nav-select,[\s\S]*?grid-template-columns:\s*44px minmax\(0, 1fr\) auto;[\s\S]*?min-height:\s*47px;/);
-  assert.match(css, /\.bookmark-editor-dialog\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?inset:\s*0 auto 0 0;[\s\S]*?height:\s*100dvh;[\s\S]*?margin:\s*0;/);
-  assert.match(css, /\.bookmark-folder-dialog\[open\]\s*\{[\s\S]*?display:\s*grid;[\s\S]*?place-items:\s*center;/);
-  assert.match(css, /@keyframes bookmark-sheet-in\s*\{[\s\S]*?translateX\(-36px\)[\s\S]*?translateX\(0\)/);
-  assert.match(css, /@keyframes bookmark-folder-dialog-in\s*\{[\s\S]*?translateY\(20px\) scale\(\.98\)[\s\S]*?translateY\(0\) scale\(1\)/);
-  assert.match(css, /\.bookmark-editor-dialog\.is-closing > \.bookmark-editor,[\s\S]*?animation:\s*bookmark-sheet-out 160ms/);
-  assert.match(css, /\.bookmark-folder-dialog\.is-closing > section\s*\{[\s\S]*?animation:\s*bookmark-folder-dialog-out 160ms/);
-  assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.bookmark-editor-dialog::backdrop,[\s\S]*?\.bookmark-folder-dialog::backdrop,[\s\S]*?animation:\s*none !important;/);
-  assert.equal(ui.includes('function showBookmarkDialog(dialog)'), true);
-  assert.equal(ui.includes('function closeBookmarkDialog(dialog, returnValue)'), true);
-  assert.match(ui, /dialog\.classList\.add\('is-closing'\)[\s\S]*?setTimeout\(finish, DIALOG_EXIT_DURATION_MS\)/);
-  assert.match(css, /\.bookmark-folder-board\s*\{[\s\S]*?align-self:\s*stretch;/);
-  assert.match(css, /\.bookmark-confirm-dialog\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?inset:\s*0;[\s\S]*?height:\s*100dvh;[\s\S]*?margin:\s*0;/);
-  assert.match(css, /\.bookmark-confirm-dialog\[open\]\s*\{[\s\S]*?display:\s*grid;[\s\S]*?place-items:\s*center;/);
-  assert.match(index, /id="bookmarkConfirmMoveToUnfiled"[^>]+data-category-delete-mode="move-to-unfiled"[^>]+hidden/);
-  assert.match(index, /id="bookmarkConfirmDelete"[^>]+data-category-delete-mode="delete-all"/);
-  assert.equal(ui.includes("contentMode: categoryContentMode"), true);
-  assert.equal(ui.includes("dialog.style.setProperty('--bookmark-folder-width'"), true);
-  assert.match(css, /\.bookmark-add-trigger\s*\{[\s\S]*?width:\s*100%;[\s\S]*?grid-template-columns:\s*36px minmax\(0, 1fr\);/);
-  assert.match(css, /\.bookmark-import-trigger\s*\{[\s\S]*?width:\s*100%;[\s\S]*?grid-template-columns:\s*36px minmax\(0, 1fr\);/);
-  assert.match(css, /\.bookmark-add-trigger\s*\{[\s\S]*?margin:\s*auto 0 0;/);
-  assert.match(css, /\.bookmark-import-trigger\s*\{[\s\S]*?margin:\s*4px 0 0;/);
+  const nativeCss = readFileSync(resolve(root, 'extension/native-bookmarks.css'), 'utf8');
+  assert.match(nativeCss, /grid-template-columns: 240px minmax\(0, 1fr\)/);
+  assert.match(nativeCss, /@media \(max-width: 720px\)/);
   assert.ok(manifest.commands?.['toggle-workspace']);
   assert.deepEqual(manifest.commands?.['bookmark-current-page']?.suggested_key, {
     default: 'Ctrl+Shift+D',
@@ -313,9 +182,7 @@ async function testWorkspaceNavigationContract() {
   assert.match(background, /async function saveCurrentSession\(scope = 'currentWindow'\)/);
   assert.match(background, /message\.scope \|\| 'currentWindow'/);
   assert.equal(background.includes("message.scope || 'all'"), false);
-  assert.match(ui, /categoryId:\s*UNFILED_CATEGORY_ID/);
-  assert.match(ui, /focusField:\s*response\.draft\.supported \? 'bookmarkNote' : 'bookmarkUrl'/);
-  assert.match(ui, /openBookmarkEditor\(null, \{[\s\S]*?prefill:\s*response\.draft/);
+
 }
 
 function testSidePanelTabActionScopeContract() {
@@ -1605,6 +1472,8 @@ function testHtmlService() {
 
 testUrlService();
 await testWorkspaceNavigationContract();
+await testNativeBookmarks();
+await testLegacyBookmarkImport();
 testSidePanelTabActionScopeContract();
 await testBackgroundRegistryContract();
 testWallpaperServiceContract();

@@ -4,6 +4,20 @@ English · [简体中文](./CHANGELOG.zh-CN.md)
 
 All notable changes to BrowseLoom are tracked here.
 
+## 1.2.0 - 2026-10-28
+
+### Changed
+
+- Use native Chrome bookmarks directly, with optional permission, live updates and nested folders.
+- Create, edit, rename, move and delete bookmarks and folders from a unified context menu; reorder and move through drag and drop in both content and sidebar.
+- Restore the last bookmark location and view by default, configurable in General settings; use a compact grid with unboxed favicons.
+- Import old extension bookmarks explicitly while retaining the original local library, notes and custom icons for backup.
+- Protect system/managed folders and prevent recursive folder moves; confirm deletion with clear destructive styling.
+
+### Limitations
+
+- In-page shortcut capture, legacy custom metadata, batch management and delete undo are not included. Deletions directly affect browser bookmarks and may sync through Chrome.
+
 ## 1.1.1 - 2026-08-21
 
 ### Changed

@@ -2,11 +2,13 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, cp, readFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { testNativeBookmarksMouse } from '../tests/native-bookmarks-mouse.mjs';
+import { testNativeBookmarksBrowser } from '../tests/native-bookmarks-browser.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const extensionDir = join(root, 'extension');
@@ -83,7 +85,7 @@ class CdpPage {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
       try {
-        if (await this.evaluate(`Boolean(${expression})`)) return;
+        if (await this.evaluate(`(async () => Boolean(await (${expression})))()`)) return;
       } catch {}
       await sleep(80);
     }
@@ -181,12 +183,24 @@ async function openExtensionPage(port, url) {
 async function main() {
   const port = await freePort();
   const profile = await mkdtemp(join(tmpdir(), 'browse-loom-chrome-extension-'));
+  // A separate fixture grants bookmarks at install time for headless native-API tests.
+  // The shipped manifest keeps bookmarks optional; native prompt acceptance is not automated.
+  let nativeFixture;
+  if (process.argv.includes('--native-bookmarks')) {
+    nativeFixture = await mkdtemp(join(tmpdir(), 'browse-loom-native-fixture-'));
+    await cp(extensionDir, nativeFixture, { recursive: true });
+    const manifest = JSON.parse(await readFile(join(nativeFixture, 'manifest.json'), 'utf8'));
+    manifest.permissions.push('bookmarks');
+    manifest.optional_permissions = [];
+    await writeFile(join(nativeFixture, 'manifest.json'), JSON.stringify(manifest));
+  }
+  const loadedExtension = nativeFixture || extensionDir;
   const chrome = spawn(chromeBin, [
     `--user-data-dir=${profile}`,
     `--remote-debugging-port=${port}`,
     '--remote-allow-origins=*',
-    `--load-extension=${extensionDir}`,
-    `--disable-extensions-except=${extensionDir}`,
+    `--load-extension=${loadedExtension}`,
+    `--disable-extensions-except=${loadedExtension}`,
     '--disable-background-networking',
     '--disable-component-update',
     '--disable-default-apps',
@@ -217,6 +231,12 @@ async function main() {
     }
     await page.waitFor('document.documentElement.dataset.background === "mountain"');
     await page.waitFor('window.SuperTabOutBookmarks && document.body.dataset.workspace === "tabs"');
+    if (process.argv.includes('--native-bookmarks')) {
+      if (process.argv.includes('--mouse')) { await testNativeBookmarksMouse(page); return; }
+      await testNativeBookmarksBrowser(page, () => openExtensionPage(port, `${extensionBase}/index.html`), join(profile, 'downloads'));
+      console.log('Native bookmarks browser regression passed.');
+      return;
+    }
     if (process.env.SETTINGS_IA_ONLY === '1') {
       await page.evaluate(`document.querySelector('#privacySettingsBtn').click()`);
       await page.waitFor('document.querySelector("#privacySettings")?.open');
@@ -295,10 +315,10 @@ async function main() {
         root: document.documentElement.style.getPropertyValue('--content-card-opacity').trim(),
         dataset: document.documentElement.dataset.cardOpacity,
         librarySurface: getComputedStyle(document.querySelector('.bookmark-library-panel')).backgroundColor,
-        activitySurface: getComputedStyle(document.querySelector('.bookmark-activity-panel')).backgroundColor,
+        activitySurface: getComputedStyle(document.querySelector('.native-main')).backgroundColor,
         searchSurface: getComputedStyle(document.querySelector('.app-search-slot .bookmark-search')).backgroundColor,
         libraryBackdrop: getComputedStyle(document.querySelector('.bookmark-library-panel')).backdropFilter,
-        activityBackdrop: getComputedStyle(document.querySelector('.bookmark-activity-panel')).backdropFilter,
+        activityBackdrop: getComputedStyle(document.querySelector('.native-main')).backdropFilter,
         searchBackdrop: getComputedStyle(document.querySelector('.app-search-slot .bookmark-search')).backdropFilter,
       }))()`);
       assert.equal(bookmarkOpacityState.root, '40%');
@@ -471,7 +491,7 @@ async function main() {
       await page.evaluate(`document.querySelector('[data-workspace-switch="bookmarks"]').click()`);
       await page.waitFor('document.body.dataset.workspace === "bookmarks"');
       await sleep(450);
-      await page.evaluate(`document.querySelector('.bookmark-import-trigger').click()`);
+      await page.evaluate(`document.querySelector('#privacySettingsBtn').click()`);
       await page.waitFor('document.querySelector("#privacySettings")?.open && document.querySelector("#settingsPaneData")?.classList.contains("active")');
       assert.equal(await page.evaluate(`document.querySelector('#privacySettingsBtn')?.getAttribute('aria-expanded')`), 'true');
       await page.evaluate(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))`);
@@ -1149,7 +1169,7 @@ async function main() {
         const toolbar = document.querySelector('.bookmark-toolbar').getBoundingClientRect();
         const shell = document.querySelector('.bookmark-shell').getBoundingClientRect();
         const navigation = document.querySelector('.app-navigation-inner').getBoundingClientRect();
-        const tracks = getComputedStyle(document.querySelector('.bookmark-grid')).gridTemplateColumns
+        const tracks = getComputedStyle(document.querySelector('.bookmark-shell')).gridTemplateColumns
           .split(/\\s+/)
           .filter(Boolean);
         return {
@@ -1166,13 +1186,13 @@ async function main() {
     assert.deepEqual(laptopLayout, {
       width: 1512,
       tabs: { frameWidth: 1420, navigationWidth: 1420, columns: 4, columnWidth: 300 },
-      bookmarks: { toolbarWidth: 1420, shellWidth: 1420, navigationWidth: 1420, columns: 6 },
+      bookmarks: { toolbarWidth: 1420, shellWidth: 1420, navigationWidth: 1420, columns: 2 },
     });
     const wideLayout = await responsiveLayoutAt(1920);
     assert.deepEqual(wideLayout, {
       width: 1920,
       tabs: { frameWidth: 1680, navigationWidth: 1680, columns: 5, columnWidth: 300 },
-      bookmarks: { toolbarWidth: 1680, shellWidth: 1680, navigationWidth: 1680, columns: 8 },
+      bookmarks: { toolbarWidth: 1680, shellWidth: 1680, navigationWidth: 1680, columns: 2 },
     });
 
     await page.send('Emulation.setDeviceMetricsOverride', {
@@ -1278,6 +1298,7 @@ async function main() {
     if (page) page.close();
     await stopChrome(chrome);
     await rm(profile, { recursive: true, force: true });
+    if (nativeFixture) await rm(nativeFixture, { recursive: true, force: true });
   }
 }
 

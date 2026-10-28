@@ -32,7 +32,7 @@ function checkManifest() {
   if (manifest.minimum_chrome_version !== '116') fail('manifest.json minimum_chrome_version must be 116');
   if (!manifest.chrome_url_overrides?.newtab) fail('manifest.json must override the new tab page');
 
-  for (const permission of ['tabs', 'storage', 'tabGroups', 'sidePanel', 'sessions']) {
+  for (const permission of ['tabs', 'storage', 'tabGroups', 'sidePanel', 'sessions', 'favicon']) {
     if (!manifest.permissions?.includes(permission)) {
       fail(`manifest.json is missing permission: ${permission}`);
     }

@@ -9,7 +9,8 @@ importScripts(
   'services/url-service.js',
   'services/storage-service.js',
   'services/tabs-service.js',
-  'services/search-service.js'
+  'services/search-service.js',
+  'services/legacy-bookmark-import-service.js'
 );
 
 const INTERNAL_URL_PREFIXES = ['chrome://', 'chrome-extension://', 'about:', 'edge://', 'brave://'];
@@ -308,9 +309,18 @@ chrome.omnibox.onInputEntered.addListener((text) => {
   handleOmniboxSelection(text);
 });
 
+let legacyBookmarkImporter;
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
-    if (message?.type === 'open-side-panel') {
+    if (message?.type === 'legacy-bookmark-import') {
+      const source = new URL(sender?.url || 'about:blank');
+      const expected = new URL(chrome.runtime.getURL('index.html'));
+      if (sender?.id !== chrome.runtime.id || source.protocol !== expected.protocol || source.host !== expected.host || source.pathname !== expected.pathname) throw new Error('import-sender-denied');
+      legacyBookmarkImporter ||= self.SuperTabOutLegacyImport.createImporter(chrome);
+      const result = await legacyBookmarkImporter.handle(message);
+      sendResponse({ ok: true, result });
+    } else if (message?.type === 'open-side-panel') {
       await openSidePanel(sender.tab);
       sendResponse({ ok: true });
     } else if (message?.type === 'save-current-session') {

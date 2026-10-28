@@ -1,0 +1,333 @@
+/* Native bookmark browser, layered on the existing workspace/theme shell. */
+.native-shell.bookmark-shell {
+  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-areas: none;
+  gap: 16px;
+}
+.native-shell > * { grid-area: auto; min-width: 0; }
+.native-topline, .native-status, .native-upgrade {
+  max-width: var(--workspace-max-width);
+  margin: 0 auto 18px;
+}
+.native-topline { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.native-topline p { margin: 0 auto 0 0; padding: 9px 12px; border-radius: 8px; color: var(--ink); background: var(--card-bg); }
+.native-status:empty { display: none; }
+.native-folder-toggle { display: none; }
+.native-topline button, .native-main button, .native-sidebar button, .native-main select {
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.native-topline button, .native-main select, .native-folder-tools > button,
+.native-legacy button, .native-more, .native-main .bookmark-empty button {
+  border: 1px solid color-mix(in srgb, var(--ink) 24%, transparent);
+  border-radius: 8px;
+  padding: 9px 12px;
+  background: var(--card-bg);
+}
+.native-main button:hover, .native-sidebar button:hover { background: color-mix(in srgb, var(--ink) 8%, var(--card-bg)); }
+.native-main :is(button, a, select):focus-visible, .native-sidebar :is(button, summary):focus-visible,
+.native-topline button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.native-main button:disabled { opacity: .55; cursor: default; }
+.native-sidebar.bookmark-library-panel {
+  padding: 18px 12px;
+  display: flex;
+  min-height: 480px;
+  height: calc(100dvh - 140px);
+  max-height: calc(100dvh - 170px);
+  background: var(--native-sidebar-surface);
+}
+.native-sidebar h2 { font-size: 14px; margin: 0 10px 14px; font-weight: 650; }
+.native-folder-nav.bookmark-library-nav {
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  min-height: 100px;
+  flex: 1;
+  padding: 0 4px 12px;
+}
+.native-folder-nav.bookmark-library-nav::-webkit-scrollbar { width: 6px; }
+.native-folder-nav button {
+  border: 0; border-radius: 6px; background: transparent;
+  text-align: left; min-height: 36px; padding: 6px 8px;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.native-folder-nav > button { width: 100%; margin-bottom: 8px; }
+.native-tree-row { display: grid; grid-template-columns: 24px minmax(0, 1fr); padding-left: calc(var(--depth) * 12px); }
+.native-tree-row .native-tree-toggle { padding: 2px; text-align: center; font-size: 20px; }
+.native-folder-nav button[aria-current="page"] { background: var(--native-selection); font-weight: 650; }
+.native-legacy { margin: 14px 8px 0; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--ink) 18%, transparent); font-size: 12px; }
+.native-legacy summary { cursor: pointer; padding: 4px 0; }
+.native-legacy p { line-height: 1.6; margin: 10px 0; }
+.native-main { padding: 20px 24px; background: var(--native-main-surface); border-radius: 14px; min-height: calc(100dvh - 140px); }
+.native-breadcrumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; padding: 4px 0; }
+.native-breadcrumbs button { border: 0; border-radius: 4px; background: transparent; padding: 4px; white-space: normal; overflow-wrap: anywhere; max-width: 100%; text-align: left; flex: none; font-size: 13px; }
+.native-main .native-breadcrumbs button:hover { background: transparent; color: var(--native-accent); text-decoration: underline; text-underline-offset: 3px; }
+.native-content-heading { display: flex; align-items: baseline; gap: 14px; margin: 18px 0; }
+.native-content-heading h1 { margin: 0; font-size: 24px; line-height: 1.35; overflow-wrap: anywhere; }
+.native-content-heading > span { font-size: 12px; white-space: nowrap; }
+.native-folder-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 24px; font-size: 12px; }
+.native-folder-tools label { display: flex; align-items: center; gap: 8px; }
+.native-folder-tools .bookmark-view-toggle { margin-left: auto; }
+.native-folder-tools .bookmark-view-toggle button[aria-pressed="true"] { background: var(--card-bg); color: var(--ink); }
+.native-grid.bookmark-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); grid-auto-rows: max-content; align-content: start; gap: 12px 8px; }
+.native-list.bookmark-list { display: flex; flex-direction: column; gap: 0; }
+.native-item { position: relative; min-width: 0; border-radius: 8px; }
+.native-item:hover { background: color-mix(in srgb, var(--card-bg) 80%, transparent); }
+.native-item-primary { display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: var(--ink); text-decoration: none; width: 100%; min-width: 0; padding: 14px 36px 14px 10px; text-align: left; }
+.native-grid .native-item-primary { flex-direction: column; padding: 18px 12px; text-align: center; }
+.native-item-icon { display: grid; place-items: center; width: 42px; height: 42px; flex: none; border-radius: 10px; background: transparent; font-size: 15px; font-weight: 650; }
+.native-item-icon.is-folder { background: transparent; }
+.native-item-icon svg { width: 34px; height: 34px; }
+.native-item-label { display: block; min-width: 0; max-width: 100%; }
+.native-item-label strong, .native-item-label small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.native-item-label strong { font-size: 14px; font-weight: 550; }
+.native-item-label small { font-size: 12px; margin-top: 5px; color: var(--native-secondary); }
+.native-main .native-copy { position: absolute; right: 4px; top: 12px; border: 0; padding: 6px; border-radius: 5px; background: transparent; font-size: 16px; }
+.native-item-path { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: -6px 36px 12px 64px; overflow-wrap: anywhere; font-size: 12px; }
+.native-item-path button { border: 0; background: transparent; text-decoration: underline; font-size: 12px; padding: 4px; }
+.native-list > .native-item + .native-item { border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); border-radius: 0; }
+.native-main .bookmark-empty { padding: 50px 20px; color: var(--ink); }
+.native-main .bookmark-empty h2 { font-size: 20px; }
+.native-main .bookmark-empty p { max-width: 56ch; margin: 12px auto 20px; line-height: 1.65; color: var(--ink); }
+.native-skeleton { display: flex; gap: 16px; justify-content: center; }
+.native-skeleton i { display: block; width: 90px; height: 60px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.native-more { display: block; margin: 24px auto 0; }
+.native-main [hidden], .native-shell [hidden], #bookmarkImportButton[hidden], #bookmarkPermissionRemove[hidden] { display: none !important; }
+@media (max-width: 1000px) {
+  .native-shell.bookmark-shell { grid-template-columns: 200px minmax(0, 1fr); gap: 16px; }
+  .native-main { padding: 18px; }
+}
+@media (max-width: 720px) {
+  .native-shell.bookmark-shell { display: flex; flex-direction: column; width: 100%; }
+  .native-folder-toggle { display: block; }
+  .native-topline { gap: 8px; }
+  .native-topline p { flex-basis: 100%; font-size: 13px; }
+  .native-sidebar.bookmark-library-panel { display: none; width: 100%; position: static; min-height: 0; max-height: 340px; }
+  .native-sidebar.bookmark-library-panel.is-open { display: flex; }
+  .native-folder-nav.bookmark-library-nav { overflow-x: hidden; overflow-y: auto; }
+  .native-main { width: 100%; padding: 14px; }
+  .native-grid.bookmark-grid { grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); }
+  .native-content-heading h1 { font-size: 21px; }
+  .native-folder-tools .bookmark-view-toggle { margin-left: 0; }
+  .native-folder-tools { gap: 8px; }
+  .native-main .bookmark-empty { padding: 30px 10px; }
+}
+
+.native-upgrade { padding: 10px 14px; background: var(--content-card-surface); border-radius: 8px; color: var(--ink); font-size: 13px; }
+.native-item-icon { position: relative; }
+.native-item-icon img { position: absolute; inset: 9px; width: 24px; height: 24px; background: var(--card-bg); }
+.native-upgrade[hidden] { display: none; }
+
+body.app-navigation-ready .bookmark-toolbar { min-height: 0; margin-bottom: 0; }
+@media (min-width: 1180px) {
+  .native-topline, .native-status, .native-upgrade { width: min(var(--workspace-max-width), calc(100vw - var(--command-dock-safe-area, 92px))); }
+}
+@media (max-width: 720px) {
+  .native-topline p { order: -1; }
+}
+
+/* Approved library layout inside the existing full-screen swipe workspace. */
+.bookmark-workspace {
+  --native-main-surface: var(--content-card-surface);
+  --native-sidebar-surface: var(--content-card-surface);
+  --native-selection: color-mix(in srgb, var(--accent-slate) 22%, transparent);
+  --native-secondary: color-mix(in srgb, var(--ink) 78%, var(--card-bg));
+}
+.native-sidebar.bookmark-library-panel, .native-main {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--glass-line);
+  box-shadow: none;
+}
+.native-sidebar h2 { font-size: 17px; margin: 4px 12px 20px; }
+.native-folder-nav button { min-height: 40px; }
+.native-folder-nav .native-tree-folder { display: flex; align-items: center; gap: 9px; }
+.native-tree-folder svg { width: 19px; height: 19px; flex: none; }
+.native-tree-folder > span:first-of-type { overflow: hidden; text-overflow: ellipsis; }
+.native-tree-folder .native-tree-count { margin-left: auto; color: var(--native-secondary); font-size: 12px; }
+.native-panel-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.native-breadcrumbs { min-width: 0; color: var(--native-secondary); }
+.native-management { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.native-management button { border: 0; background: transparent; padding: 8px; border-radius: 7px; font-size: 12px; }
+.native-content-heading { margin: 22px 0 18px; }
+.native-content-heading h1 { font-size: 28px; letter-spacing: -.02em; }
+.native-content-heading > span { color: var(--native-secondary); }
+.native-folder-tools { margin-bottom: 22px; }
+.native-folder-tools > button, .native-main select { background: var(--glass-surface); border-color: var(--glass-line-soft); }
+.native-folder-tools .bookmark-view-toggle { background: var(--glass-surface); }
+.native-folder-tools .bookmark-view-toggle button[aria-pressed="true"] { background: var(--native-selection); }
+.native-folder-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.native-folder-strip .native-item { background: var(--glass-surface-soft); border: 1px solid var(--glass-line); border-radius: 10px; }
+.native-folder-strip .native-item-primary { padding: 12px; min-height: 68px; }
+.native-folder-strip .native-item-icon { width: 28px; height: 32px; }
+.native-folder-strip .native-item-icon svg { width: 28px; height: 28px; }
+.native-list > .native-item > .native-item-primary { min-height: 72px; padding: 12px 46px 12px 14px; }
+.native-list .native-item-icon:not(.is-folder) { width: 36px; height: 36px; border-radius: 9px; background: var(--glass-surface); }
+.native-list .native-item-icon img { inset: 6px; }
+.native-list .native-item-label strong { font-size: 15px; }
+.native-list .native-item:hover, .native-list .native-item:focus-within { background: var(--native-selection); border-radius: 8px; }
+.native-main .native-copy { top: 20px; right: 10px; opacity: 0; }
+.native-item:hover .native-copy, .native-item:focus-within .native-copy { opacity: 1; }
+.native-readonly { margin: 22px 0 0; color: var(--native-secondary); font-size: 12px; }
+.native-status:not(:empty) { padding: 10px 14px; background: var(--native-main-surface); border-radius: 8px; font-size: 13px; }
+.native-mobile-tools { display: none; }
+.native-legacy { color: var(--native-secondary); }
+.native-legacy #nativeUpgrade { margin: 10px 0; }
+@media (hover: none) { .native-main .native-copy { opacity: 1; } }
+@media (max-width: 1000px) {
+  .native-panel-topline { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .native-folder-strip { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+}
+@media (max-width: 720px) {
+  .native-mobile-tools { display: block; margin-bottom: 12px; }
+  .native-mobile-tools button { font: inherit; color: var(--ink); padding: 9px 14px; border: 1px solid var(--glass-line); border-radius: 8px; background: var(--native-main-surface); }
+  .native-sidebar.bookmark-library-panel { height: auto; min-height: 0; margin-bottom: 0; }
+  .native-main { min-height: 420px; }
+  .native-content-heading h1 { font-size: 24px; }
+  .native-folder-tools label > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .native-folder-tools .bookmark-view-toggle { margin-left: auto; }
+  .native-folder-tools > button { order: 1; }
+  .native-folder-strip { grid-template-columns: 1fr; }
+  .native-main .native-copy { opacity: 1; }
+}
+
+.native-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 20px 0 24px; flex-wrap: wrap; }
+.native-heading-row .native-content-heading { margin: 0; }
+.native-heading-row .native-folder-tools { margin: 0; }
+.native-folder-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.native-folder-strip .native-item-label strong { font-size: 14px; }
+@media (max-width: 1180px) {
+  .native-heading-row { align-items: flex-start; flex-direction: column; gap: 16px; }
+  .native-heading-row .native-folder-tools { width: 100%; }
+  .native-folder-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .native-folder-strip { grid-template-columns: 1fr; }
+}
+
+/* Match the approved frosted screen: color remains visible through the panels. */
+.bookmark-workspace {
+  --native-selection: rgb(59 130 246 / 15%);
+  --native-accent: #175bc9;
+}
+.native-sidebar h2 { font-size: 19px; }
+.native-folder-nav button { font-size: 14px; min-height: 44px; }
+.native-tree-row .native-tree-toggle svg { width: 14px; height: 14px; }
+.native-folder-nav button[aria-current="page"],
+.native-folder-tools .bookmark-view-toggle button[aria-pressed="true"] { color: var(--native-accent); }
+.native-tree-folder svg { width: 21px; height: 21px; }
+.native-item-icon.is-folder { color: #c48a18; }
+.native-item-icon.is-folder svg { fill: #f3c448; stroke-width: 1.2; }
+.native-folder-strip .native-item-icon, .native-folder-strip .native-item-icon svg { width: 32px; height: 32px; }
+.native-folder-strip .native-item { background: rgb(255 255 255 / 22%); }
+.native-list .native-item-label strong { font-size: 16px; font-weight: 550; }
+.native-list .native-item-label small { font-size: 13px; }
+.native-item-icon .native-site-placeholder { width: 25px; height: 25px; color: var(--native-secondary); }
+.native-item-icon:has(img) .native-site-placeholder { visibility: hidden; }
+.native-list .native-item-icon:not(.is-folder) { background: transparent; }
+.native-item-icon img { background: transparent; object-fit: contain; }
+.native-list .native-item-icon img { inset: 2px; width: 32px; height: 32px; }
+.native-main .native-copy svg { display: block; width: 18px; height: 18px; }
+.native-list > .native-item { flex-shrink: 0; }
+.native-folder-strip { flex-shrink: 0; }
+.native-folder-nav, .native-list, .native-grid { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 24%, transparent) transparent; }
+.native-folder-nav::-webkit-scrollbar, .native-list::-webkit-scrollbar, .native-grid::-webkit-scrollbar { width: 6px; }
+.native-folder-nav::-webkit-scrollbar-thumb, .native-list::-webkit-scrollbar-thumb, .native-grid::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink) 24%, transparent); border-radius: 6px; }
+@media (min-width: 721px) {
+  body.app-navigation-ready[data-workspace="bookmarks"] { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+  body.app-navigation-ready[data-workspace="bookmarks"] .app-navigation { flex: none; }
+  body.app-navigation-ready[data-workspace="bookmarks"] .bookmark-workspace { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; padding-bottom: 32px; }
+  .native-shell.bookmark-shell { flex: 1; min-height: 0; align-items: stretch; }
+  .native-sidebar.bookmark-library-panel { position: static; height: auto; min-height: 0; max-height: none; }
+  .native-main { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .native-panel-topline, .native-heading-row, .native-readonly, .native-more { flex-shrink: 0; }
+  .native-list, .native-grid { min-height: 0; overflow-y: auto; padding-right: 5px; }
+  .native-readonly { margin-top: auto; padding-top: 16px; }
+  .native-status { flex: none; width: 100%; }
+}
+:is([data-theme="midnight"], [data-theme="graphite"], [data-theme="ember"]) .bookmark-workspace { --native-accent: #9fc3ff; }
+@media (prefers-color-scheme: dark) { [data-theme="system"] .bookmark-workspace { --native-accent: #9fc3ff; } }
+
+/* Hide the navigation scrollbar in every state while preserving native scrolling. */
+.native-folder-nav.bookmark-library-nav { scrollbar-width: none; }
+.native-folder-nav.bookmark-library-nav::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* Explicit import preview and progress; no overlay is opened without a user action. */
+.native-legacy .native-import-trigger { display: block; width: 100%; margin-bottom: 8px; color: var(--native-accent); }
+.native-import-dialog { margin: auto; width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); padding: 24px; border: 1px solid var(--glass-line); border-radius: 16px; background: var(--card-bg); color: var(--ink); font: 14px/1.55 var(--font-sans); overflow-y: auto; }
+.native-import-dialog::backdrop { background: rgb(0 0 0 / 35%); }
+.native-import-dialog header, .native-import-dialog .native-import-actions, .native-import-options { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.native-import-dialog header { justify-content: space-between; }
+.native-import-dialog h2 { margin: 0; font-size: 22px; }
+.native-import-dialog h3 { margin-bottom: 10px; font-size: 18px; }
+.native-import-dialog .native-import-actions { justify-content: flex-end; margin-top: 20px; }
+.native-import-dialog button, .native-import-dialog select { color: var(--ink); font: inherit; background: color-mix(in srgb, var(--ink) 5%, var(--card-bg)); border: 1px solid var(--glass-line-soft); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+.native-import-dialog button:hover { background: color-mix(in srgb, var(--ink) 10%, var(--card-bg)); }
+.native-import-dialog :is(button, input, select):focus-visible { outline: 2px solid var(--accent-amber); outline-offset: 2px; }
+.native-import-dialog button:disabled { opacity: .5; cursor: default; }
+.native-import-dialog .native-import-primary { background: var(--ink); color: var(--card-bg); }
+.native-import-destination { display: flex; align-items: center; gap: 12px; }
+.native-import-destination select { flex: 1; min-width: 0; max-width: 100%; }
+.native-import-summary { font-weight: 600; }
+.native-import-note, .native-import-item small, .native-import-issue small { color: color-mix(in srgb, var(--ink) 80%, var(--card-bg)); font-size: 12px; }
+.native-import-options { margin: 20px 0 12px; }
+.native-import-options span { margin-left: auto; }
+.native-import-items { max-height: 350px; overflow-y: auto; }
+.native-import-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--glass-line-soft); cursor: pointer; }
+.native-import-item input { margin-top: 5px; flex: none; }
+.native-import-item > span { min-width: 0; }
+.native-import-item strong, .native-import-item small, .native-import-kind, .native-import-issue small { display: block; overflow-wrap: anywhere; }
+.native-import-kind { font-size: 12px; margin-top: 5px; }
+.native-import-issue { padding: 14px 0; border-bottom: 1px solid var(--glass-line-soft); }
+.native-import-issue select { max-width: 100%; display: block; margin: 8px 0; }
+.native-import-dialog progress { width: 100%; accent-color: var(--accent-sage); }
+#legacyImportFeedback:empty { display: none; }
+@media (max-width: 600px) { .native-import-dialog { padding: 18px; } .native-import-destination { align-items: stretch; flex-direction: column; gap: 6px; } }
+
+.native-main .native-manage { flex: none; padding: 6px 10px; min-width: 32px; min-height: 32px; font-size: 20px; border: 0; background: transparent; color: var(--ink); border-radius: 8px; cursor: pointer; }
+.native-main .native-manage:hover { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.native-manage:focus-visible { outline: 2px solid var(--native-accent); outline-offset: 2px; }
+.native-management-dialog { width: min(520px, calc(100vw - 32px)); overflow-wrap: anywhere; }
+.native-management-dialog fieldset { border: 1px solid var(--glass-line); border-radius: 8px; min-width: 0; }
+.native-destination-tree { max-height: 40dvh; overflow: auto; }
+.native-destination-tree details > div { padding-left: 18px; }
+.native-destination-tree label { display: inline-block; padding: 7px 4px; cursor: pointer; }
+.native-management-error { color: var(--ink); }
+.native-main .native-manage { position: absolute; right: 8px; top: 12px; }
+.native-main .native-copy { right: 44px; }
+.native-list .native-item-primary { padding-right: 82px; }
+/* Compact launcher layout: content-sized rows, unboxed original favicons. */
+.native-grid .native-item-primary { padding: 22px 8px 12px; gap: 10px; }
+.native-grid .native-item { border-radius: 14px; }
+.native-grid .native-item:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.native-grid .native-item-icon { width: 48px; height: 48px; background: transparent; border-radius: 0; }
+.native-grid .native-item-icon img { inset: 0; width: 48px; height: 48px; object-fit: contain; }
+.native-grid .native-item-icon svg { width: 44px; height: 44px; }
+.native-grid .native-item-label { width: 100%; }
+.native-grid .native-item-label strong { font-size: 14px; line-height: 1.4; font-weight: 600; }
+.native-grid .native-item-label small { display: none; }
+.native-grid .native-manage { top: 2px; right: 2px; opacity: 0; }
+.native-grid .native-copy { top: 2px; right: 34px; }
+.native-grid .native-item:hover .native-manage,
+.native-grid .native-item:focus-within .native-manage { opacity: 1; }
+@media (hover: none) { .native-grid .native-manage { opacity: 1; } }
+.native-management-dialog form > label { display: grid; gap: 6px; margin: 16px 0; }
+.native-management-dialog form input { width: 100%; box-sizing: border-box; padding: 10px; background: var(--card-bg); color: var(--ink); border: 1px solid var(--glass-line); border-radius: 8px; font: inherit; }
+[data-drop-position="inside"] { outline: 2px solid var(--native-accent); outline-offset: -2px; }
+[data-drop-position="before"] { box-shadow: inset 0 3px var(--native-accent); }
+[data-drop-position="after"] { box-shadow: inset 0 -3px var(--native-accent); }
+.native-context-menu { position: fixed; inset: auto; margin: 0; padding: 6px; min-width: 160px; border: 1px solid var(--glass-line); border-radius: 10px; background: var(--card-bg); color: var(--ink); box-shadow: 0 8px 28px #0003; }
+.native-context-menu button { display: block; width: 100%; padding: 10px 14px; text-align: left; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; border-radius: 6px; }
+.native-context-menu button:hover, .native-context-menu button:focus-visible { background: color-mix(in srgb, var(--ink) 10%, transparent); outline: 2px solid var(--accent-amber); outline-offset: -2px; }
+#settingsPaneGeneral .native-sort { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+#nativeStartupMode { padding: 8px 12px; border: 1px solid var(--glass-line); border-radius: 8px; background: var(--card-bg); color: var(--ink); font: inherit; }
+/* Destructive actions remain explicit in both light and dark themes. */
+.native-context-menu { --native-danger-ink: #b42318; }
+.native-context-menu .native-danger { color: var(--native-danger-ink); border-top: 1px solid var(--glass-line); margin-top: 4px; border-radius: 0 0 6px 6px; }
+.native-context-menu .native-danger:hover, .native-context-menu .native-danger:focus-visible { background: color-mix(in srgb, var(--native-danger-ink) 10%, var(--card-bg)); }
+.native-import-dialog .native-import-primary.native-danger { background: #b42318; color: #fff; border-color: #b42318; }
+.native-import-dialog .native-import-primary.native-danger:hover { background: #912018; }
+:is([data-theme="midnight"], [data-theme="graphite"], [data-theme="ember"]) .native-context-menu { --native-danger-ink: #ffaaa4; }
+@media (prefers-color-scheme: dark) { [data-theme="system"] .native-context-menu { --native-danger-ink: #ffaaa4; } }

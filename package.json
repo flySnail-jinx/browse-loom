@@ -1,6 +1,6 @@
 {
   "name": "browse-loom",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "private": true,
   "description": "A calm, local-first workspace for tabs, bookmarks, and browsing sessions.",
   "scripts": {
@@ -12,7 +12,8 @@
     "capture:store-assets": "node scripts/capture-store-screenshots.mjs",
     "test": "node tests/run-tests.mjs",
     "test:browser": "node scripts/test-chrome-extension.mjs",
-    "validate": "npm run package && node scripts/validate-extension.mjs"
+    "validate": "npm run package && node scripts/validate-extension.mjs",
+    "test:bookmarks": "node scripts/test-chrome-extension.mjs --native-bookmarks"
   },
   "engines": {
     "node": ">=18"

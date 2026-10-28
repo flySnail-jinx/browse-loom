@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="backgrounds/backgrounds.css">
   <link rel="stylesheet" href="bookmarks.css">
   <link rel="stylesheet" href="search-engines.css">
+  <link rel="stylesheet" href="native-bookmarks.css">
 
   <!-- Apply saved theme before body paints (avoids flash of default palette) -->
   <script src="theme-init.js"></script>
@@ -255,6 +256,7 @@
 
         <section class="settings-pane active" id="settingsPaneGeneral" data-settings-pane="general" aria-labelledby="settingsTabGeneral">
           <header class="settings-pane-header"><h2 data-i18n="generalSettings">General</h2></header>
+          <div class="settings-section"><div class="settings-field"><label class="native-sort"><span data-bookmark-copy="startup">When opening bookmarks</span><select id="nativeStartupMode"><option value="last" data-bookmark-copy="startupLast">Restore last state</option><option value="root" data-bookmark-copy="startupRoot">Always show top level</option></select></label></div></div>
           <div class="settings-section">
             <div class="settings-field">
               <div class="settings-field-label" id="defaultWorkspaceLabel" data-i18n="defaultWorkspaceLabel">Default page</div>
@@ -433,27 +435,12 @@ When enabled, website domains are sent to DuckDuckGo to fetch icons.
 Recipient: icons.duckduckgo.com</p>
           </div>
           <div class="settings-section settings-data-section">
-            <div class="settings-section-title" data-bookmark-copy="importBrowserBookmarks">Import bookmarks</div>
-            <div class="bookmark-settings-section-heading">
-              <span class="bookmark-settings-section-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V21l-5-3-5 3V4.75Z"></path></svg>
-              </span>
-              <div>
-                <h3 data-bookmark-copy="importBrowserBookmarks">Import bookmarks</h3>
-                <p data-bookmark-copy="importBrowserBookmarksBody">Copy this browser's bookmarks here.</p>
-              </div>
-            </div>
-            <div class="bookmark-import-note">
-              <strong data-bookmark-copy="importPrivacyTitle">Read during import</strong>
-              <p data-bookmark-copy="importPrivacyBody">The permission prompt says “read and change bookmarks”.
-Bookmarks are only read during import.
-The browser's original bookmarks stay unchanged.</p>
-            </div>
-            <button class="bookmark-import-button" id="bookmarkImportButton" type="button" data-bookmark-action="import-browser-bookmarks">
-              <span data-bookmark-copy="importNow">Start import</span>
-            </button>
-            <p class="bookmark-import-status" id="bookmarkImportStatus" role="status" aria-live="polite"></p>
-            <button class="bookmark-permission-remove" id="bookmarkPermissionRemove" type="button" data-bookmark-action="remove-bookmark-permission" data-bookmark-copy="removeBookmarkAccess" hidden>Remove access</button>
+            <div class="settings-section-title" data-bookmark-copy="bookmarks">Bookmarks</div>
+            <p data-bookmark-copy="access">Display existing browser bookmarks without importing a copy.</p>
+            <p class="bookmark-import-note" data-bookmark-copy="disclosure">This stage only reads bookmarks.</p>
+            <button class="bookmark-import-button" id="bookmarkImportButton" type="button" data-native-action="connect" data-bookmark-copy="connect">Connect browser bookmarks</button>
+            <p id="bookmarkImportStatus" role="status" aria-live="polite"></p>
+            <button class="bookmark-permission-remove" id="bookmarkPermissionRemove" type="button" data-native-action="disconnect" data-bookmark-copy="disconnect" hidden>Remove access</button>
           </div>
         </section>
 
@@ -596,59 +583,55 @@ The browser's original bookmarks stay unchanged.</p>
       <input id="bookmarkSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Search bookmarks" aria-label="Search bookmarks">
       <kbd>/</kbd>
     </div>
-    <div class="bookmark-toolbar-actions">
-      <div class="bookmark-view-toggle" id="bookmarkViewToggle" role="tablist" data-bookmark-copy-aria-label="bookmarkView" aria-label="Bookmark layout">
-        <button type="button" data-bookmark-view="grid" aria-label="Icon view" title="Icon view">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg>
-        </button>
-        <button type="button" data-bookmark-view="list" aria-label="List view" title="List view">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg>
-        </button>
-      </div>
-    </div>
   </header>
-
-  <div class="bookmark-shell">
-    <aside class="bookmark-library-panel">
-      <div class="bookmark-library-brand">BrowseLoom</div>
-      <nav class="bookmark-library-nav" id="bookmarkLibraryNav" aria-label="Bookmark folders"></nav>
-      <button class="bookmark-add-trigger" type="button" data-bookmark-action="add-category" data-bookmark-copy-aria-label="addCategory" aria-label="Add category" title="Add category">
-        <span aria-hidden="true">＋</span>
-        <span class="bookmark-add-label" data-bookmark-copy="addCategory">New category</span>
-      </button>
-      <button class="bookmark-import-trigger" type="button" data-action="open-settings" data-settings-view="data">
-        <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5"></path><path d="M5 19h14"></path></svg></span>
-        <span class="bookmark-import-trigger-label" data-bookmark-copy="importBrowserBookmarks">Import bookmarks</span>
-      </button>
+  <div class="native-mobile-tools"><button class="native-folder-toggle" type="button" data-native-action="folders" aria-expanded="false" aria-controls="nativeSidebar" data-bookmark-copy="folders">Folders</button></div>
+  <p id="nativeStatus" class="native-status" role="status" aria-live="polite"></p>
+  <div class="bookmark-shell native-shell">
+    <aside class="bookmark-library-panel native-sidebar" id="nativeSidebar">
+      <h2 data-bookmark-copy="folders">Folders</h2>
+      <nav class="bookmark-library-nav native-folder-nav" id="bookmarkLibraryNav" aria-label="Bookmark folders"></nav>
+      <details id="nativeLegacy" class="native-legacy" hidden>
+        <summary data-bookmark-copy="legacy">Old extension bookmarks</summary>
+        <p id="nativeUpgrade" data-bookmark-copy="upgrade" hidden></p>
+        <p data-bookmark-copy="legacyBody"></p>
+        <button type="button" class="native-import-trigger" data-native-action="import-legacy" data-bookmark-copy="importLegacy">Import into Chrome</button>
+        <button type="button" data-native-action="export" data-bookmark-copy="export">Export old bookmarks</button>
+      </details>
     </aside>
-
-    <main class="bookmark-main" id="bookmarkMain">
-      <div class="bookmark-grid" id="bookmarkGrid"></div>
-      <div class="bookmark-list" id="bookmarkList" hidden></div>
-      <div class="bookmark-empty" id="bookmarkEmpty" hidden>
-        <button class="bookmark-empty-icon" type="button" data-bookmark-action="open-add-menu" aria-haspopup="menu" aria-controls="bookmarkAddMenu" aria-expanded="false" data-bookmark-copy-aria-label="add" aria-label="Add">＋</button>
-        <h2 data-bookmark-copy="emptyTitle">Add your first bookmark</h2>
-        <p data-bookmark-copy="emptyBody">Add a bookmark or folder.
-Content stays in this extension in your current browser.</p>
-        <button class="bookmark-empty-import" type="button" data-action="open-settings" data-settings-view="data" data-bookmark-copy="importBrowserBookmarks">Import bookmarks</button>
-        <div class="local-search-fallback bookmark-search-fallback" id="bookmarkSearchFallback" hidden>
-          <div class="local-search-fallback-actions" data-search-fallback-actions="bookmarks"></div>
+    <main class="bookmark-main native-main" id="bookmarkMain">
+      <div class="native-panel-topline">
+        <nav class="native-breadcrumbs" id="nativeBreadcrumbs" aria-label="Location"></nav>
+        <div class="native-management"><button type="button" data-native-action="manager" data-bookmark-copy="manager">Manage in browser</button><button type="button" data-native-action="refresh" data-bookmark-copy="refresh">Refresh</button></div>
+      </div>
+      <div class="native-heading-row">
+      <div class="native-content-heading"><h1 id="nativeFolderTitle" tabindex="-1">Browser bookmarks</h1><span id="nativeItemCount"></span></div>
+      <div class="native-folder-tools" id="nativeFolderTools" hidden>
+        <button type="button" data-native-action="context" aria-label="Bookmark actions">…</button>
+        <label><span data-bookmark-copy="sort">Display order</span>
+          <select id="nativeSort"><option value="native" data-bookmark-copy="native">Browser order</option><option value="title" data-bookmark-copy="title">Name</option><option value="added" data-bookmark-copy="added">Date added</option></select>
+        </label>
+        <div class="bookmark-view-toggle" id="bookmarkViewToggle" role="group" aria-label="Bookmark layout">
+          <button type="button" data-bookmark-view="list" aria-label="List" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          <button type="button" data-bookmark-view="grid" aria-label="Grid" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></button>
         </div>
       </div>
+      </div>
+      <div class="bookmark-grid native-grid" id="bookmarkGrid" hidden></div>
+      <div class="bookmark-list native-list" id="bookmarkList" hidden></div>
+      <div class="bookmark-empty" id="bookmarkEmpty"></div>
+      <p class="native-readonly" data-bookmark-copy="readOnly">Changes are managed in the browser for now.</p>
+      <button id="nativeMore" class="native-more" type="button" data-native-action="more" hidden>Show more</button>
     </main>
-
-    <aside class="bookmark-activity-panel bookmark-activity-recent" aria-labelledby="recentBookmarksTitle">
-      <h2 id="recentBookmarksTitle" data-bookmark-copy="recent">Recently opened</h2>
-      <div class="bookmark-activity-list" id="recentBookmarks"></div>
-    </aside>
-
-    <aside class="bookmark-activity-panel bookmark-activity-popular" aria-labelledby="popularBookmarksTitle">
-      <h2 id="popularBookmarksTitle" data-bookmark-copy="popular">Frequently opened</h2>
-      <div class="bookmark-activity-list" id="popularBookmarks"></div>
-    </aside>
   </div>
 
 </section>
+
+<dialog id="legacyImportDialog" class="native-import-dialog" aria-labelledby="legacyImportTitle">
+  <header><h2 id="legacyImportTitle"></h2><button id="legacyImportClose" type="button"></button></header>
+  <div id="legacyImportContent"></div>
+  <p id="legacyImportFeedback" role="status" aria-live="polite"></p>
+  <div id="legacyImportActions" class="native-import-actions"></div>
+</dialog>
 
 <nav class="workspace-switcher" id="workspaceSwitcher" aria-label="Workspaces">
   <button type="button" data-workspace-switch="tabs" aria-label="Tabs" aria-keyshortcuts="ArrowRight" hidden>
@@ -665,101 +648,6 @@ Content stays in this extension in your current browser.</p>
     <span class="workspace-switch-label">Bookmarks</span>
   </button>
 </nav>
-
-<div class="bookmark-add-menu" id="bookmarkAddMenu" role="menu" hidden>
-  <button type="button" role="menuitem" data-bookmark-action="add-bookmark"><span class="bookmark-add-menu-icon" aria-hidden="true">＋</span><span data-bookmark-copy="addBookmark">Add bookmark</span></button>
-  <button type="button" role="menuitem" data-bookmark-action="add-folder"><span class="bookmark-add-menu-icon" aria-hidden="true">▦</span><span data-bookmark-copy="addFolder">New folder</span></button>
-</div>
-
-<div class="bookmark-context-menu" id="bookmarkContextMenu" role="menu" hidden></div>
-
-<dialog class="bookmark-editor-dialog" id="bookmarkEditorDialog" aria-labelledby="bookmarkEditorTitle">
-  <form class="bookmark-editor" id="bookmarkEditorForm">
-    <header>
-      <button class="bookmark-dialog-back" type="button" data-close-dialog="bookmarkEditorDialog" aria-label="Close">←</button>
-      <h2 id="bookmarkEditorTitle">Add bookmark</h2>
-      <button class="bookmark-dialog-save" type="submit" data-bookmark-copy="save">Save</button>
-    </header>
-    <input id="bookmarkEditorId" type="hidden">
-    <label class="bookmark-field bookmark-field-url"><span data-bookmark-copy="url">Web address</span><input id="bookmarkUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com" required></label>
-    <label class="bookmark-field"><span data-bookmark-copy="name">Name</span><input id="bookmarkName" type="text" maxlength="160" autocomplete="off" required></label>
-    <label class="bookmark-field"><span data-bookmark-copy="note">Note</span><textarea id="bookmarkNote" maxlength="500" rows="3" placeholder="Optional"></textarea></label>
-    <div class="bookmark-editor-row">
-      <label class="bookmark-field"><span data-bookmark-copy="category">Category</span><select id="bookmarkCategory"></select></label>
-      <label class="bookmark-field"><span data-bookmark-copy="folder">Folder</span><select id="bookmarkFolder"></select></label>
-    </div>
-    <fieldset class="bookmark-icon-fieldset">
-      <legend data-bookmark-copy="icon">Icon</legend>
-      <div class="bookmark-icon-mode" role="tablist" data-bookmark-copy-aria-label="iconSource" aria-label="Icon source">
-        <button type="button" data-icon-mode="online" data-bookmark-copy="onlineIcon">Website icon</button>
-        <button type="button" data-icon-mode="color" data-bookmark-copy="colorIcon">Solid color</button>
-      </div>
-      <div class="bookmark-icon-preview" id="bookmarkIconPreview" aria-live="polite"></div>
-      <div class="bookmark-color-controls" id="bookmarkColorControls" hidden>
-        <div class="bookmark-color-palette" id="bookmarkColorPalette" data-bookmark-copy-aria-label="iconColor" aria-label="Icon color"></div>
-        <label class="bookmark-field"><span data-bookmark-copy="iconText">Icon text</span><input id="bookmarkIconText" placeholder="Enter 1–2 characters." type="text" maxlength="2" autocomplete="off"></label>
-      </div>
-    </fieldset>
-    <p class="bookmark-form-error" id="bookmarkFormError" role="alert"></p>
-  </form>
-</dialog>
-
-<dialog class="bookmark-editor-dialog folder-editor-dialog" id="folderEditorDialog" aria-labelledby="folderEditorTitle">
-  <form class="bookmark-editor" id="folderEditorForm">
-    <header>
-      <button class="bookmark-dialog-back" type="button" data-close-dialog="folderEditorDialog" aria-label="Close">←</button>
-      <h2 id="folderEditorTitle">New folder</h2>
-      <button class="bookmark-dialog-save" type="submit" data-bookmark-copy="save">Save</button>
-    </header>
-    <input id="folderEditorId" type="hidden">
-    <label class="bookmark-field"><span id="folderNameLabel" data-bookmark-copy="folderName">Folder name</span><input id="folderName" type="text" maxlength="80" autocomplete="off" required></label>
-    <label class="bookmark-field" id="folderCategoryField"><span data-bookmark-copy="category">Category</span><select id="folderCategory"></select></label>
-    <fieldset class="bookmark-category-icon-fieldset" id="categoryIconFieldset" hidden>
-      <legend data-bookmark-copy="categoryIcon">Category icon</legend>
-      <div class="bookmark-category-icon-options" id="categoryIconOptions" role="radiogroup" data-bookmark-copy-aria-label="categoryIcon" aria-label="Category icon"></div>
-    </fieldset>
-    <fieldset class="bookmark-layout-fieldset" id="folderLayoutFieldset">
-      <legend data-bookmark-copy="folderSize">Display size</legend>
-      <div class="bookmark-layout-options" id="folderLayoutOptions">
-        <button type="button" data-folder-layout="1x1"><i class="layout-swatch layout-swatch-1x1"></i><span>1 × 1</span></button>
-        <button type="button" data-folder-layout="2x1"><i class="layout-swatch layout-swatch-2x1"></i><span>2 × 1</span></button>
-        <button type="button" data-folder-layout="2x2"><i class="layout-swatch layout-swatch-2x2"></i><span>2 × 2</span></button>
-      </div>
-    </fieldset>
-    <p class="bookmark-form-error" id="folderFormError" role="alert"></p>
-  </form>
-</dialog>
-
-<dialog class="bookmark-folder-dialog" id="bookmarkFolderDialog" aria-labelledby="bookmarkFolderDialogTitle" data-folder-exit-drop>
-  <div class="bookmark-folder-exit-hint" data-bookmark-copy="dropToCategory">Drop here to move out of the folder.</div>
-  <section>
-    <header>
-      <form class="bookmark-folder-title-form" id="bookmarkFolderRenameForm">
-        <button class="bookmark-folder-title-display" id="bookmarkFolderDialogTitle" type="button" data-bookmark-action="edit-folder-name"></button>
-        <input id="bookmarkFolderDialogTitleInput" type="text" maxlength="80" autocomplete="off" data-bookmark-copy-aria-label="folderName" hidden>
-      </form>
-    </header>
-    <div class="bookmark-folder-dialog-grid" id="bookmarkFolderDialogGrid"></div>
-  </section>
-</dialog>
-
-<dialog class="bookmark-confirm-dialog bookmark-move-dialog" id="bookmarkMoveDialog" aria-labelledby="bookmarkMoveTitle">
-  <form id="bookmarkMoveForm">
-    <h2 id="bookmarkMoveTitle" data-bookmark-copy="moveBookmark">Move bookmark</h2>
-    <label class="bookmark-field"><span data-bookmark-copy="category">Category</span><select id="bookmarkMoveCategory"></select></label>
-    <label class="bookmark-field"><span data-bookmark-copy="folder">Folder</span><select id="bookmarkMoveFolder"></select></label>
-    <p class="bookmark-form-error" id="bookmarkMoveError" role="alert"></p>
-    <div><button type="button" data-close-dialog="bookmarkMoveDialog" data-bookmark-copy="cancel">Cancel</button><button class="bookmark-dialog-primary" type="submit" data-bookmark-copy="move">Move</button></div>
-  </form>
-</dialog>
-
-<dialog class="bookmark-confirm-dialog" id="bookmarkConfirmDialog" aria-labelledby="bookmarkConfirmTitle">
-  <form id="bookmarkConfirmForm">
-    <h2 id="bookmarkConfirmTitle">Delete bookmark?</h2>
-    <p id="bookmarkConfirmText"></p>
-    <div><button type="button" data-close-dialog="bookmarkConfirmDialog" data-bookmark-copy="cancel">Cancel</button><button id="bookmarkConfirmMoveToUnfiled" type="submit" data-category-delete-mode="move-to-unfiled" data-bookmark-copy="moveToUnfiled" hidden>Move to Unfiled</button><button class="danger" id="bookmarkConfirmDelete" type="submit" data-category-delete-mode="delete-all" data-bookmark-copy="delete">Delete</button></div>
-  </form>
-</dialog>
 
 <dialog class="bookmark-confirm-dialog bulk-tab-confirm-dialog" id="bulkTabConfirmDialog" aria-labelledby="bulkTabConfirmTitle" aria-describedby="bulkTabConfirmText">
   <form id="bulkTabConfirmForm">
@@ -845,12 +733,14 @@ Content stays in this extension in your current browser.</p>
 <script src="services/wallpaper-service.js"></script>
 <script src="services/storage-service.js"></script>
 <script src="services/bookmarks-service.js"></script>
+<script src="services/native-bookmarks-service.js"></script>
 <script src="services/tabs-service.js"></script>
 <script src="services/search-service.js"></script>
 <script src="services/metrics-service.js"></script>
 
 <!-- Main dashboard logic — loads last so the DOM is ready -->
 <script src="app.js"></script>
+<script src="legacy-bookmark-import-ui.js"></script>
 <script src="bookmarks.js"></script>
 <script src="search-engine-ui.js"></script>
 <script src="wallpaper-ui.js"></script>

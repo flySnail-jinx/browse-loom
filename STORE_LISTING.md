@@ -45,7 +45,7 @@ Highlights:
 - Protect pinned tabs from bulk-close and duplicate-cleanup actions
 - Detect duplicate pages and close extras while keeping one copy
 - Save tabs for later in a local checklist
-- Organize plugin-local bookmarks and optionally import a read-only copy of browser bookmarks
+- Manage native browser bookmarks: create, edit, rename, move, reorder and delete, with optional access and explicit legacy import
 - Save the current window by default or explicitly save all windows
 - Restore a saved session into the current window or recreate its window structure
 - Switch between English and Simplified Chinese
@@ -79,7 +79,7 @@ Use these explanations in the Privacy / Permissions sections if requested.
 | `tabGroups` | Required to read, create, update, collapse, and ungroup Chrome Tab Groups. |
 | `sidePanel` | Required to provide the optional side panel tab center while the user stays on the current webpage. |
 | `sessions` | Required to show and restore recently closed browser tabs/windows. |
-| `bookmarks` (optional) | Requested only when the user starts import, to read the current browser bookmark tree and copy supported links into BrowseLoom's local bookmark workspace. The browser's bookmarks are never changed. |
+| `bookmarks` (optional) | Requested when the user connects browser bookmarks. Reads the native tree and observes changes; user actions create, edit, move or delete bookmarks and folders. Legacy import creates entries only after confirmation. The old local library is retained. |
 | `https://suggestion.baidu.com/*` (optional host) | Requested only when the user enables Baidu suggestions, so the extension can fetch suggestions for text typed while any web search engine is selected. |
 
 ## Privacy Practices Answers
